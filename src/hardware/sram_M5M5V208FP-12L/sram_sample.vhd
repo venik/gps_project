@@ -1,7 +1,23 @@
+-- sample from book
+
 library ieee;
 use ieee.std_logic_1164.all;
 entity sram_ctrl is
 	port(
+		clk, reset in std_logic;
+		-- to/from main system
+		mem: in std_logic;
+		rw: in std_logic;
+		addr: in std_logic_vector(17 downto 0);
+		data_f2s: in std_logic_vector(7 downto 0);
+		ready: out std_logic;
+		data_s2f_r: data_s2f_ur: out std_logic_vector(7 downto 0);
+		-- to/from chip
+		ad: out std_logic_vector(17 downto 0);
+		we_n, oe_n: out std_logic;
+		-- sram chip
+		dio_a: inout std_logic_vector(7 downto 0);
+		ce_a_n, ub_a_n, lb_a_n: out std_logic
 	);
 end sram_ctrl;
 
