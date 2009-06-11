@@ -50,7 +50,7 @@ begin
 			data_s2f_reg <= data_s2f_next;
 			tri_reg <= tri_buf;
 			we_reg <= we_buf;
-			oe_req <= oe_buf;
+			oe_reg <= oe_buf;
 		end if;
 	end process;
 
