@@ -1,3 +1,6 @@
+-- More info in "FPGA prototyping by VHDL examples" Pong P. Chu
+-- Chapter 10
+
 -- controller M5M5V208FP-85L 
 
 library ieee;
