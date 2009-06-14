@@ -38,7 +38,6 @@ architecture arch of sram_crtl is
 
 begin
 	-- state & data registers
-	--process(clk, reset)
 	process(clk, reset)
 	begin
 		if( reset = '1') then
@@ -118,7 +117,7 @@ begin
 	end process;
 
 	-- look-ahead output logic
-	process(next_state)
+	process(state_next)
 	begin
 		tri_buf <= '1';
 		we_buf <= '1';
