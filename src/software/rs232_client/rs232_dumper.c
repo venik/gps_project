@@ -3,7 +3,7 @@
  *
  * Description: rs232 dumper - dump realtime gps-data from rs232 to file.
  *
- * Mainteiner: Alex Nikiforov nikiforov.al@gmail.com
+ * Developer: Alex Nikiforov nikiforov.al [at] gmail.com
  *
  */
 
@@ -25,10 +25,10 @@
 typedef struct rs232_data_s {
 	char	name[MAXLINE];
 	int	fd;
+	uint8_t	buf[1024];			// FIXME - correct buffer
 } rs232_data_t;
 
 /*
- * 
  * Description: open rs232 interface with name dev_name
  * Return: filedescriptor or 0 if failed
  */
@@ -37,16 +37,16 @@ int rs232_open_device(char *dev_name)
 	int fd;
 	struct termios options;
 
-	fd = open(dev_name, (O_RDWR | O_NOCTTY | O_NONBLOCK) );
+	fd = open(dev_name, (O_RDWR | O_NOCTTY | O_NONBLOCK));
 
 	if( fd == -1 ) {
-		printf("Error, cannot open rs232 device [%s]. errno %s\n", dev_name, strerror(errno));
+		printf("[ERR] cannot open rs232 device [%s]. errno %s\n", dev_name, strerror(errno));
 		return 0;
 	}
 
 	errno = 0;
 	if( tcgetattr(fd, &options) == -1 ) {
-		printf("Error, cannot get rs232 options. errno %s\n", strerror(errno));
+		printf("[ERR] cannot get rs232 options. errno %s\n", strerror(errno));
 		return 0;
 	}
 	
@@ -82,6 +82,30 @@ int rs232_open_device(char *dev_name)
 	return fd;
 }
 
+int rs232_receive(rs232_data_t	*rs232data)
+{
+	int res, todo = 10;		// FIXME - fix todo
+
+	errno = 0;
+	res = read(rs232data->fd, rs232data->buf, todo);
+
+	if( res < 0 ) {
+		if( errno != EAGAIN ) {
+			printf("[ERR] error occur while in data receiving. errno %s\n", strerror(errno));
+			return -1;
+		}
+
+		printf("[WARN] EAGAIN occur, need to do something =] \n");
+	}
+
+	if( todo != res ) {
+		printf("[WARN] need [%d], but receive [%d]\n", todo, res);
+		return 0;
+	}
+
+	return res;
+}
+
 void rs232_destroy(rs232_data_t	*rs232data)
 {
 	close(rs232data->fd);
@@ -96,7 +120,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	printf("Hello, this is rs232 dumper for GPS-project \n");
+	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
 	/* check parameters via getopt or something else */
 	//printf("try to copy [%s] \n", argv[2]);
@@ -104,10 +128,10 @@ int main(int argc, char **argv)
 
 	errno = 0;
 	rs232data.fd = rs232_open_device(rs232data.name); 
-	if( rs232data.fd == 0 ) {
-		printf("[ERR] cannot open [%s] COM-port. errno: %s\n", rs232data.name, strerror(errno));
+	if( rs232data.fd == 0 )
 		return -1;
-	}
+
+	rs232_receive(&rs232data);
 
 	rs232_destroy(&rs232data);
 
