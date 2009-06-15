@@ -63,8 +63,6 @@ int rs232_open_device(char *dev_name)
 	options.c_cc[VMIN] = 1;
 	options.c_cc[VTIME] = 5;
 
-	options.c_iflag &= ~(IXON|IXOFF|IXANY);
-	
 	/* 8N1 */
 	options.c_cflag = (options.c_cflag & ~CSIZE) | CS8;    /* mask the character size bits
 								* and  select 8 data bits */
@@ -89,15 +87,25 @@ void rs232_destroy(rs232_data_t	*rs232data)
 	close(rs232data->fd);
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
 	
+	if( argc < 3 ) {
+		printf("\n[ERR] wrong parameters, use like this \n#rs232_dumper -p /dev/rs232_port\nExiting...\n\n");
+		return -1;
+	}
+
 	printf("Hello, this is rs232 dumper for GPS-project \n");
 
+	/* check parameters via getopt or something else */
+	//printf("try to copy [%s] \n", argv[2]);
+	snprintf(rs232data.name, MAXLINE, "%s", argv[2]);
+
 	errno = 0;
-	rs232data.fd = rs232_open_device("/dev/ttyS0"); 
+	rs232data.fd = rs232_open_device(rs232data.name); 
 	if( rs232data.fd == 0 ) {
+		printf("[ERR] cannot open [%s] COM-port. errno: %s\n", rs232data.name, strerror(errno));
 		return -1;
 	}
 
