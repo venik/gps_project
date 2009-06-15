@@ -116,7 +116,7 @@ begin
 end process;
 
 -- next state logic 
-process(rs232_clk, tx_start, rs232_state, din)
+process(rs232_clk, tx_start, rs232_state, din, rs232_value, rs232_next_state)
 begin
 	tx_done_tick <= '0' ;
 	
@@ -147,7 +147,8 @@ begin
 			else
 				-- FIXME
 				--rs232_out <= to_stdulogic(rs232_value(rs232_counter));
-				rs232_out <= '1' ;
+				--rs232_out <= '1' ;
+				rs232_out <= rs232_value(rs232_counter);
 				rs232_counter <= rs232_counter + 1 ;
 			end if;
 	
@@ -156,6 +157,8 @@ begin
 			rs232_out <= '1' ;	-- stop bit
 			rs232_next_state <= idle ;
 			tx_done_tick <= '1' ;
+
+		when others => NULL ;
 							
 		end case;
 
