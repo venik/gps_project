@@ -1,3 +1,18 @@
+-----------------------------------------------------------
+-- TX rs232 module for FPGA
+--
+--  --------------
+--  |            | -->	rs232_out - out in hardware port
+--  |            | <--	din - input byte
+--  |   FPGA     | <--	tx_start - signal to start transfer
+--  |            | -->	tx_done_tick - transfer done
+--  |            | <--	reset - you know what is it
+--  |            | <--	clk - tick-tack
+--  --------------
+--
+--  Developer: Alex Nikiforov nikiforov.al [at] gmail.com
+-----------------------------------------------------------
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
@@ -12,7 +27,7 @@ entity rs232_tx is
     	Port (	clk : in STD_LOGIC ;
 		reset : in STD_LOGIC ; -- FIXME ucf-file
 		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
-		rs232_out : out std_logic ;
+		rs232_out, tx_done_tick : out std_logic ;
 		tx_start : in std_logic
 	     );
 end rs232_tx;
@@ -103,6 +118,8 @@ end process;
 -- next state logic 
 process(rs232_clk, tx_start, rs232_state, din)
 begin
+	tx_done_tick <= '0' ;
+	
 	if( rs232_clk = '1') then 
 
 		case rs232_state is
@@ -138,6 +155,7 @@ begin
 		when stop =>
 			rs232_out <= '1' ;	-- stop bit
 			rs232_next_state <= idle ;
+			tx_done_tick <= '1' ;
 							
 		end case;
 
