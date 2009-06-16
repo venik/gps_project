@@ -1,4 +1,4 @@
-This is academic gps project. Our main goal - create board with open architecture, create software and hardware code and public it. Board will send gps in raw format into network via USB iterface and server-side software
+This is academic gps project. Our main goal - create board with open architecture, create software and hardware code and public it. Board will send gps in raw format into network via USB interface and server-side software
 (maybe via PCI bus directly into a PC). Any client can connect to the gps-board and get raw data. Mainly project orient for university DSP-course.
 
 First version will contain: RS-232 port, 256K SRAM memory, hardware manegement code in VHDL for Xilinx Spartan,  and software for PC.
