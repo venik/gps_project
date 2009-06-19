@@ -1,7 +1,7 @@
 /*
  * Private property of IT6-DSPLAB group. 
  *
- * Description: rs232 dumper - dump realtime gps-data from rs232 to file.
+ * Description: rs232 dumper - dump realtime gps-data from rs232 to a output file.
  *
  * Developer: Alex Nikiforov nikiforov.al [at] gmail.com
  *
@@ -37,7 +37,7 @@ int rs232_open_device(char *dev_name)
 	int fd;
 	struct termios options;
 
-	fd = open(dev_name, (O_RDWR | O_NOCTTY | O_NONBLOCK));
+	fd = open(dev_name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
 
 	if( fd == -1 ) {
 		printf("[ERR] cannot open rs232 device [%s]. errno %s\n", dev_name, strerror(errno));
@@ -86,6 +86,8 @@ int rs232_receive(rs232_data_t	*rs232data)
 {
 	int res, todo = 10;		// FIXME - fix todo
 
+	printf("[%s] block while receiving\n", __FUNCTION__);
+
 	errno = 0;
 	res = read(rs232data->fd, rs232data->buf, todo);
 
@@ -95,12 +97,39 @@ int rs232_receive(rs232_data_t	*rs232data)
 			return -1;
 		}
 
-		printf("[WARN] EAGAIN occur, need to do something =] \n");
+		printf("[WARN] EAGAIN occur while reading, need to do something =] \n");
 	}
 
 	if( todo != res ) {
 		printf("[WARN] need [%d], but receive [%d]\n", todo, res);
 		return 0;
+	}
+
+	return res;
+}
+
+int rs232_send(rs232_data_t	*rs232data)
+{
+	uint8_t		comm = 0;
+	int 		res, todo = sizeof(comm);		// FIXME - fix todo
+
+	printf("[%s] block while sending\n", __FUNCTION__);
+
+	errno = 0;
+	res = write(rs232data->fd, &comm, todo);
+
+	if( res < 0 ) {
+		if( errno != EAGAIN ) {
+			printf("[ERR] error occur while in data sending. errno %s\n", strerror(errno));
+			return -1;
+		}
+
+		printf("[WARN] EAGAIN occur while sending, need to do something =] \n");
+	}
+
+	if( todo != res ) {
+		printf("[WARN] need [%d], but send [%d]\n", todo, res);
+		return 0; 
 	}
 
 	return res;
@@ -131,8 +160,14 @@ int main(int argc, char **argv)
 	if( rs232data.fd == 0 )
 		return -1;
 
+	/* send command */
+	if ( rs232_send(&rs232data) < 1 )
+		return -1;
+
+	/* receive data */
 	rs232_receive(&rs232data);
 
+	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);
 
 	return 0;
