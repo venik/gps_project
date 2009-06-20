@@ -2,11 +2,10 @@
 -- TX rs232 module for FPGA
 --
 --  --------------
---  |            | -->	rs232_out - out in hardware port
---  |            | <--	din - input byte
---  |   rs232    | <--	tx_start - signal to start transfer
---  |    tx      | -->	tx_done_tick - transfer done
---  |            | <--	reset - you know what is it
+--  |            | <--	rs232_in - in in hardware port
+--  |            | -->	dout - received byte 
+--  |   rs232    | <--	rx_done_tick - receive done
+--  |    rx      | <--	reset - you know what is it
 --  |            | <--	clk - tick-tack
 --  |            | <--	rs232_clk - clk at 115200 bits/sec speed 
 --  --------------
@@ -24,18 +23,17 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity rs232tx is
+entity rs232rx is
     	Port (	clk : in STD_LOGIC ;
 		reset : in STD_LOGIC ;
-		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
-		rs232_out : out std_logic ;
-		tx_done_tick : out std_logic ;
-		rs232_clk: in std_logic ;
-		tx_start : in std_logic
+		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
+		rs232_in: in std_logic ;
+		rx_done_tick : out std_logic ;
+		rs232_clk: in std_logic
 	     );
-end rs232tx;
+end rs232rx;
 
-architecture arch of rs232tx is
+architecture arch of rs232rx is
 	type rs232_type is(idle, start, data, stop);
 	signal rs232_state, rs232_next_state: rs232_type;
 	--signal rs232_state: bit_vector (2 downto 0) := "111";
@@ -50,7 +48,6 @@ begin
 
 	if( reset = '1') then
 		rs232_state <= idle;
-		--rs232_out <= '1';					
 	elsif rising_edge(clk) then
 		rs232_state <= rs232_next_state;
 	end if;
@@ -58,9 +55,9 @@ begin
 end process;
 
 -- next state logic 
-process(rs232_clk, tx_start, rs232_state, din, rs232_value, rs232_next_state)
+process(rs232_clk, rs232_state, rs232_value, rs232_next_state, rs232_in, rs232_counter)
 begin
-	tx_done_tick <= '0' ;
+	rx_done_tick <= '0' ;
 	
 	if( rs232_clk = '1') then 
 
@@ -69,36 +66,32 @@ begin
 		-- idle
 		when idle =>
 
-			if tx_start = '1' then
-				rs232_next_state <= start;
-				rs232_value <= din;
+			if( rs232_in = '0' ) then
+				rs232_next_state <= data; -- FIXME data or start?? checkit
+				rs232_value <= ( others => '0' ) ;
+				rs232_counter <= 0;
 			end if;
-
-			rs232_out <= '1';					
 
 		-- start bit
 		when start =>
-			rs232_out <= '0'; 	
 			rs232_next_state <= data;
-			rs232_counter <= 0;
 
 		-- data bit
 		when data =>
-			if rs232_counter = 8 then
+			if( rs232_counter = 8 ) then
 				rs232_next_state <= stop;
 			else
-				-- FIXME
-				--rs232_out <= to_stdulogic(rs232_value(rs232_counter));
-				--rs232_out <= '1' ;
-				rs232_out <= rs232_value(rs232_counter);
+				rs232_value(rs232_counter) <= rs232_in;
 				rs232_counter <= rs232_counter + 1 ;
 			end if;
 	
 		-- stop
 		when stop =>
-			rs232_out <= '1' ;	-- stop bit
-			rs232_next_state <= idle ;
-			tx_done_tick <= '1' ;
+			if rs232_in = '1' then
+				rs232_next_state <= idle ;
+				dout <= rs232_value ; 
+				rx_done_tick <= '1' ;
+			end if;
 
 		when others => NULL ;
 							

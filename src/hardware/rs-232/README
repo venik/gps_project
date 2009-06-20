@@ -1,5 +1,7 @@
 This is rs232 module for Xilinx.
 
-Files:	rs232clk.vhd	-	baud generator for rs232 at 115200 baud
-	rs232tx.vhd	-	tx part (TODO)
-	rs232rx.vhd	-	rx part	(TODO)
+Files:	
+	rs232main 	-	management module
+	rs232clk.vhd	-	baud generator for rs232 at 115200 baud
+	rs232tx.vhd	-	tx part
+	rs232rx.vhd	-	rx part
