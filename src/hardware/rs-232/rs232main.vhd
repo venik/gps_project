@@ -24,7 +24,7 @@ entity rs232main is
 end rs232main;
 
 architecture Behavioral of rs232main is
-	signal rs232_clk: std_logic;
+	signal rs232_clk: std_logic ;
 	
 begin
 
@@ -35,8 +35,8 @@ rs232rx_unit: entity work.rs232rx(arch)
 	port map( clk => clk, reset => reset, dout => dout,
 	          rs232_clk => rs232_clk, rx_done_tick => rx_done_tick, rs232_in => rs232_in );	
 
---rs232tx_unit: entity work.rs232tx(arch)
---	port map( clk => clk, reset => reset, din => din,
---	          rs232_out => rs232_out, tx_start => tx_start, tx_done_tick => tx_done_tick, rs232_clk => rs232_clk);	
+rs232tx_unit: entity work.rs232tx(arch)
+	port map( clk => clk, reset => reset, din => din,
+	          rs232_out => rs232_out, tx_start => tx_start, tx_done_tick => tx_done_tick, rs232_clk => rs232_clk);	
 	
 end Behavioral;
