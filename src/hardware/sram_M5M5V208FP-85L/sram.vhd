@@ -1,7 +1,12 @@
--- More info in "FPGA prototyping by VHDL examples" Pong P. Chu
--- Chapter 10
-
--- controller M5M5V208FP-85L 
+-----------------------------------------------------------
+-- Name:	controller sram 
+-- Description:	sram chip M5M5V208FP-85L
+--
+-- Developer:	Alex Nikiforov nikiforov.al [at] gmail.com
+--
+-- Misc:	More info in "FPGA prototyping by VHDL examples"
+--		Pong P. Chu, Chapter 10
+-----------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -10,20 +15,20 @@ entity sram_ctrl is
 		clk, reset in std_logic;
 
 		-- to/from main system
-		mem: in std_logic;
-		rw: in std_logic;
-		addr: in std_logic_vector(17 downto 0);
-		data_f2s: in std_logic_vector(7 downto 0);
-		ready: out std_logic;
-		data_s2f_r: data_s2f_ur: out std_logic_vector(7 downto 0);
+		mem: in std_logic ;
+		rw: in std_logic ;
+		addr: in std_logic_vector(17 downto 0) ;
+		data_f2s: in std_logic_vector(7 downto 0) ;
+		ready: out std_logic ;
+		data_s2f_r: data_s2f_ur: out std_logic_vector(7 downto 0) ;
 
 		-- to/from chip
-		address: out std_logic_vector(17 downto 0);
+		address: out std_logic_vector(17 downto 0) ;
 
 		-- sram chip
-		dio_a: inout std_logic_vector(7 downto 0);
-		s1, s2: out std_logic
-		WE, OE: out std_logic;
+		dio_a: inout std_logic_vector(7 downto 0) ;
+		s1, s2: out std_logic ;
+		WE, OE: out std_logic 
 	);
 end sram_ctrl;
 
