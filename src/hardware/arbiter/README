@@ -1,3 +1,6 @@
 Main management module. Get data from the gps module and write into the sram module, when sram is full data send through rs232 to PC-client.
 
-Maintaners: Kuznecov, Gucaluk
+Files:	
+	arbiter.vhd	-	arbiter module
+
+Status: develop
