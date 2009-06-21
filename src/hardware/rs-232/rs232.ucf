@@ -7,4 +7,4 @@ NET "rs232_in"  LOC = "P133"  ;
 
 # FIXME Rst pin
 NET "reset"  LOC = "P66"  ;
-NET "tx_start"  LOC = "P66"  ;
+#NET "tx_start"  LOC = "P66"  ;
