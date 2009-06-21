@@ -39,7 +39,7 @@ architecture arch of rs232rx is
 	--signal rs232_state: bit_vector (2 downto 0) := "111";
 	signal rs232_counter: integer range 0 to 8 := 0;
 	--signal rs232_value: bit_vector (7 downto 0) := X"41"; -- A - char
-	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) ;
+	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) := ( others => '0') ;
 	
 begin
 

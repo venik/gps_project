@@ -20,7 +20,7 @@ entity sram_ctrl is
 		addr: in std_logic_vector(17 downto 0) ;
 		data_f2s: in std_logic_vector(7 downto 0) ;
 		ready: out std_logic ;
-		data_s2f_r: data_s2f_ur: out std_logic_vector(7 downto 0) ;
+		data_s2f_r, data_s2f_ur: out std_logic_vector(7 downto 0) ;
 
 		-- to/from chip
 		address: out std_logic_vector(17 downto 0) ;

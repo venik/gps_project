@@ -11,7 +11,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity rs232main is
+entity arbiter is
     	Port (	clk : in STD_LOGIC ;
 		reset : in STD_LOGIC ;
 		-- rs232
@@ -21,25 +21,71 @@ entity rs232main is
 		address: out std_logic_vector(17 downto 0) ;
 		dio_a: inout std_logic_vector(7 downto 0) ;
 		s1, s2: out std_logic ;
-		WE, OE: out std_logic;
+		WE, OE: out std_logic
 	     );
-end rs232main;
+end arbiter;
 
-architecture Behavioral of rs232main is
+architecture Behavioral of arbiter is
 	-- rs232
-	signal	rs232_clk: std_logic ;
 	signal	rx_done_tick : std_logic ;
 	signal	tx_done_tick : std_logic ;
 	signal	tx_start : std_logic ;
 	signal	dout : std_logic_vector (7 downto 0) ; 
 	signal	din : std_logic_vector (7 downto 0) ; 
 	-- sram
-	signal	mem: in std_logic ;
-	signal	rw: in std_logic ;
-	signal	addr: in std_logic_vector(17 downto 0) ;
-	signal 	data_f2s: in std_logic_vector(7 downto 0) ;
-	signal 	ready: out std_logic ;
-	signal	data_s2f_r: data_s2f_ur: out std_logic_vector(7 downto 0)
+	signal	mem: std_logic ;
+	signal	rw: std_logic ;
+	signal	addr: std_logic_vector(17 downto 0) ;
+	signal 	data_f2s: std_logic_vector(7 downto 0) ;
+	signal 	ready: std_logic ;
+	signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;
+	-- local
+	type arbiter_type is(idle, rec_comm, send_comm) ;
+	signal arbiter_state, arbiter_next_state: arbiter_type ;
 	
 begin
+
+rs232main_unit: entity work.rs232main(arch)
+	port map( clk => clk, reset => reset, dout => dout, din => din,
+		  rs232_in => rs232_in, rs232_out => rs232_out,
+		  rx_done_tick => rx_done_tick, tx_done_tick => tx_done_tick, 
+		  tx_start => tx_start );
+
+process(clk, reset)
+begin
+	if( reset = '1') then
+		arbiter_state <= idle;
+	elsif rising_edge(clk) then
+		arbiter_state <= arbiter_next_state;
+	end if;
+
+end process;
+
+process(arbiter_state, arbiter_next_state, clk)
+begin
+	if rising_edge(clk) then
+		case  arbiter_state is
+
+		-- idle	
+		when idle =>
+			if( rx_done_tick = '1' ) then
+				-- simple test
+				din <= dout ;
+				arbiter_next_state <= send_comm ;
+			end if;
+		when send_comm =>
+			tx_start <= '1';	
+
+			if( tx_done_tick = '1' ) then
+				arbiter_next_state <= idle ;
+			end if;
+		
+		when others => NULL ;
+
+		end case;
+
+	end if; --  if rising_edge(clk)
+
+end process;
+
 end Behavioral ;

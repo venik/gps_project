@@ -14,8 +14,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity rs232main is
     	Port (	clk : in STD_LOGIC ;
 		reset : in STD_LOGIC ; -- FIXME ucf-file
-		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
-		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
+		dout : out std_logic_vector (7 downto 0) ; 
+		din : in std_logic_vector (7 downto 0) ; 
 		rs232_in: in std_logic ;
 		rs232_out: out std_logic ;
 		rx_done_tick : out std_logic ;

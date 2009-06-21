@@ -37,11 +37,12 @@ end rs232tx;
 
 architecture arch of rs232tx is
 	type rs232_type is(idle, start, data, stop);
-	signal rs232_state, rs232_next_state: rs232_type;
+	signal rs232_state: rs232_type;
+	signal rs232_next_state: rs232_type := idle;
 	--signal rs232_state: bit_vector (2 downto 0) := "111";
 	signal rs232_counter: integer range 0 to 8 := 0;
 	--signal rs232_value: bit_vector (7 downto 0) := X"41"; -- A - char
-	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) ;
+	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) := ( others => '0');
 	
 begin
 
