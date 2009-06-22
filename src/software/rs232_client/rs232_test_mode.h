@@ -8,6 +8,8 @@
 int rs232_test_prepare(rs232_data_t *rs232data)
 {
 	int fd, res;
+	
+	printf("[%s] prepare data\n", __FUNCTION__);
 
 	fd = open("/dev/urandom", (O_RDONLY) );
 	
@@ -16,7 +18,7 @@ int rs232_test_prepare(rs232_data_t *rs232data)
 		return -1;
 	}
 
-	res = read(fd, rs232data->buf, BUF_SIZE);
+	res = read(fd, rs232data->send_buf, BUF_SIZE);
 	
 	if(res != BUF_SIZE) {
 		printf("[ERR] cannot read from urandom [%d] bytes. errno %s\n", BUF_SIZE, strerror(errno));
@@ -91,10 +93,10 @@ int rs232_test_mode(rs232_data_t *rs232data)
 	}
 
 	rs232_test_send(rs232data);
-	printf("send [%x]\n", rs232data->send_buf[0]);
+	printf("  send [%x]\n", rs232data->send_buf[0]);
 
 	rs232_test_receive(rs232data);
-	printf("recv [%x]\n", rs232data->recv_buf[0]);
+	printf("  recv [%x]\n", rs232data->recv_buf[0]);
 
 	return 0;
 }

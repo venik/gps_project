@@ -112,7 +112,9 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			printf("test mode\n");
-			rs232data.cb = &rs232_test_mode;
+			//rs232data.cb = &rs232_test_mode;
+			rs232_test_mode(&rs232data);
+			return -1;
 			break;
 		default:
 			return -1;
