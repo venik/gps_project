@@ -81,7 +81,7 @@ int rs232_open_device(char *dev_name)
 	options.c_cflag &= ~CRTSCTS;		/* no flow control*/
 
 	options.c_iflag &= ~(IXON|IXOFF|IXANY);
-
+	
 	/* tcflush(fd, TCIFLUSH); */
 	if (tcsetattr(fd, TCSANOW, &options) == -1) {
 		printf("Error, can't set rs232 attributes. errno %s", strerror(errno));
@@ -100,7 +100,11 @@ int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
 	int res;
-	
+
+	/* init defaults */
+	rs232data.cb = &rs232_main_mode;
+
+	/* parse command-line options */
 	while ( (res = getopt(argc,argv,"hp:t")) != -1){
 		switch (res) {
 		case 'h':
@@ -112,9 +116,7 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			printf("test mode\n");
-			//rs232data.cb = &rs232_test_mode;
-			rs232_test_mode(&rs232data);
-			return -1;
+			rs232data.cb = &rs232_test_mode;
 			break;
 		default:
 			return -1;
@@ -128,12 +130,7 @@ int main(int argc, char **argv)
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
-	/* send command */
-	if ( rs232_send(&rs232data) < 1 )
-		return -1;
-
-	/* receive data */
-	rs232_receive(&rs232data);
+	rs232data.cb(&rs232data);
 
 	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);

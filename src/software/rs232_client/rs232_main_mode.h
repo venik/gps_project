@@ -70,4 +70,18 @@ int rs232_send(rs232_data_t *rs232data)
 	return res;
 }
 
+int rs232_main_mode(rs232_data_t *rs232data)
+{
+	printf("[%s] main mode\n", __FUNCTION__);
+
+	/* send command */
+	if ( rs232_send(rs232data) < 1 )
+		return -1;
+
+	/* receive data */
+	rs232_receive(rs232data);
+
+	return 0;
+}
+
 #endif /* __RS232_MAIN_ */

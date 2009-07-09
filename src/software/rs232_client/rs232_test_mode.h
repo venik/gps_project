@@ -85,7 +85,9 @@ int rs232_test_send(rs232_data_t *rs232data)
 int rs232_test_mode(rs232_data_t *rs232data)
 {
 	int res;
-	
+
+	printf("[%s] testing mode\n", __FUNCTION__);
+
 	res = rs232_test_prepare(rs232data);
 	if( res < 0) {
 		printf("[ERR] test failed during prepare - problem on client side, not he board\n");
@@ -93,11 +95,12 @@ int rs232_test_mode(rs232_data_t *rs232data)
 	}
 
 	rs232_test_send(rs232data);
-	printf("  send [%x]\n", rs232data->send_buf[0]);
+	printf("  send [%x] %c\n", rs232data->send_buf[0], rs232data->send_buf[0]);
 
 	rs232_test_receive(rs232data);
 	printf("  recv [%x]\n", rs232data->recv_buf[0]);
 
 	return 0;
 }
+
 #endif /* __RS232_TEST_ */
