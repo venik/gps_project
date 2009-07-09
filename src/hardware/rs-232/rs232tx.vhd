@@ -25,14 +25,14 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --use UNISIM.VComponents.all;
 
 entity rs232tx is
-    	Port (	clk : in STD_LOGIC ; 
-					u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
-					soft_reset : in STD_LOGIC ;
-					din : in STD_LOGIC_VECTOR (7 downto 0) ; 
-					rs232_out : out std_logic ;
-					tx_done_tick : out std_logic ;
-					rs232_clk: in std_logic ;
-					tx_start : in std_logic
+    	Port (	clk : in STD_LOGIC ;
+		u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		soft_reset : in STD_LOGIC ;
+		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
+		rs232_out : out std_logic ;
+		tx_done_tick : out std_logic ;
+		rs232_clk: in std_logic ;
+		tx_start : in std_logic
 	     );
 end rs232tx;
 
@@ -64,7 +64,7 @@ end process;
 -- -- next state logic 
 process(rs232_clk, tx_start, rs232_state)
 begin
-  if rising_edge(rs232_clk) then  
+  if rising_edge(rs232_clk) then
 	
   	tx_done_tick <= '0' ;
 		
@@ -78,13 +78,13 @@ begin
 					rs232_value <= din;
 				end if;
 
-				rs232_out <= '1';	
+				rs232_out <= '1';
 				u10 <= X"40" ;				-- 0
 
 			-- start bit
 			when start =>
 			
-				rs232_out <= '0'; 	
+				rs232_out <= '0';
 				
 				rs232_next_state <= data;
 				rs232_counter <= 0;
@@ -115,7 +115,7 @@ begin
 
 					u10 <= X"30";				-- 3
 					
-			when others => 
+			when others =>
 					u10 <= X"19" ;				-- 4 
 					
 			end case;

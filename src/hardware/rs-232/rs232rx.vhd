@@ -25,7 +25,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity rs232rx is
     	Port (	clk : in STD_LOGIC ;
-		reset : in STD_LOGIC ;
+		u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		soft_reset : in STD_LOGIC ;
 		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
 		rs232_in: in std_logic ;
 		rx_done_tick : out std_logic ;
@@ -44,7 +45,7 @@ begin
 process(clk, reset)
 begin
 
-	if( reset = '1') then
+	if( soft_reset = '1') then
 		rs232_state <= idle;
 	elsif rising_edge(clk) then
 		rs232_state <= rs232_next_state;

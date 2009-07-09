@@ -35,22 +35,23 @@ rs232clk_unit: entity work.rs232clk(arch)
 				rs232_clk => rs232_clk
 			);	
 
---rs232rx_unit: entity work.rs232rx(arch)
---	port map(	
---				clk => clk,
---				reset => reset,
---				dout => dout,
---	         rs232_clk => rs232_clk,
---				rx_done_tick => rx_done_tick,
---				rs232_in => rs232_in
---			);	
+rs232rx_unit: entity work.rs232rx(arch)
+	port map(	
+				clk => clk,
+				soft_reset => soft_reset,
+				dout => dout,
+				rs232_in => rs232_in,
+				rx_done_tick => rx_done_tick,
+	         		rs232_clk => rs232_clk,
+				u10 => u10
+			);	
 
 rs232tx_unit: entity work.rs232tx(arch)
 	port map(
 				clk => clk,
 				soft_reset => soft_reset,
 				din => din,
-	         rs232_out => rs232_out,
+			        rs232_out => rs232_out,
 				tx_start => tx_start,
 				tx_done_tick => tx_done_tick,
 				rs232_clk => rs232_clk,

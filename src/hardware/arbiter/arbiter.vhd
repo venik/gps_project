@@ -48,7 +48,6 @@ architecture Behavioral of arbiter is
 	signal arbiter_next_state: arbiter_type := idle ;
 	
 	signal soft_reset: std_logic := '0';
-	signal just_trigger: std_logic := '0';
 	
 begin
 
