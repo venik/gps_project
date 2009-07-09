@@ -25,31 +25,32 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --use UNISIM.VComponents.all;
 
 entity rs232tx is
-    	Port (	clk : in STD_LOGIC ;
-		reset : in STD_LOGIC ;
-		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
-		rs232_out : out std_logic ;
-		tx_done_tick : out std_logic ;
-		rs232_clk: in std_logic ;
-		tx_start : in std_logic
+    	Port (	clk : in STD_LOGIC ; 
+					u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+					soft_reset : in STD_LOGIC ;
+					din : in STD_LOGIC_VECTOR (7 downto 0) ; 
+					rs232_out : out std_logic ;
+					tx_done_tick : out std_logic ;
+					rs232_clk: in std_logic ;
+					tx_start : in std_logic
 	     );
 end rs232tx;
 
 architecture arch of rs232tx is
 	type rs232_type is(idle, start, data, stop);
 	signal rs232_state: rs232_type;
-	signal rs232_next_state: rs232_type := idle;
+	signal rs232_next_state: rs232_type;
 	--signal rs232_state: bit_vector (2 downto 0) := "111";
-	signal rs232_counter: integer range 0 to 8 := 0;
+	signal rs232_counter: integer range 0 to 7 := 0;
 	--signal rs232_value: bit_vector (7 downto 0) := X"41"; -- A - char
 	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) := ( others => '0');
 	
 begin
 
-process(clk, reset)
+process(clk, soft_reset)
 begin
 
-	if( reset = '1') then
+	if( soft_reset = '1') then
 		rs232_state <= idle;
 		--rs232_out <= '1';					
 	elsif rising_edge(clk) then
@@ -58,55 +59,69 @@ begin
 
 end process;
 
--- next state logic 
-process(rs232_clk, tx_start, rs232_state, din, rs232_value, rs232_next_state)
+--rs232_out <= rs232_clk;
+
+-- -- next state logic 
+process(rs232_clk, tx_start, rs232_state)
 begin
-	tx_done_tick <= '0' ;
+  if rising_edge(rs232_clk) then  
 	
-	if( rs232_clk = '1') then 
-
-		case rs232_state is
+  	tx_done_tick <= '0' ;
 		
-		-- idle
-		when idle =>
+		case rs232_state is
+			
+			-- idle
+			when idle =>
 
-			if tx_start = '1' then
-				rs232_next_state <= start;
-				rs232_value <= din;
-			end if;
+				if tx_start = '1' then
+					rs232_next_state <= start;
+					rs232_value <= din;
+				end if;
 
-			rs232_out <= '1';					
+				rs232_out <= '1';	
+				u10 <= X"40" ;				-- 0
 
-		-- start bit
-		when start =>
-			rs232_out <= '0'; 	
-			rs232_next_state <= data;
-			rs232_counter <= 0;
+			-- start bit
+			when start =>
+			
+				rs232_out <= '0'; 	
+				
+				rs232_next_state <= data;
+				rs232_counter <= 0;
+				
+				u10 <= X"03" ;				-- 1
 
-		-- data bit
-		when data =>
-			if rs232_counter = 8 then
-				rs232_next_state <= stop;
-			else
-				-- FIXME
-				--rs232_out <= to_stdulogic(rs232_value(rs232_counter));
-				--rs232_out <= '1' ;
-				rs232_out <= rs232_value(rs232_counter);
-				rs232_counter <= rs232_counter + 1 ;
-			end if;
-	
-		-- stop
-		when stop =>
-			rs232_out <= '1' ;	-- stop bit
-			rs232_next_state <= idle ;
-			tx_done_tick <= '1' ;
+			-- data bit
+			when data =>
+			
+					rs232_out <= rs232_value(rs232_counter);	
+				
+					if rs232_counter = 7 then
+						rs232_next_state <= stop;
+					end if;
+					
+					-- FIXME
+					--rs232_out <= to_stdulogic(rs232_value(rs232_counter));
+					--rs232_out <= '0' ;
+															
+					rs232_counter <= rs232_counter + 1 ;
+					u10 <= X"24" ;				-- 2
+				
+			-- stop
+			when stop =>
+					rs232_out <= '1' ;	-- stop bit
+					rs232_next_state <= idle ;
+					tx_done_tick <= '1' ;
 
-		when others => NULL ;
-							
-		end case;
-
-	end if; -- if( rs232_clk = '1') then 
-
+					u10 <= X"30";				-- 3
+					
+			when others => 
+					u10 <= X"19" ;				-- 4 
+					
+			end case;
+			
+		end if;
+		
 end process;
 	
 end arch;
