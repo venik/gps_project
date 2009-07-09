@@ -19,14 +19,11 @@ entity rs232clk is
 	Port (
 		clk : in STD_LOGIC ;
 		signal rs232_clk: out std_logic
-		-- rs232_speed = 115200 baud per sec
-		--signal rs232_clk: out std_logic;
 	);
 end rs232clk;
 
 architecture arch of rs232clk is
-		constant BaudInc: integer := 151;
-		signal BaudSignal: bit_vector (0 to 16);
+		signal NewBaudSignal: integer range 0 to 433 ;
 
 -- bit_vector to integer
 function bitv2int( X: bit_vector ( 0 to 16 ) )
@@ -65,23 +62,21 @@ end int2bitv;
 begin
 
 baud_generator: process(clk)
-	variable tmp_int: integer range 0 to 2**16 := 0;
-	--variable tmp_bit: bit_vector (0 to 16) := (others => '0'); 
+
 begin
-
 	if rising_edge(clk) then
-		if(BaudSignal(16) = '0') then
-			tmp_int := bitv2int(BaudSignal);
-			tmp_int := tmp_int + BaudInc;
-			--tmp_bit := int2bitv(tmp_int);
-			BaudSignal <= int2bitv(tmp_int);
-			rs232_clk <= '0' ;
-		else
-			BaudSignal <= int2bitv(0);
+	
+		NewBaudSignal <= NewBaudSignal + 1;
+		
+		if( NewBaudSignal = 433 ) then
+			NewBaudSignal <= 0;
 			rs232_clk <= '1';
+		elsif( NewBaudSignal = 216 ) then
+			rs232_clk <= '0';
 		end if ;
+		
 	end if ;
-
+	
 end process baud_generator;
 
 end arch;
