@@ -20,17 +20,26 @@
 
 #include <errno.h>
 
-#define MAXLINE 255
+#include "rs232_main_mode.h"
+#include "rs232_test_mode.h"
 
-typedef struct rs232_data_s {
-	char	name[MAXLINE];
-	int	fd;
-	uint8_t	buf[1024];			// FIXME - correct buffer
-} rs232_data_t;
+/*
+ * Description: print banner 
+ * Return:  	nothing	
+ */
+void rs232_banner()
+{
+	printf("Hello this is rs232 dumper for gps-board project by DSP-lab. This is real cool banner\n");
+	printf("Usage: rs232_client [options]\n");
+	printf("Options:\n");
+	printf("  -p:	give the rs232 port name, something like this /dev/ttyS0\n");
+	printf("  -t:	board test mode\n");
+	printf("  -h:	display this information\n");
+}
 
 /*
  * Description: open rs232 interface with name dev_name
- * Return: filedescriptor or 0 if failed
+ * Return: 	filedescriptor or 0 if failed
  */
 int rs232_open_device(char *dev_name)
 {
@@ -82,59 +91,6 @@ int rs232_open_device(char *dev_name)
 	return fd;
 }
 
-int rs232_receive(rs232_data_t	*rs232data)
-{
-	int res, todo = 10;		// FIXME - fix todo
-
-	printf("[%s] block while receiving\n", __FUNCTION__);
-
-	errno = 0;
-	res = read(rs232data->fd, rs232data->buf, todo);
-
-	if( res < 0 ) {
-		if( errno != EAGAIN ) {
-			printf("[ERR] error occur while in data receiving. errno %s\n", strerror(errno));
-			return -1;
-		}
-
-		printf("[WARN] EAGAIN occur while reading, need to do something =] \n");
-	}
-
-	if( todo != res ) {
-		printf("[WARN] need [%d], but receive [%d]\n", todo, res);
-		return 0;
-	}
-
-	return res;
-}
-
-int rs232_send(rs232_data_t	*rs232data)
-{
-	uint8_t		comm = 0;
-	int 		res, todo = sizeof(comm);		// FIXME - fix todo
-
-	printf("[%s] block while sending\n", __FUNCTION__);
-
-	errno = 0;
-	res = write(rs232data->fd, &comm, todo);
-
-	if( res < 0 ) {
-		if( errno != EAGAIN ) {
-			printf("[ERR] error occur while in data sending. errno %s\n", strerror(errno));
-			return -1;
-		}
-
-		printf("[WARN] EAGAIN occur while sending, need to do something =] \n");
-	}
-
-	if( todo != res ) {
-		printf("[WARN] need [%d], but send [%d]\n", todo, res);
-		return 0; 
-	}
-
-	return res;
-}
-
 void rs232_destroy(rs232_data_t	*rs232data)
 {
 	close(rs232data->fd);
@@ -143,22 +99,34 @@ void rs232_destroy(rs232_data_t	*rs232data)
 int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
+	int res;
 	
-	if( argc < 3 ) {
-		printf("\n[ERR] wrong parameters, use like this \n#rs232_dumper -p /dev/rs232_port\nExiting...\n\n");
-		return -1;
-	}
-
-	printf("\nHello, this is rs232 dumper for GPS-project \n");
-
-	/* check parameters via getopt or something else */
-	//printf("try to copy [%s] \n", argv[2]);
-	snprintf(rs232data.name, MAXLINE, "%s", argv[2]);
+	while ( (res = getopt(argc,argv,"hp:t")) != -1){
+		switch (res) {
+		case 'h':
+			rs232_banner();
+			return -1;
+		case 'p':
+			printf("rs232 port set to [%s]\n", optarg);
+			snprintf(rs232data.name, MAXLINE, "%s", optarg);
+			break;
+		case 't':
+			printf("test mode\n");
+			//rs232data.cb = &rs232_test_mode;
+			rs232_test_mode(&rs232data);
+			return -1;
+			break;
+		default:
+			return -1;
+        	};
+	};
 
 	errno = 0;
 	rs232data.fd = rs232_open_device(rs232data.name); 
 	if( rs232data.fd == 0 )
 		return -1;
+
+	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
 	/* send command */
 	if ( rs232_send(&rs232data) < 1 )
