@@ -30,7 +30,7 @@ end arbiter;
 
 architecture Behavioral of arbiter is
 	-- rs232
-	signal	rx_done_tick : std_logic ;
+	signal	rx_done_tick : std_logic := '0' ;
 	signal	tx_done_tick : std_logic ;
 	signal	tx_start : std_logic ;
 	signal	dout : std_logic_vector (7 downto 0) ; 
@@ -64,55 +64,51 @@ rs232main_unit: entity work.rs232main(arch)
 		       tx_start => tx_start
 			);
 	
-	tx_start <= '1' ;
-	din <= X"41" ;
-	
+--	tx_start <= '1' ;
+--	din <= X"41" ;
+--	din <= dout ;
+
 process(clk, reset)
 begin
 
 	if( reset = '0') then				-- push the reset-button
 		soft_reset <= '1' ;
-	else
+	elsif rising_edge(clk) then
 		soft_reset <= '0' ;
+		arbiter_state <= arbiter_next_state;
 	end if;
 	
 end process;
 
---end process;
---process(clk, reset)
---begin
---	if( reset = '1') then
---		arbiter_state <= idle;
---	elsif rising_edge(clk) then
---		arbiter_state <= arbiter_next_state;
---	end if;
---end process;
-		
---process(arbiter_state, clk, tx_done_tick)
---begin
---	if rising_edge(clk) then
---		case  arbiter_state is
---
-----		-- idle	
---		when idle =>
-----			if( rx_done_tick = '1' ) then
-----				 simple test
-----				din <= dout ;
-----				arbiter_next_state <= send_comm ;
-----			end if;
+process(arbiter_state, clk, tx_done_tick)
+begin
+	if rising_edge(clk) then
+		case  arbiter_state is
+
+--		-- idle	
+		when idle =>
+			if( rx_done_tick = '1' ) then
+				-- -- simple test
+				din <= dout ;
+				arbiter_next_state <= send_comm ;
+			end if;
+			
+			tx_start <= '0';
+			
 --			arbiter_next_state <= send_comm ;
 --			din <= X"55";
---		when send_comm =>
---			tx_start <= '1';
---			
---			if( tx_done_tick = '1' ) then
---				arbiter_next_state <= idle ;
---			end if;
---						
---		end case;
---
---	end if; --  if rising_edge(clk)
---
---end process;
+
+		when send_comm =>
+			tx_start <= '1';
+			
+			if( tx_done_tick = '1' ) then
+				arbiter_next_state <= idle ;
+			end if;
+						
+		end case;
+
+	end if; --  if rising_edge(clk)
+
+end process;
 
 end Behavioral ;

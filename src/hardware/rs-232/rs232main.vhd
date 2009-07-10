@@ -27,23 +27,26 @@ end rs232main;
 
 architecture arch of rs232main is
 		signal rs232_clk: std_logic ;
+		signal rs232_middle_clk: std_logic ;
 begin
 
 rs232clk_unit: entity work.rs232clk(arch)
 	port map( 
 				clk => clk,
-				rs232_clk => rs232_clk
+				rs232_clk => rs232_clk,
+				rs232_middle_clk => rs232_middle_clk
 			);	
 
 rs232rx_unit: entity work.rs232rx(arch)
 	port map(	
 				clk => clk,
 				soft_reset => soft_reset,
+				--u10 => u10,
 				dout => dout,
 				rs232_in => rs232_in,
 				rx_done_tick => rx_done_tick,
-	         		rs232_clk => rs232_clk,
-				u10 => u10
+				rs232_middle_clk => rs232_middle_clk,
+	         rs232_clk => rs232_clk
 			);	
 
 rs232tx_unit: entity work.rs232tx(arch)
@@ -51,7 +54,7 @@ rs232tx_unit: entity work.rs232tx(arch)
 				clk => clk,
 				soft_reset => soft_reset,
 				din => din,
-			        rs232_out => rs232_out,
+			   rs232_out => rs232_out,
 				tx_start => tx_start,
 				tx_done_tick => tx_done_tick,
 				rs232_clk => rs232_clk,

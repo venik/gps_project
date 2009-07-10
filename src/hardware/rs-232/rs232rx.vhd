@@ -25,12 +25,13 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity rs232rx is
     	Port (	clk : in STD_LOGIC ;
-		u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		soft_reset : in STD_LOGIC ;
 		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
 		rs232_in: in std_logic ;
 		rx_done_tick : out std_logic ;
-		rs232_clk: in std_logic
+		rs232_clk: in std_logic ;
+		rs232_middle_clk: in std_logic
 	     );
 end rs232rx;
 
@@ -38,11 +39,12 @@ architecture arch of rs232rx is
 	type rs232_type is(idle, start, data, stop);
 	signal rs232_state, rs232_next_state: rs232_type;
 	signal rs232_counter: integer range 0 to 8 := 0;
+	signal rs232_edge: std_logic_vector (1 downto 0) ;
 	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) := ( others => '0') ;
 	
 begin
 
-process(clk, reset)
+process(clk, soft_reset)
 begin
 
 	if( soft_reset = '1') then
@@ -54,49 +56,68 @@ begin
 end process;
 
 -- next state logic 
-process(rs232_clk, rs232_state, rs232_value, rs232_next_state, rs232_in, rs232_counter)
+process(rs232_middle_clk, rs232_state)
 begin
-	rx_done_tick <= '0' ;
 	
-	if( rs232_clk = '1') then 
+if rising_edge(rs232_middle_clk) then
+ 
+  rx_done_tick <= '0' ;
+  
+  case rs232_state is
+  -- idle
+  when idle =>
+ 
+   if( rs232_in = '0' ) then
+    rs232_next_state <= data; -- FIXME data or start?? checkit
+    --rs232_value <= ( others => '0' ) ;
+    rs232_counter <= 0 ;
 
-		case rs232_state is
-		
-		-- idle
-		when idle =>
+    rs232_edge <= B"01";
 
-			if( rs232_in = '0' ) then
-				rs232_next_state <= data; -- FIXME data or start?? checkit
-				rs232_value <= ( others => '0' ) ;
-				rs232_counter <= 0;
-			end if;
+   end if;
+   
+  -- start bit
+  when start =>
+   rs232_next_state <= data;
+ 
+  -- data bit
+  when data =>
+           
+    if( rs232_counter = 8 ) then
+     rs232_next_state <= stop;
+     
 
-		-- start bit
-		when start =>
-			rs232_next_state <= data;
+    elsif( rs232_edge = 2 ) then 
+   --  rs232_edge <= B"001" ;
 
-		-- data bit
-		when data =>
-			if( rs232_counter = 8 ) then
-				rs232_next_state <= stop;
-			else
-				rs232_value(rs232_counter) <= rs232_in;
-				rs232_counter <= rs232_counter + 1 ;
-			end if;
-	
-		-- stop
-		when stop =>
-			if rs232_in = '1' then
-				rs232_next_state <= idle ;
-				dout <= rs232_value ; 
-				rx_done_tick <= '1' ;
-			end if;
+     rs232_value(rs232_counter) <= rs232_in;
+     rs232_counter <= rs232_counter + 1 ;
+    end if;
+ 
 
-		when others => NULL ;
-							
-		end case;
+   if (rs232_edge<2) then           
 
-	end if; -- if( rs232_clk = '1') then 
+    rs232_edge <= rs232_edge + 1 ;
+
+   else
+     rs232_edge<=b"01";
+
+     end if; 
+ 
+  -- stop
+  when stop =>
+   if rs232_in = '1' then
+    rs232_next_state <= idle ;
+    dout <= rs232_value ; 
+    rx_done_tick <= '1' ;
+   end if;
+ 
+  when others => NULL ;
+       
+  end case;
+  
+end if; -- if rising_edge(rs232_clk) then 
+ 
 
 end process;
 	
