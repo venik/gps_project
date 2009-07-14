@@ -1,4 +1,4 @@
------------------------------------------------------------
+--	arbiter_next_state <= send_comm ;--	arbiter_next_state <= send_comm ;-----------------------------------------------------------
 -- Name:	gps arbiter 
 -- Description:	get data from gps and store in sram, after
 --		sram is full send it via rs232
@@ -36,14 +36,14 @@ architecture Behavioral of arbiter is
 	signal	dout : std_logic_vector (7 downto 0) ; 
 	signal	din : std_logic_vector (7 downto 0) ; 
 	-- sram
-	signal	mem: std_logic := '0';
+	signal	mem: std_logic ;
 	signal	rw: std_logic ;
 	signal	addr: std_logic_vector(17 downto 0) ;
 	signal 	data_f2s: std_logic_vector(7 downto 0) ;
-	signal 	ready: std_logic := '0' ;
+	signal 	ready: std_logic ;
 	signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;
 	-- local
-	type arbiter_type is(idle, write_sram, read_sram, send_comm) ;
+	type arbiter_type is(idle, send_comm) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	
@@ -107,35 +107,15 @@ begin
 		when idle =>
 			if( rx_done_tick = '1' ) then
 				-- -- simple test
-				--din <= dout ;
-				data_f2s <= dout ;
-				arbiter_next_state <=  write_sram;
+				din <= dout ;
+				arbiter_next_state <= send_comm ;
 			end if;
 			
 			tx_start <= '0';
+			
+--			arbiter_next_state <= send_comm ;
+--			din <= X"55";
 
---		-- write_sram
-		when write_sram =>
-			addr <= ( others => '0' ) ;
-			mem <= '1' ;	
-			rw <= '1' ;
-			
-			if ready = '1' then
-				arbiter_next_state <=  read_sram;
-			end if;
-
---		-- write_sram
-		when read_sram =>
-			addr <= ( others => '0' ) ;
-			mem <= '1' ;	
-			rw <= '0' ;
-			
-			if ready = '1' then
-				arbiter_next_state <=  send_comm ;
-				din <= data_s2f_ur ;
-			end if;
-			
---		-- send_comm			
 		when send_comm =>
 			tx_start <= '1';
 			
