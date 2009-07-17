@@ -13,8 +13,9 @@ use ieee.std_logic_1164.all;
 
 entity sram_ctrl is
   port(
-    clk, reset :in std_logic;
- 
+    clk: in std_logic;
+	 soft_reset: in std_logic;
+	 
     -- to/from main system
     mem: in std_logic ;
     rw: in std_logic ;
@@ -43,10 +44,17 @@ architecture arch of sram_ctrl is
   signal   we_reg, oe_reg, tri_reg: std_logic;
  
 begin
+
+--  s1 <= '1' ;
+--  s2 <= '1' ;
+--  WE <= '1' ;
+--  OE <= '1' ;
+--  address <= ( others => '1' );
+
   -- state & data registers
-  process(clk, reset)
+  process(clk, soft_reset)
   begin
-    if( reset = '1') then
+    if( soft_reset = '1') then
       state_reg <= idle;
       addr_reg <= ( others => '0' );
       data_f2s_reg <= ( others => '0' );
@@ -90,8 +98,9 @@ begin
           end if;
  
         end if;
-          ready <= '1';
- 
+		  
+		ready <= '1';
+		
       -- 5 cycles - write cycle
       -- setup address and we/oe 40ns > 30 ns
       when wr1 =>
@@ -106,6 +115,7 @@ begin
       -- clear the WE signal 20ns > 5ns
       when wr5 =>
         state_next <= idle;
+		  
  
       -- 5 cycles of 20ns = 100ns > 85 ns - read cycle
       when rd1 =>

@@ -66,7 +66,7 @@ rs232main_unit: entity work.rs232main(arch)
 
 sram_controller: entity work.sram_ctrl(arch)
   port map( clk => clk,
-				reset => reset,
+				soft_reset => soft_reset,
 				mem => mem,
 				rw => rw,
 				addr => addr,
@@ -111,7 +111,7 @@ begin
 				data_f2s <= dout ;
 				arbiter_next_state <=  write_sram;
 			end if;
-			
+			mem <= '0' ; 
 			tx_start <= '0';
 
 --		-- write_sram
@@ -142,7 +142,7 @@ begin
 			if( tx_done_tick = '1' ) then
 				arbiter_next_state <= idle ;
 			end if;
-						
+			mem <= '0' ; 			
 		end case;
 
 	end if; --  if rising_edge(clk)
