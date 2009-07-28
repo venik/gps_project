@@ -20,6 +20,8 @@
 
 #include <errno.h>
 
+#include "rs232_dumper.h"
+
 #include "rs232_main_mode.h"
 #include "rs232_test_mode.h"
 
@@ -101,22 +103,24 @@ int main(int argc, char **argv)
 	rs232_data_t	rs232data = {};
 	int res;
 
-	/* init defaults */
-	rs232data.cb = &rs232_main_mode;
-
 	/* parse command-line options */
-	while ( (res = getopt(argc,argv,"hp:t")) != -1){
+	printf("Activate mode: \n");
+	while ( (res = getopt(argc,argv,"hp:tg")) != -1){
 		switch (res) {
 		case 'h':
 			rs232_banner();
 			return -1;
 		case 'p':
-			printf("rs232 port set to [%s]\n", optarg);
+			printf("\t rs232 port set to [%s]\n", optarg);
 			snprintf(rs232data.name, MAXLINE, "%s", optarg);
 			break;
 		case 't':
-			printf("test mode\n");
-			rs232data.cb = &rs232_test_mode;
+			printf("\t board test mode\n");
+			rs232data.comm_req |= RS232_TEST_MEMORY;
+			break;
+		case 'g':
+			printf("\t gps mode\n");
+			rs232data.comm_req |= RS232_GPS_START;
 			break;
 		default:
 			return -1;
@@ -130,7 +134,15 @@ int main(int argc, char **argv)
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
-	rs232data.cb(&rs232data);
+	if( rs232data.comm_req & RS232_TEST_MEMORY ) {
+		if( rs232_test_mode(&rs232data) == -1 )
+			return -1;
+	}
+	
+	if( rs232data.comm_req & RS232_GPS_START ) {
+		if( rs232_main_mode(&rs232data) == -1 )
+			return -1;
+	}
 
 	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);

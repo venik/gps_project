@@ -5,39 +5,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-int rs232_test_prepare(rs232_data_t *rs232data)
-{
-	int fd, res;
-	
-	printf("[%s] prepare data\n", __FUNCTION__);
-
-	fd = open("/dev/urandom", (O_RDONLY) );
-	
-	if( fd == -1 ) {
-		printf("[ERR] cannot open urandom while generete test file. errno %s\n", strerror(errno));
-		return -1;
-	}
-
-	res = read(fd, rs232data->send_buf, BUF_SIZE);
-	
-	if(res != BUF_SIZE) {
-		printf("[ERR] cannot read from urandom [%d] bytes. errno %s\n", BUF_SIZE, strerror(errno));
-		return -1;
-	}
-
-	close(fd);
-
-	return 0;
-}
-
 int rs232_test_receive(rs232_data_t *rs232data)
 {
-	int res, todo = 1;		// FIXME - fix todo
+	uint64_t	comm = 0;
+	int		res, todo = sizeof(comm);
 
 	printf("[%s] block while receiving\n", __FUNCTION__);
 
 	errno = 0;
-	res = read(rs232data->fd, rs232data->recv_buf, todo);
+	res = read(rs232data->fd, &comm, todo);
 
 	if( res < 0 ) {
 		if( errno != EAGAIN ) {
@@ -53,17 +29,24 @@ int rs232_test_receive(rs232_data_t *rs232data)
 		return 0;
 	}
 
+	/* the board response handler */
+	if( (comm & (BOARD_MEMORY_OK)) == 0 ) {		// FIXME add another bugs
+		printf("[%s] memory corrupt =( \n", __FUNCTION__);
+		return -1;
+	}
+
 	return res;
 }
 
 int rs232_test_send(rs232_data_t *rs232data)
 {
-	int 		res, todo = 1;		// FIXME - fix to BUF_SIZE 
+	uint64_t	comm = (RS232_TEST_MEMORY);
+	int 		res, todo = sizeof(comm);
 
-	printf("[%s] block while sending\n", __FUNCTION__);
+	printf("[%s] block while sending command \n", __FUNCTION__);
 
 	errno = 0;
-	res = write(rs232data->fd, rs232data->send_buf, todo);
+	res = write(rs232data->fd, &comm, todo);
 
 	if( res < 0 ) {
 		if( errno != EAGAIN ) {
@@ -76,7 +59,7 @@ int rs232_test_send(rs232_data_t *rs232data)
 
 	if( todo != res ) {
 		printf("[WARN] need [%d], but send [%d]\n", todo, res);
-		return 0; 
+		return -1; 
 	}
 
 	return res;
@@ -88,17 +71,15 @@ int rs232_test_mode(rs232_data_t *rs232data)
 
 	printf("[%s] testing mode\n", __FUNCTION__);
 
-	res = rs232_test_prepare(rs232data);
-	if( res < 0) {
-		printf("[ERR] test failed during prepare - problem on client side, not he board\n");
+	res = rs232_test_send(rs232data);
+	if( res == -1 ) {
 		return -1;
 	}
 
-	rs232_test_send(rs232data);
-	printf("  send [%x] %c\n", rs232data->send_buf[0], rs232data->send_buf[0]);
-
-	rs232_test_receive(rs232data);
-	printf("  recv [%x]\n", rs232data->recv_buf[0]);
+	res = rs232_test_receive(rs232data);
+	if( res == -1 ) {
+		return -1;
+	}
 
 	return 0;
 }

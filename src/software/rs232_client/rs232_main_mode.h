@@ -1,22 +1,6 @@
 #ifndef __RS232_MAIN_
 #define __RS232_MAIN_
 
-#define MAXLINE		255
-#define BUF_SIZE	1024*1024	// 1 Mb
-
-typedef struct rs232_data_s rs232_data_t;
-
-typedef int (*rs232_dumper_cb)(rs232_data_t *);
-
-struct rs232_data_s {
-	char	name[MAXLINE];
-	int	fd;
-	uint8_t	send_buf[BUF_SIZE];
-	uint8_t recv_buf[BUF_SIZE];	
-
-	rs232_dumper_cb	cb;			// work callback
-};
-
 int rs232_receive(rs232_data_t	*rs232data)
 {
 	int res, todo = 10;		// FIXME - fix todo
@@ -45,13 +29,13 @@ int rs232_receive(rs232_data_t	*rs232data)
 
 int rs232_send(rs232_data_t *rs232data)
 {
-	uint8_t		comm = 0;
-	int 		res, todo = sizeof(comm);		// FIXME - fix todo
+	int 		res;
+	size_t		todo = sizeof(rs232data->comm_req);
 
 	printf("[%s] block while sending\n", __FUNCTION__);
 
 	errno = 0;
-	res = write(rs232data->fd, &comm, todo);
+	res = write(rs232data->fd, &rs232data->comm_req, todo);
 
 	if( res < 0 ) {
 		if( errno != EAGAIN ) {
