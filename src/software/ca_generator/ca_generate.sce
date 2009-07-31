@@ -6,11 +6,6 @@ function [ResBit]=cagen(NumSat,Length)
   k2=[6 7 8 9 9 10 8 9 10 3 4 6 7 8 9 10 4 5 6 7 8 9 3 6 7 8 9 10 6 7 8 9 10 10 7 8 10];
  endfunction
 
-function [ResBit]=genfirstbit(G1,G2)
-  ResBitTemp=(G2(k1(NumSat))|G2(k2(NumSat)))&(G2(k1(NumSat))~=G2(k2(NumSat))) //G2(k1) xor G2(k2)
-  ResBit(1)=(G1(10)|ResBitTemp)&(G1(10)~=ResBitTemp) //G1(10)xor ResBitTemp
-endfunction
-
 function [G1]=rotateg1(G1)
 G1Temp10=G1(10)
  G1(10)=G1(9)
@@ -51,24 +46,38 @@ G2Temp2=G2(2);
 endfunction
 
 function [ResBit]=ResultBit(G1,G2,ResBit,k)
- ResBitTemp=(G1(10)|G2(k2(NumSat)))&(G1(10)~=G2(k2(NumSat))); //G1 xor G2(k2)
- ResBitTemp2=(ResBitTemp|G2(k1(NumSat)))&(ResBitTemp~=G2(k1(NumSat))); // ResBitTemp xor G2(k1)
-  ResBit(k)=ResBitTemp2; //G1(10)xor ResBitTemp 
+  ResBitTemp=0
+  ResBitTemp2=0
+ ResBitTemp(1)=(G1(10)|G2(k2(NumSat)))&(G1(10)~=G2(k2(NumSat))); //G1 xor G2(k2)
+ ResBitTemp2(1)=(ResBitTemp(1)|G2(k1(NumSat)))&(ResBitTemp(1)~=G2(k1(NumSat))); // ResBitTemp xor G2(k1)
+  ResBit(k)=ResBitTemp2(1); //G1(10)xor ResBitTemp 
 endfunction  
 
 [G1,G2,k1,k2]=init();
-[ResBit]=genfirstbit(G1,G2);
+ResBit=0;
 for k=1:Length;
+  [ResBit]=ResultBit(G1,G2,ResBit,k);
 [G1]=rotateg1(G1);
 [G2]=rotateg2(G2);
-[ResBit]=ResultBit(G1,G2,ResBit,k+1);
 end;
 endfunction
 
-function [x]=sig_gen(nSample)
-   for i=1:nSample; x(i)=sin(2*3.141*4.092/16.368*i);    end
+function [x,castr]=sig_gen(numsat,nSample)
+for i=1:nSample;x(i)=sin(2*3.141*4.092/16.368*i); end;
+    cel=nSample/16;
+    celint=uint32(cel);
+castr=cagen(numsat,celint);
+
+for i=0:celint-1;
+  castr(i+1)=castr(i+1)*2-1;
+   for j=0:15;
+    xnum=i*16+j+1;
+    x(xnum)=x(xnum)*castr(i+1);
+    end;  
+end;  
+  
 endfunction  
 
 //Program
-cagen(1,10)
-sig_gen(16)
+[x,castr]=sig_gen(17,48)
+
