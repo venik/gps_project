@@ -45,39 +45,55 @@ G2Temp2=G2(2);
  G2(1)=XorTmp5;
 endfunction
 
-function [ResBit]=ResultBit(G1,G2,ResBit,k)
+function [ResBit]=ResultBit(G1,G2,ResBit,k,NumSat)
   ResBitTemp=0
   ResBitTemp2=0
- ResBitTemp(1)=(G1(10)|G2(k2(NumSat)))&(G1(10)~=G2(k2(NumSat))); //G1 xor G2(k2)
- ResBitTemp2(1)=(ResBitTemp(1)|G2(k1(NumSat)))&(ResBitTemp(1)~=G2(k1(NumSat))); // ResBitTemp xor G2(k1)
+ResBitTemp(1)=(G1(10)|G2(k2(NumSat)))&(G1(10)~=G2(k2(NumSat))); //G1 xor G2(k2)
+ResBitTemp2(1)=(ResBitTemp(1)|G2(k1(NumSat)))&(ResBitTemp(1)~=G2(k1(NumSat))); // ResBitTemp xor G2(k1)
   ResBit(k)=ResBitTemp2(1); //G1(10)xor ResBitTemp 
 endfunction  
 
 [G1,G2,k1,k2]=init();
 ResBit=0;
 for k=1:Length;
-  [ResBit]=ResultBit(G1,G2,ResBit,k);
+  [ResBit]=ResultBit(G1,G2,ResBit,k,NumSat);
 [G1]=rotateg1(G1);
 [G2]=rotateg2(G2);
 end;
 endfunction
 
-function [x,castr]=sig_gen(numsat,nSample)
-for i=1:nSample;x(i)=sin(2*3.141*4.092/16.368*i); end;
+function [x,castr]=sig_gen(NumSat,nSample,x)
+
+for i=1:nSample;x(i,NumSat)=sin(2*3.141*4.092/16.368*i); end;
     cel=nSample/16;
     celint=uint32(cel);
-castr=cagen(numsat,celint);
+castr=cagen(NumSat,celint);
 
 for i=0:celint-1;
   castr(i+1)=castr(i+1)*2-1;
    for j=0:15;
     xnum=i*16+j+1;
-    x(xnum)=x(xnum)*castr(i+1);
+    x(xnum,NumSat)=x(xnum,NumSat)*castr(i+1);
     end;  
 end;  
-  
 endfunction  
 
 //Program
-[x,castr]=sig_gen(17,48)
-
+z=1;
+i=1;
+y=x_dialog('Enter a length string or 0 for exit',["32"]);
+y=evstr(y);
+ if y~=0 then
+  x=ones(y,37);
+   while z~=0;
+    z=x_dialog('Enter a number satellite or 0 for exit',["17"]);
+    z=evstr(z);
+     if z~=0 then
+     [x,castr]=sig_gen(z,y,x);
+     mem(i)=z; i=i+1;
+     end;
+   end;
+end;
+x=prod(x,"c") 
+//printf("%1.12f ",x); 
+mem
