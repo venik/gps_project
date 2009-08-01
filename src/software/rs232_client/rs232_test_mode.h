@@ -30,8 +30,8 @@ int rs232_test_receive(rs232_data_t *rs232data)
 	}
 
 	/* the board response handler */
-	if( (comm & (BOARD_MEMORY_OK)) == 0 ) {		// FIXME add another bugs
-		printf("[%s] memory corrupt =( \n", __FUNCTION__);
+	if( comm & BOARD_NOT_ACK ) {
+		printf("[%s] memoryon board is  corrupt =( \n", __FUNCTION__);
 		return -1;
 	}
 
@@ -40,13 +40,12 @@ int rs232_test_receive(rs232_data_t *rs232data)
 
 int rs232_test_send(rs232_data_t *rs232data)
 {
-	uint64_t	comm = (RS232_TEST_MEMORY);
-	int 		res, todo = sizeof(comm);
+	int 		res, todo = sizeof(rs232data->comm_req);
 
 	printf("[%s] block while sending command \n", __FUNCTION__);
 
 	errno = 0;
-	res = write(rs232data->fd, &comm, todo);
+	res = write(rs232data->fd, &rs232data->comm_req, todo);
 
 	if( res < 0 ) {
 		if( errno != EAGAIN ) {
@@ -65,21 +64,15 @@ int rs232_test_send(rs232_data_t *rs232data)
 	return res;
 }
 
-int rs232_test_mode(rs232_data_t *rs232data)
+static int rs232_test_memory(rs232_data_t *rs232data)
 {
-	int res;
-
 	printf("[%s] testing mode\n", __FUNCTION__);
 
-	res = rs232_test_send(rs232data);
-	if( res == -1 ) {
+	if( rs232_test_send(rs232data) < 0 )
 		return -1;
-	}
 
-	res = rs232_test_receive(rs232data);
-	if( res == -1 ) {
+	if( rs232_test_receive(rs232data) < 0 ) 
 		return -1;
-	}
 
 	return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Private property of IT6-DSPLAB group. 
+ * Property of IT6-DSPLAB group. 
  *
  * Description: rs232 dumper - dump realtime gps-data from rs232 to a output file.
  *
@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
@@ -98,14 +99,42 @@ void rs232_destroy(rs232_data_t	*rs232data)
 	close(rs232data->fd);
 }
 
+static void rs232_set_reg(rs232_data_t *rs232data)
+{
+	printf("[%s] set register mode", __FUNCTION__);
+
+	if( rs232data->addr > 7 ) {
+		printf("Address must be between 0 and 7\n");
+		return;
+	}
+
+	if( rs232data->reg > 268435455 ) {		// 268435455 = (2^28 - 1)
+		printf("Register value must be between 0 and 268435455\n");
+		return;
+	}
+
+	/* create payload for request */ 
+	//printf("before [0x%llx] \n", rs232data.comm_req);
+	rs232data->comm_req |= ( (rs232data->addr << 1) | (rs232data->reg << 5) );
+	printf("command for sending  [0x%016llx] \n", rs232data->comm_req);
+
+	/* FIXME - add network part */
+
+	return;
+}
+
 int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
 	int res;
 
+	/* predefine some values for a test purposes */
+	rs232data.comm_req = UINT32_MAX;
+	rs232data.addr = UINT32_MAX;
+
 	/* parse command-line options */
 	printf("Activate mode: \n");
-	while ( (res = getopt(argc,argv,"hp:tg")) != -1){
+	while ( (res = getopt(argc,argv,"hp:tgs:a:")) != -1){
 		switch (res) {
 		case 'h':
 			rs232_banner();
@@ -115,18 +144,30 @@ int main(int argc, char **argv)
 			snprintf(rs232data.name, MAXLINE, "%s", optarg);
 			break;
 		case 't':
-			printf("\t board test mode\n");
-			rs232data.comm_req |= RS232_TEST_MEMORY;
+			rs232data.comm_req = RS232_TEST_MEMORY;
 			break;
 		case 'g':
 			printf("\t gps mode\n");
 			rs232data.comm_req |= RS232_GPS_START;
 			break;
+
+		/* set register */
+		case 's':
+			rs232data.comm_req = RS232_SET_REG;
+			rs232data.reg = atoll(optarg);
+			printf("\t gps mode\n");
+			break;
+		case 'a':
+			rs232data.addr = atoll(optarg);
+			printf("\t address [0x%llx]\n", rs232data.addr);
+			break;
+
 		default:
 			return -1;
         	};
 	};
 
+	/* open COM - port */
 	errno = 0;
 	rs232data.fd = rs232_open_device(rs232data.name); 
 	if( rs232data.fd == 0 )
@@ -134,15 +175,25 @@ int main(int argc, char **argv)
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
-	if( rs232data.comm_req & RS232_TEST_MEMORY ) {
-		if( rs232_test_mode(&rs232data) == -1 )
-			return -1;
-	}
-	
-	if( rs232data.comm_req & RS232_GPS_START ) {
-		if( rs232_main_mode(&rs232data) == -1 )
-			return -1;
-	}
+	/* craft command for the board */
+	switch( rs232data.comm_req ) {
+	case RS232_SET_REG:
+		rs232_set_reg(&rs232data);
+		break;
+
+	case RS232_TEST_MEMORY:
+		rs232_test_memory(&rs232data);
+		break;
+
+	case RS232_GPS_START:
+		printf("Not implement yet\n");
+		return -1;
+
+	default:
+		printf("Unknown mode. Exit... \n");
+		return -1;
+
+	} // switch( rs232data.comm_req )
 
 	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);
