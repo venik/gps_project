@@ -1,13 +1,14 @@
-This is a academic gps project. Our main goal - create the board with open architecture, create the software under opensource. Board will send gps in raw format into network via USB (but via RS232) interface and server-side software
-(maybe via PCI bus directly into a PC). Any client can connect to the gps-board and get a raw data. Mainly project orient for a university DSP-course.
+This is the academic gps project. Our main goal - create the board with open architecture, create the software under opensource. Board will send gps in raw format into network via USB (but via RS232) interface and server-side software
+(perhaps via PCI bus directly into a PC). Any client can connect to the gps-board and get a raw data. Mainly project orient for an university DSP-course.
 
 First version of the board will contain
 			Hardware:
 				onboard RS-232 port and the management VHDL		[done]
 				256K SRAM memory and the SRAM controller in VHDL	[done]
+				GPS chip arbiter					[not started]
 
 			Software:
 				correlation code on C under Linux			[unknown]
 				GPS-satellite signal generator				[unknown]
 				RS232 client in C under Linux				[in progress]
-				GUI for software modules				[not started]
+				GUI for software modules				[in progress]
