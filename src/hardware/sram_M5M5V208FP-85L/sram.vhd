@@ -2,6 +2,21 @@
 --- Name:	controller sram 
 --- Description:	sram chip M5M5V208FP-85L
 ---
+--  --------------
+--  |            | <--	clk - clock
+--  |            | <--	soft_reset - reset
+--  |            | <--	mem - memory operation
+--  |            | <--	rw - w = 0 / r = 1
+--  |   SRAM     | <--	addr - address
+--  | controller | <--	data_f2s - fpga to sram data
+--  |            | -->	ready - sram controller is ready (1 is ready)
+--  |            |
+--  |            | --> s1, s2 - chip enable
+--  |            | --> WE, OE - write enable / output enable
+--  |            | --> address - address bus
+--  |            |<--> dio_a - data bus
+--  --------------
+--
 --- Developer:	Alex Nikiforov nikiforov.al [at] gmail.com
 ---
 --- Misc:	More info in "FPGA prototyping by VHDL examples"
@@ -62,7 +77,6 @@ begin
       tri_reg <= '1';
       we_reg <= '1';
       oe_reg <= '1';
-    --elsif (clk'event and clk = '1')    -- FIXME to rising edge
     elsif rising_edge(clk) then   
       state_reg <= state_next;
       addr_reg <= addr_next;

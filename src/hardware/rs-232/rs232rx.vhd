@@ -7,7 +7,7 @@
 --  |   rs232    | <--	rx_done_tick - receive done
 --  |    rx      | <--	reset - you know what is it
 --  |            | <--	clk - tick-tack
---  |            | <--	rs232_clk - clk at 115200 bits/sec speed 
+--  |            | <--	rs232_middle_clk - clk for receive (bods/2)
 --  --------------
 --
 -- Developer: Alex Nikiforov nikiforov.al [at] gmail.com
@@ -30,13 +30,12 @@ entity rs232rx is
 		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
 		rs232_in: in std_logic ;
 		rx_done_tick : out std_logic ;
-		rs232_clk: in std_logic ;
 		rs232_middle_clk: in std_logic
 	     );
 end rs232rx;
 
 architecture arch of rs232rx is
-	type rs232_type is(idle, start, data, stop);
+	type rs232_type is(idle, data, stop);
 	signal rs232_state, rs232_next_state: rs232_type;
 	signal rs232_counter: integer range 0 to 8 := 0;
 	signal rs232_edge: std_logic_vector (1 downto 0) ;
@@ -75,10 +74,6 @@ if rising_edge(rs232_middle_clk) then
     rs232_edge <= B"01";
 
    end if;
-   
-  -- start bit
-  when start =>
-   rs232_next_state <= data;
  
   -- data bit
   when data =>

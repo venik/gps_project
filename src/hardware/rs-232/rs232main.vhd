@@ -45,8 +45,7 @@ rs232rx_unit: entity work.rs232rx(arch)
 				dout => dout,
 				rs232_in => rs232_in,
 				rx_done_tick => rx_done_tick,
-				rs232_middle_clk => rs232_middle_clk,
-	         rs232_clk => rs232_clk
+				rs232_middle_clk => rs232_middle_clk
 			);	
 
 rs232tx_unit: entity work.rs232tx(arch)
