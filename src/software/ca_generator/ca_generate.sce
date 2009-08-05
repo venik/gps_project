@@ -62,9 +62,9 @@ for k=1:Length;
 end;
 endfunction
 
-function [x,castr]=sig_gen(NumSat,nSample,x)
+function [x,castr]=sig_gen(NumSat,nSample,x,ShiftSat)
 
-for i=1:nSample;x(i,NumSat)=sin(2*3.141*4.092/16.368*i); end;
+for i=1:nSample;x(i+ShiftSat,NumSat)=sin(2*3.141*4.092/16.368*i); end;
     cel=nSample/16;
     celint=uint32(cel);
 castr=cagen(NumSat,celint);
@@ -89,11 +89,13 @@ y=evstr(y);
     z=x_dialog('Enter a number satellite or 0 for exit',["17"]);
     z=evstr(z);
      if z~=0 then
-     [x,castr]=sig_gen(z,y,x);
-     mem(i)=z; i=i+1;
+   shift=x_dialog('Enter shift of a signal for the set satellite',["0"]);
+    shift=evstr(shift);  
+     [x,castr]=sig_gen(z,y,x,shift);
+     mem(1,i)=z; mem(2,i)=shift; i=i+1;
      end;
    end;
 end;
+x
 x=prod(x,"c") 
-//printf("%1.12f ",x); 
 mem
