@@ -81,21 +81,22 @@ endfunction
 //Program
 z=1;
 i=1;
-y=x_dialog('Enter a length string or 0 for exit',["32"]);
-y=evstr(y);
- if y~=0 then
-  x=ones(y,37);
+length_str=x_dialog('Enter a length string or 0 for exit',["32"]);
+length_str=evstr(length_str);
+ if length_str~=0 then
+  x=ones(length_str,37);
    while z~=0;
     z=x_dialog('Enter a number satellite or 0 for exit',["17"]);
     z=evstr(z);
      if z~=0 then
    shift=x_dialog('Enter shift of a signal for the set satellite',["0"]);
     shift=evstr(shift);  
-     [x,castr]=sig_gen(z,y,x,shift);
+     [x,castr]=sig_gen(z,length_str,x,shift);
      mem(1,i)=z; mem(2,i)=shift; i=i+1;
      end;
    end;
 end;
-x
-x=prod(x,"c") 
+output_str=prod(x,"c")
+//round(output_str*10000)/10000;
+//save('test.dat',output_str,mem,length_str);
 mem
