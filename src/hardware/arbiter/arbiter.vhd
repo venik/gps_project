@@ -52,7 +52,12 @@ architecture Behavioral of arbiter is
 	-- comm staff
 	signal byte_counter: integer range 0 to 63;
 	signal comm: std_logic_vector (63 downto 0) := ( others => '0') ;
-	signal test_mem: std_logic_vector (7 downto 0) := ( others => '0') ;
+	
+	-- mem test staff
+	type test_mem_type is(idle_t_mem, read_t_mem, write_t_mem) ;
+	signal test_mem: test_mem_type := idle_t_mem;
+	signal data_mem: std_logic_vector (7 downto 0) := ( others => '0') ; 
+	signal test_mem_result: std_logic_vector (1 downto 0) := ( others => '0' );
 	
 begin
 
@@ -86,7 +91,7 @@ sram_controller: entity work.sram_ctrl(arch)
 				WE => WE,
 				OE => OE
 			);
-	
+
 process(clk, reset)
 begin
 
@@ -94,8 +99,50 @@ begin
 		soft_reset <= '1' ;
 	elsif rising_edge(clk) then
 		soft_reset <= '0' ;
-		arbiter_state <= arbiter_next_state;
+		arbiter_state <= arbiter_next_state ;
+		--test_mem <= test_mem_next ;
 	end if;
+	
+end process;
+	
+process(test_mem, ready)
+begin
+	case test_mem is
+	when write_t_mem =>	 
+	
+		if( data_mem < 255 ) then
+			-- write into the memory test pattern
+			if ready = '1' then
+				addr(7 downto 0) <= data_mem ;
+				data_f2s <= data_mem ;
+				rw <= '1' ;
+				data_mem <= data_mem + 1 ;				
+			end if; -- if ready = '1' then
+		else
+			data_mem <= ( others => '0' );
+			test_mem_result <= "01";
+		end if; -- if( data_mem < 255 ) then   
+			
+	when read_t_mem =>
+		if( data_mem < 255 ) then
+			-- read into the memory test pattern
+			addr(7 downto 0) <= data_mem ;						
+			rw <= '0' ;
+			
+			if ready = '1' then
+				if (data_s2f_ur /= data_mem) then 
+					test_mem_result <= "11"	;
+				else
+					data_mem <= data_mem + 1 ;	
+				end if;
+			end if; -- if ready = '1' then
+		else
+			test_mem_result <= "10" ;
+		end if;
+	
+	when idle_t_mem => NULL ;
+	
+	end case;
 	
 end process;
 
@@ -113,66 +160,76 @@ begin
 				if( byte_counter = 63 ) then
 					-- check the command
 					case comm(7 downto 0) is
-						when "00000001" => NULL ;
-							-- set register
-							
-						when "00000010" =>
-							-- memory test
-								if( test_mem < 7 ) then
-									-- write into the memory test pattern
-																
-									if ready = '1' then
-										addr(7 downto 0) <= test_mem ;
-										data_f2s <= test_mem ;
-										mem <= '1' ;	
-										rw <= '1' ;
-										test_mem <= test_mem + 1 ;
-										
-									end if; -- if ready = '1' then
-								
-								else 
-									-- read from the memory test pattern
-									
-								end if; -- if( test_mem < 7 ) then
-								
-						when "00000100" => NULL ;
-							-- start gps	
+					when "00000001" => NULL ;
+						-- set register
+						arbiter_next_state <= idle ;
+					when "00000010" =>
+						-- memory test
 						
-						when others => NULL ;
+						case test_mem is
+						when idle_t_mem =>
+							test_mem <= write_t_mem ;
+							
+						when write_t_mem =>
+							if( test_mem_result = "01" ) then
+								test_mem <= read_t_mem ;
+						end if;
+						
+						when read_t_mem =>
+							if( test_mem_result = "11" ) then
+								arbiter_next_state <=  send_comm ;
+								din <= "00000001" ;
+								mem <= '0' ;
+							elsif( test_mem_result = "10" ) then
+								arbiter_next_state <=  send_comm ;
+								din <= "00000010" ;
+								mem <= '0' ;
+							else 
+								mem <= '1';
+							end if;
+								
+						end case;
+													
+					when "00000100" => NULL ;
+						-- start gps	
+						arbiter_next_state <= idle ;
+						
+					when others =>
+						arbiter_next_state <= idle;
        			end case;
-				else 
-					byte_counter <= byte_counter + 7;
+				   
+			else 
+				byte_counter <= byte_counter + 7;
 					
-					-- the old code
-					arbiter_next_state <=  write_sram;
-				end if ;
-				
+				-- the old code
+				--arbiter_next_state <=  write_sram;
 			end if ;
+				
+		end if ;
 			
-			-- disable rs232 tx and sram
-			mem <= '0' ; 
-			tx_start <= '0';
+		-- disable rs232 tx and sram
+		tx_start <= '0';
 
---		-- write_sram
-		when write_sram =>
-			addr <= ( others => '0' ) ;
-			mem <= '1' ;	
-			rw <= '1' ;
-			
-			if ready = '1' then
-				arbiter_next_state <=  read_sram;
-			end if;
-
---		-- write_sram
-		when read_sram =>
-			addr <= ( others => '0' ) ;
-			mem <= '1' ;	
-			rw <= '0' ;
-			
-			if ready = '1' then
-				arbiter_next_state <=  send_comm ;
-				din <= data_s2f_ur ;
-			end if;
+----		-- write_sram
+		when write_sram => NULL ;
+--			addr <= ( others => '0' ) ;
+--			mem <= '1' ;	
+--			rw <= '1' ;
+--			
+--			if ready = '1' then
+--				arbiter_next_state <=  read_sram;
+--			end if;
+--
+----		-- write_sram
+		when read_sram => NULL ;
+--			addr <= ( others => '0' ) ;
+--			mem <= '1' ;	
+--			rw <= '0' ;
+--			
+--			if ready = '1' then
+--				arbiter_next_state <=  send_comm ;
+--				din <= data_s2f_ur ;
+--			end if;
 			
 --		-- send_comm			
 		when send_comm =>
@@ -181,7 +238,6 @@ begin
 			if( tx_done_tick = '1' ) then
 					arbiter_next_state <= idle ;
 			end if;
-			mem <= '0' ; 			
 			
 		end case;
 
