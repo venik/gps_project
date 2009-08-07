@@ -1,9 +1,9 @@
-ACCEL_ASCII "C:\work\pcad\xilinx_lab3\xilinx_lab3.sch"
+ACCEL_ASCII "C:\Documents and Settings\User\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 7 29 20 14 17)
-  (program "P-CAD 2002 Schematic" "17.00.50")
+  (timeStamp 2009 8 5 20 48 46)
+  (program "P-CAD 2002 Schematic TRIAL VERSION - 30 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
@@ -402,9 +402,9 @@ ACCEL_ASCII "C:\work\pcad\xilinx_lab3\xilinx_lab3.sch"
     (text (pt 400.0 -3400.0) "Shield" (textStyleRef "(Default)") (extent 310.0 135.0) )
     (line (pt 700.0 -2500.0) (pt 300.0 -2500.0) )
     (line (pt 300.0 -2200.0) (pt 700.0 -2200.0) )
-    (text (pt 650.0 -1300.0) "1CT:1CT" (textStyleRef "(PinStyle) [1]") (justify Center) (extent 8.23647 mm 2.5638 mm) )
+    (text (pt 650.0 -1300.0) "1CT:1CT" (textStyleRef "(PinStyle) [1]") (justify Center) (extent 8.07772 mm 2.5638 mm) )
     (line (pt 700.0 -1000.0) (pt 400.0 -1000.0) )
-    (text (pt 650.0 -700.0) "1CT:1CT" (textStyleRef "(PinStyle) [1]") (justify Center) (extent 8.23647 mm 2.5638 mm) )
+    (text (pt 650.0 -700.0) "1CT:1CT" (textStyleRef "(PinStyle) [1]") (justify Center) (extent 8.07772 mm 2.5638 mm) )
     (line (pt 1600.0 -1850.0) (pt 2000.0 -1850.0) )
     (line (pt 1600.0 -1550.0) (pt 2000.0 -1550.0) )
     (line (pt 1600.0 -1150.0) (pt 1850.0 -1150.0) )
@@ -7493,8 +7493,8 @@ ACCEL_ASCII "C:\work\pcad\xilinx_lab3\xilinx_lab3.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "50.0mil")
       (grid "1.0mil")
+      (grid "50.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9781,7 +9781,7 @@ ACCEL_ASCII "C:\work\pcad\xilinx_lab3\xilinx_lab3.sch"
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 5))
+      (currentLayer (layerNumRef 4))
     )
     (gridState 
       (currentAbsGrid "50.0mil")
