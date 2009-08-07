@@ -97,6 +97,11 @@ length_str=evstr(length_str);
    end;
 end;
 output_str=prod(x,"c")
-//round(output_str*10000)/10000;
-//save('test.dat',output_str,mem,length_str);
 mem
+q=0:length(output_str)-1;
+for i=1:length(output_str);
+cmplx(i)=q(i)+output_str(i)*%i;
+end;
+cmplx
+//save('test.dat',output_str,mem,length_str);
+
