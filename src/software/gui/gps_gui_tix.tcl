@@ -20,22 +20,16 @@ proc init_settings {root_window note_book} {
 	##=========================================================
 	##	Create rs232 settings string 
 	##=========================================================
-	#entry $tb(test).f.rs232_e -width 30 -textvar rs232_name -relief sunken 
-	#button $tb(test).f.rs232_b -text "Set" -command test_button
     	set w [$note_book subwidget settings]
     	set rbt [frame $w.rbt -borderwidth 1 -relief sunken]
     	set res [frame $w.res -borderwidth 1 -relief sunken]
 
-
-    	#place $rbt -x 0 -y 0
-
-	label $rbt.rs232_l -text "Port name: "
-	entry $rbt.rs232_e -width 10 -textvar rs232_name -border 1
+	label 	$rbt.rs232_l -text "Port name: " -padx 2
+	entry 	$rbt.rs232_e -width 40 -textvar rs232_name -border 1
+	button 	$rbt.rs232_b -text "Connect" -command exit
 
 	# results
-	label $res.port -text "Unknown"
-
-	#place $rbt.rs232_l -relx 0 -rely 0 -relheight 1 -relwidth 0.5 
+	label $res.port -text "Unconnected" -padx 1
 
     	pack $res -side right -fill both 
     	pack $rbt -side top -fill both
@@ -43,17 +37,20 @@ proc init_settings {root_window note_book} {
 	#$rbt.close configure -state disabled
 
 	#pack $rbt.rs232_l $rbt.rs232_e -side top -padx 5 -pady 5 -fill x
-	pack $rbt.rs232_l $rbt.rs232_e -side top -padx 5 -pady 5 -fill x
-	pack $res.port
+	pack $rbt.rs232_l -side left -padx 2 -pady 2
+	pack $rbt.rs232_e -side left -padx 2 -pady 2 -fill x
+	pack $rbt.rs232_b -side right -padx 2 -pady 2
+
+	pack $res.port -padx 2 -pady 8 
 
 }
 
-#wm title . "Tix Example"
 
 wm withdraw .
 set w .app
 toplevel $w;
 wm transient $w ""
+wm title $w "Tix Example"
 wm geometry $w 640x480
 
 bind $w <Destroy> {
