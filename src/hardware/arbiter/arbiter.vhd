@@ -12,18 +12,19 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity arbiter is
-    	Port (
-			-- rs232
-			rs232_in: in std_logic ;
-			rs232_out: out std_logic ;
-			--sram
+    	Port (
+			-- sram
 			address: out std_logic_vector(17 downto 0) ;
 			dio_a: inout std_logic_vector(7 downto 0) ;
 			s1, s2: out std_logic ;
 			WE, OE: out std_logic ;
+			-- rs232
+			rs232_in: in std_logic ;
+			rs232_out: out std_logic ;
+			
 			--system
 			clk : in std_logic ;
-			u10 : out  std_logic_vector (7 downto 0) ;
+			u10 : inout  std_logic_vector (7 downto 0) ;
 			reset : in std_logic ;
 			-- signal
 			test_done: in std_logic ;
@@ -38,13 +39,7 @@ architecture Behavioral of arbiter is
 	signal	tx_start : std_logic ;
 	signal	dout : std_logic_vector (7 downto 0) ; 
 	signal	din : std_logic_vector (7 downto 0) ; 
-	-- sram
-	signal	mem: std_logic := '0';
-	signal	rw: std_logic ;
-	signal	addr: std_logic_vector(17 downto 0) ;
-	signal 	data_f2s: std_logic_vector(7 downto 0) ;
-	signal 	ready: std_logic := '0' ;
-	signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;
+
 	-- local
 	type arbiter_type is(idle, write_sram, read_sram, send_comm) ;
 	signal arbiter_state: arbiter_type := idle ;
@@ -77,23 +72,6 @@ rs232main_unit: entity work.rs232main(arch)
 		       tx_start => tx_start
 			);
 
-sram_controller: entity work.sram_ctrl(arch)
-  port map( clk => clk,
-				soft_reset => soft_reset,
-				mem => mem,
-				rw => rw,
-				addr => addr,
-				data_f2s => data_f2s,
-				ready => ready,
-				data_s2f_r => data_s2f_r,
-				data_s2f_ur => data_s2f_ur,
-				address => address,
-				dio_a => dio_a,
-				s1 => s1,
-				s2 => s2,
-				WE => WE,
-				OE => OE
-			);
 
 process(clk, reset)
 begin
@@ -108,8 +86,6 @@ begin
 	
 end process;
 	
-
-
 process(arbiter_state, clk, tx_done_tick)
 begin
 	if rising_edge(clk) then
@@ -129,7 +105,6 @@ begin
 						arbiter_next_state <= idle ;
 					when "00000010" =>
 						-- memory test
-						
 --						case test_mem is
 --						when idle_t_mem =>
 --							test_mem <= write_t_mem ;
