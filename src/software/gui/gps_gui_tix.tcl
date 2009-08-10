@@ -2,6 +2,11 @@
 
 package require Tix
 
+proc tracep {msg} {
+	global log
+	puts $log "[clock format [clock seconds] -format {%H:%M:%S}] $msg"
+}
+
 proc create_nb {w} {
 
     tixNoteBook $w.n -dynamicgeometry false
@@ -99,4 +104,11 @@ bind $w <Destroy> {
   }
 }
 
+set log [open "log" a+];
+
+tracep "hello world"
+
 create_nb $w
+
+# FIXME - do it more gentle
+close $log
