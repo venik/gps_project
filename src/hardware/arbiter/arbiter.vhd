@@ -24,7 +24,10 @@ entity arbiter is
 			--system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
-			reset : in std_logic
+			reset : in std_logic ;
+			-- signal
+			test_done: in std_logic ;
+			test_result: in std_logic
 	     );
 end arbiter;
 
@@ -96,55 +99,16 @@ process(clk, reset)
 begin
 
 	if( reset = '0') then				-- push the reset-button
-		soft_reset <= '1' ;
+		soft_reset <= '1' ;
+		arbiter_state <= idle ;
 	elsif rising_edge(clk) then
 		soft_reset <= '0' ;
 		arbiter_state <= arbiter_next_state ;
-		--test_mem <= test_mem_next ;
 	end if;
 	
 end process;
 	
---process(test_mem, ready)
---begin
---	case test_mem is
---	when write_t_mem =>	 
---	
---		if( data_mem < 255 ) then
---			-- write into the memory test pattern
---			if ready = '1' then
---				addr(7 downto 0) <= data_mem ;
---				data_f2s <= data_mem ;
---				rw <= '1' ;
---				data_mem <= data_mem + 1 ;				
---			end if; -- if ready = '1' then
---		else
---			data_mem <= ( others => '0' );
---			test_mem_result <= "01";
---		end if; -- if( data_mem < 255 ) then   
---			
---	when read_t_mem =>
---		if( data_mem < 255 ) then
---			-- read into the memory test pattern
---			addr(7 downto 0) <= data_mem ;						
---			rw <= '0' ;
---			
---			if ready = '1' then
---				if (data_s2f_ur /= data_mem) then 
---					test_mem_result <= "11"	;
---				else
---					data_mem <= data_mem + 1 ;	
---				end if;
---			end if; -- if ready = '1' then
---		else
---			test_mem_result <= "10" ;
---		end if;
---	
---	when idle_t_mem => NULL ;
---	
---	end case;
---	
---end process;
+
 
 process(arbiter_state, clk, tx_done_tick)
 begin

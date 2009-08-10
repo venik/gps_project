@@ -29,7 +29,8 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-
+			signal test_done: std_logic := '0' ;
+			signal test_result: std_logic := '0' ;
 begin
 
 arbiter: entity work.arbiter(Behavioral)
@@ -43,6 +44,23 @@ arbiter: entity work.arbiter(Behavioral)
 			WE => WE,
 			OE => OE,
 			clk => clk,
+			u10 => u10,
+			test_done => test_done,
+			test_result => test_result,
+			reset => reset
+			);
+			
+test_sram: entity work.test_sram(Behavioral)
+	port map(
+			address => address,
+			dio_a => dio_a,
+			s1 => s1,
+			s2 => s2,
+			WE => WE,
+			OE => OE,
+			clk => clk,
+			test_done => test_done,
+			test_result => test_result,
 			u10 => u10,
 			reset => reset
 			);
