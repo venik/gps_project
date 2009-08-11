@@ -47,16 +47,12 @@ architecture Behavioral of top_level is
 			signal	a_rw: std_logic ;
 			signal	a_addr: std_logic_vector(17 downto 0) ;
 			signal 	a_data_f2s: std_logic_vector(7 downto 0) ;
-			signal	a_WE: std_logic;
-			signal	a_OE: std_logic;
 
 			-- test_mem
 			signal	t_mem: std_logic := '0';
 			signal	t_rw: std_logic ;
 			signal	t_addr: std_logic_vector(17 downto 0) ;
 			signal 	t_data_f2s: std_logic_vector(7 downto 0) ;
-			signal	t_WE: std_logic;
-			signal	t_OE: std_logic;
 
 begin
 
@@ -66,8 +62,6 @@ arbiter: entity work.arbiter(Behavioral)
 			rs232_out => rs232_out,
 			addr => a_addr,
 			rw => a_rw,
-			WE => a_WE,
-			OE => a_OE,
 			data_f2s => a_data_f2s,
 			data_s2f_r => data_s2f_r,
 			data_s2f_ur => data_s2f_ur,
@@ -84,8 +78,6 @@ test_sram: entity work.test_sram(Behavioral)
 	port map(
 			addr => t_addr,
 			rw => t_rw,
-			WE => t_WE,
-			OE => t_OE,
 			data_f2s => t_data_f2s,
 			data_s2f_r => data_s2f_r,
 			data_s2f_ur => data_s2f_ur,
@@ -115,14 +107,23 @@ sram_controller: entity work.sram_ctrl(arch)
 			OE => OE
 			);
 
-SRAM_MUX: process(mode)
+			
+SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, a_addr, a_rw, a_data_f2s)
 begin
 
 	case mode is
 	when "00" => NULL ;
 		-- arbiter drive SRAM bus
-	when "01" => NULL ;
-		-- arbiter drive SRAM bus
+		addr <= a_addr ;
+		rw <= a_rw ;
+		data_f2s <= a_data_f2s ;
+		
+	when "01" => 
+		-- test_mem drive SRAM bus
+		addr <= t_addr ;
+		rw <= t_rw ;
+		data_f2s <= t_data_f2s ;
+		
 	when "10" => NULL ;
 	when "11" => NULL ;
 	when others => NULL ;

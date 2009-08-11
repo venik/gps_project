@@ -20,7 +20,6 @@ entity test_sram is
     	Port (
 			-- sram
 			addr: out std_logic_vector(17 downto 0) ;
-			WE, OE: out std_logic ;
 			data_f2s: out std_logic_vector(7 downto 0) ;
 			data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
