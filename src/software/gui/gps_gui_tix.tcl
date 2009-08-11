@@ -2,23 +2,19 @@
 
 package require Tix
 
-proc tracep {msg} {
-	global log
-	puts $log "[clock format [clock seconds] -format {%H:%M:%S}] $msg"
-}
+source logs.tcl
 
 proc create_nb {w} {
 
-    tixNoteBook $w.n -dynamicgeometry false
+	tixNoteBook $w.n -dynamicgeometry false
 
-    #$w.n add settings -label "Settings" -underline 0
-    $w.n add settings -label "Settings" -underline 0 -createcmd "init_settings $w $w.n"
-    $w.n add work -label "Work" -underline 0
+	$w.n add settings -label "Settings" -underline 0 -createcmd "init_settings $w $w.n"
+	$w.n add work_tab -label "Work" -underline 0
+	$w.n add log_tab -label "Log" -underline 0 -createcmd "create_logs $w $w.n" -raisecmd "show_logs $w $w.n"
 
     #RunSample $frame1 $w
 
     pack $w.n -side bottom -fill both -expand 1
-
 }
 
 proc init_settings {root_window note_book} {
@@ -37,18 +33,20 @@ proc init_settings {root_window note_book} {
 	label 	$rbt.server_port_l -text "Server port: " -padx 2
 	entry 	$rbt.server_port_e -width 10 -textvar server_port -border 1
 
-	button 	$rbt.rs232_b -text "Connect" -command exit
+	button 	$rbt.rs232_connect_b -text "Connect" -command gui_exit
 
 	# headers 
 	label 	$rbt.set_l -text "Settings: " -padx 2 -font {Helvetica 14 bold}
 	label 	$rbt.test_l -text "Tests: " -padx 2 -font {Helvetica 14 bold}
 
 	# test labels
+	label 	$rbt.rs232_test_l -text "RS232 test  ...................................................................................................... " -padx 2
 	label 	$rbt.mem_test_l -text "Memory test  ................................................................................................... " -padx 2
 	label 	$rbt.gps_test_l -text "GPS test  ......................................................................................................... " -padx 2
 
 	# results
 	label $res.port -text "UNCONNECTED" -padx 1
+	label $res.rs232 -text "UNTESTED" -padx 1
 	label $res.mem -text "UNTESTED" -padx 1
 	label $res.gps -text "UNTESTED" -padx 1
 
@@ -72,20 +70,30 @@ proc init_settings {root_window note_book} {
 	place $rbt.rs232_l -relx 0 -rely 0.14
 	place $rbt.rs232_e -relx 0.15 -rely 0.14
 	
-	place $rbt.rs232_b -relx 0.8 -rely 0.85
+	place $rbt.rs232_connect_b -relx 0.8 -rely 0.85
 	
 	#tests
-	place $rbt.mem_test_l -relx 0 -rely 0.27 
-	place $rbt.gps_test_l -relx 0 -rely 0.32
+	place $rbt.rs232_test_l -relx 0 -rely 0.27 
+	place $rbt.mem_test_l -relx 0 -rely 0.32 
+	place $rbt.gps_test_l -relx 0 -rely 0.37
 
 	# results
 	place $res.port -relx 0.5 -x -50 -rely 0.14
-	place $res.mem -relx 0.5 -x -37 -rely 0.27
-	place $res.gps -relx 0.5 -x -37 -rely 0.32
+	place $res.rs232 -relx 0.5 -x -37 -rely 0.27
+	place $res.mem -relx 0.5 -x -37 -rely 0.32
+	place $res.gps -relx 0.5 -x -37 -rely 0.37
 
 	#$rbt.close configure -state disabled
 }
 
+proc gui_exit {} {
+	global log
+
+	# FIXME - do it more gentle
+	close $log
+
+	exit
+}
 
 wm withdraw .
 set w .app
@@ -106,9 +114,5 @@ bind $w <Destroy> {
 
 set log [open "log" a+];
 
-tracep "hello world"
-
 create_nb $w
 
-# FIXME - do it more gentle
-close $log
