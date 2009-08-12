@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 8 12 20 21 8)
+  (timeStamp 2009 8 12 23 58 36)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -6424,6 +6424,12 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (compValue "1k")
     (patternName "C0805")
   )
+  (compInst "U39"
+    (compRef "WIRE_PAD_1")
+    (originalName "WIRE_PAD")
+    (compValue "VCC_D")
+    (patternName "WIRE_PAD")
+  )
   (net "GND"
     (node "U15" "19")
     (node "U14" "24")
@@ -7439,6 +7445,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "DB1" "26")
   )
   (net "VCC_D"
+    (node "U39" "0")
     (node "R6" "1")
     (node "U33" "0")
     (node "U32" "0")
@@ -7616,8 +7623,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "1.0mil")
       (grid "50.0mil")
+      (grid "1.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9428,6 +9435,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (junction (pt 12150.0 4350.0) (netNameRef "VCC_D") )
     (junction (pt 12150.0 4850.0) (netNameRef "VCC_D") )
     (junction (pt 12150.0 5300.0) (netNameRef "VCC_D") )
+    (junction (pt 12150.0 5750.0) (netNameRef "VCC_D") )
     (wire (line (pt 12100.0 7850.0) (pt 12100.0 7950.0) (width 10.0) (netNameRef "VCC_A") )
     )
     (junction (pt 12100.0 7950.0) (netNameRef "VCC_A") )
@@ -9591,6 +9599,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (wire (line (pt 12100.0 8900.0) (pt 12100.0 8450.0) (width 10.0) (netNameRef "VCC_A") )
     )
     (wire (line (pt 12100.0 9950.0) (pt 12100.0 9350.0) (width 10.0) (netNameRef "VCC_A") )
+    )
+    (wire (line (pt 12150.0 6200.0) (pt 12150.0 5750.0) (width 10.0) (netNameRef "VCC_D") )
     )
     (wire (line (pt 9350.0 10950.0) (pt 9350.0 9850.0) (width 10.0) (netNameRef "NET00064") )
     )
@@ -9807,6 +9817,9 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U25") (partNum 1) (pt 12650.0 9950.0) 
       (attr "RefDes" "" (pt 0.0 -150.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
     )
+    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U39") (partNum 1) (pt 12800.0 6200.0) 
+      (attr "RefDes" "" (pt 0.0 -150.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
+    )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U31") (partNum 1) (pt 12650.0 10850.0) 
       (attr "RefDes" "" (pt 0.0 -150.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
     )
@@ -9887,6 +9900,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     )
     (wire (line (pt 12500.0 5750.0) (pt 12150.0 5750.0) (width 10.0) (netNameRef "VCC_D") )
     )
+    (wire (line (pt 12500.0 6200.0) (pt 12150.0 6200.0) (width 10.0) (netNameRef "VCC_D") )
+    )
     (wire (line (pt 12100.0 7950.0) (pt 12400.0 7950.0) (width 10.0) (netNameRef "VCC_A") )
     )
     (wire (line (pt 12350.0 8450.0) (pt 12100.0 8450.0) (width 10.0) (netNameRef "VCC_A") )
@@ -9957,7 +9972,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 4))
+      (currentLayer (layerNumRef 5))
     )
     (gridState 
       (currentAbsGrid "50.0mil")
