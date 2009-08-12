@@ -64,7 +64,7 @@ int rs232_test_send(rs232_data_t *rs232data)
 	return res;
 }
 
-static int rs232_test_memory(rs232_data_t *rs232data)
+int rs232_test_memory(rs232_data_t *rs232data)
 {
 	printf("[%s] testing mode\n", __FUNCTION__);
 

@@ -1,5 +1,4 @@
 /*
- * Property of IT6-DSPLAB group. 
  *
  * Description: rs232 dumper - dump realtime gps-data from rs232 to a output file.
  *
@@ -19,6 +18,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 #include <errno.h>
 
 #include "rs232_dumper.h"
@@ -26,19 +28,7 @@
 #include "rs232_main_mode.h"
 #include "rs232_test_mode.h"
 
-/*
- * Description: print banner 
- * Return:  	nothing	
- */
-void rs232_banner()
-{
-	printf("Hello this is rs232 dumper for gps-board project by DSP-lab. This is real cool banner\n");
-	printf("Usage: rs232_client [options]\n");
-	printf("Options:\n");
-	printf("  -p:	give the rs232 port name, something like this /dev/ttyS0\n");
-	printf("  -t:	board test mode\n");
-	printf("  -h:	display this information\n");
-}
+FILE *I;
 
 /*
  * Description: open rs232 interface with name dev_name
@@ -96,10 +86,11 @@ int rs232_open_device(char *dev_name)
 
 void rs232_destroy(rs232_data_t	*rs232data)
 {
+	close(rs232data->sock);
 	close(rs232data->fd);
 }
 
-static void rs232_set_reg(rs232_data_t *rs232data)
+void rs232_set_reg(rs232_data_t *rs232data)
 {
 	printf("[%s] set register mode", __FUNCTION__);
 
@@ -123,17 +114,96 @@ static void rs232_set_reg(rs232_data_t *rs232data)
 	return;
 }
 
+int rs232_fsm_idle(rs232_data_t *rs232data)
+{
+	size_t	res;
+	size_t 	real_todo = strlen(CONNECTION_CMD);
+	
+	res = read(rs232data->csock, rs232data->recv_buf + rs232data->done, rs232data->todo);
+
+	rs232data->done += res;
+	if( rs232data->done == real_todo ) {
+
+		/* FIXME to next state */
+		return BREAK;
+	}
+
+	return IDLE;
+}
+
+int rs232_fsm(rs232_data_t *rs232data)
+{
+	uint8_t		state = CONNECTION;
+
+	while(1) {
+		switch(state) {
+		case CONNECTION:
+			fprintf(I, "[%s] waiting for connection\n", __FUNCTION__);
+			rs232data->csock = accept(rs232data->sock, NULL, NULL);
+			rs232data->todo = strlen(CONNECTION_CMD);
+			rs232data->done = 0;
+			state = IDLE;
+			break;
+
+		case IDLE:
+			fprintf(I, "[%s] IDLE\n", __FUNCTION__);
+			state = rs232_fsm_idle(rs232data);
+			break;
+
+		case BREAK:
+			return -1;
+
+		default:
+			fprintf(I, "[%s] unknown state\n", __FUNCTION__);
+
+		} // switch(state)
+	} // while(1)
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
-	int res;
+	struct	sockaddr_in	sin = {};
+	socklen_t	len = sizeof(sin);
+	int	ret = 0;
+	
+	rs232data.port = 1234;
+
+	I = stdout;
+
+	rs232data.sock = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
+	if( rs232data.sock < 0) {
+		fprintf(I, "[%s] error during create socket. errno %s", __FUNCTION__, strerror(errno));
+		return -1;
+	}
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(rs232data.port);			// FIXME
+	sin.sin_addr.s_addr = htonl(INADDR_ANY);	// listen on every interface
+
+	ret = bind(rs232data.sock, (struct sockaddr *)&sin, len);
+	if( ret < 0 ) {
+		fprintf(I, "[%s] error during bind the socket on port [%d]", __FUNCTION__, rs232data.port);
+		close(rs232data.sock);
+		return -1;
+	}
+
+	ret = listen(rs232data.sock, 2);
+	if( ret < 0 ) {
+		fprintf(I, "[%s] error during listen() the socket on port [%d]", __FUNCTION__, rs232data.port);
+		close(rs232data.sock);
+		return -1;
+	}
+	
+	rs232_fsm(&rs232data);
 
 	/* predefine some values for a test purposes */
-	rs232data.comm_req = UINT32_MAX;
-	rs232data.addr = UINT32_MAX;
+	//rs232data.comm_req = UINT32_MAX;
+	//rs232data.addr = UINT32_MAX;
 
-	/* parse command-line options */
-	printf("Activate mode: \n");
+#if 0
 	while ( (res = getopt(argc,argv,"hp:tgs:a:")) != -1){
 		switch (res) {
 		case 'h':
@@ -194,6 +264,7 @@ int main(int argc, char **argv)
 		return -1;
 
 	} // switch( rs232data.comm_req )
+#endif
 
 	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);
