@@ -17,14 +17,14 @@ proc read_stdin {wsock} {
 
 # Read data from a channel (the server socket) and put it to stdout
 # this implements receiving and handling (viewing) a server reply 
-proc read_sock {sock} {
+proc read_sock {sock server port} {
 	set l [gets $sock]
-	puts stdout "ServerReply: $l"
+	tracep "$l <= $server:$port"
 }
 
 proc write_sock {sock msg} {
-	puts "write : $msg"
-	puts $sock "ServerReply: $msg"
+	tracep "GUI => $msg"
+	puts $sock $msg
 }
 
 #proc connection_cmd {server port} {
@@ -32,38 +32,42 @@ proc connection_cmd {} {
 	set server "localhost"
 	set port "1234"
 
-	set serverSock [socket $server $port]
+	if [catch {socket $server $port} serverSock] {
+		tracep "connection failed on \[$server:$port\]. error: $serverSock"
+	} else {
+		tracep "connection successful on \[$server:$port\]"
 
-	# Setup monitoring on the socket so that when there is data to be 
-	# read the proc "read_sock" is called
-	#fileevent $serverSock readable [list read_sock $serverSock]
-	fileevent $serverSock writable [list write_sock $serverSock "HELLO"]
-	
-	# this is a synchronous connection: 
-	# The command does not return until the server responds to the 
-	#  connection request
+		# configure channel modes
+		# ensure the socket is line buffered so we can get a line of text 
+		# at a time (Cos thats what the server expects)...
+		# Depending on your needs you may also want this unbuffered so 
+		# you don't block in reading a chunk larger than has been fed 
+		#  into the socket
+		# i.e fconfigure $esvrSock -blocking off
+		fconfigure $serverSock -buffering line
 
-	#if {[eof $esvrSock]} { # connection closed .. abort }
+		# Setup monitoring on the socket so that when there is data to be 
+		# read the proc "read_sock" is called
+		#fileevent $serverSock readable [list read_sock $serverSock $server $port]
+		#fileevent $serverSock writable [list write_sock $serverSock "HELLO_GPS_BOARD"]
+		write_sock $serverSock "HELLO_GPS_BOARD"
+		read_sock $serverSock $server $port
+
+		# this is a synchronous connection: 
+		# The command does not return until the server responds to the 
+		#  connection request
+
+		#if {[eof $esvrSock]} { # connection closed .. abort }
 
 
-	# configure channel modes
-	# ensure the socket is line buffered so we can get a line of text 
-	# at a time (Cos thats what the server expects)...
-	# Depending on your needs you may also want this unbuffered so 
-	# you don't block in reading a chunk larger than has been fed 
-	#  into the socket
-	# i.e fconfigure $esvrSock -blocking off
 
-	fconfigure $serverSock -buffering line
+		# wait for and handle either socket or stdin events...
+		#vwait eventLoop
 
-	# message indicating connection accepted and we're ready to go 
-	puts "EchoServerClient Connected to echo server"
-	puts "...what you type should be echoed."
+		puts "Client Finished"
 
-	# wait for and handle either socket or stdin events...
-	#vwait eventLoop
+	}
 
-	puts "Client Finished"
 }
 
 
