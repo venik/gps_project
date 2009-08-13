@@ -114,6 +114,29 @@ void rs232_set_reg(rs232_data_t *rs232data)
 	return;
 }
 
+int rs232_fsm_connection(rs232_data_t *rs232data)
+{
+	fprintf(I, "[%s] waiting for connection\n", __FUNCTION__);
+	rs232data->csock = accept(rs232data->sock, NULL, NULL);
+	rs232data->todo = strlen(CONNECTION_CMD);
+	rs232data->done = 0;
+
+	return IDLE;
+}
+
+int rs232_fsm_say_ack(rs232_data_t *rs232data) 
+{
+	size_t	res;
+	size_t 	real_todo = strlen(CONNECTION_ACK);
+	
+
+	res = write(rs232data->csock, CONNECTION_ACK, real_todo);
+	
+	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
+
+	return 0;
+}
+
 int rs232_fsm_idle(rs232_data_t *rs232data)
 {
 	size_t	res;
@@ -123,7 +146,8 @@ int rs232_fsm_idle(rs232_data_t *rs232data)
 
 	rs232data->done += res;
 	if( rs232data->done == real_todo ) {
-
+		fprintf(I, "all data sucessful received =] \n");
+		rs232_fsm_say_ack(rs232data);
 		/* FIXME to next state */
 		return BREAK;
 	}
@@ -138,11 +162,7 @@ int rs232_fsm(rs232_data_t *rs232data)
 	while(1) {
 		switch(state) {
 		case CONNECTION:
-			fprintf(I, "[%s] waiting for connection\n", __FUNCTION__);
-			rs232data->csock = accept(rs232data->sock, NULL, NULL);
-			rs232data->todo = strlen(CONNECTION_CMD);
-			rs232data->done = 0;
-			state = IDLE;
+			state = rs232_fsm_connection(rs232data);
 			break;
 
 		case IDLE:
@@ -151,6 +171,7 @@ int rs232_fsm(rs232_data_t *rs232data)
 			break;
 
 		case BREAK:
+			close(rs232data->csock);
 			return -1;
 
 		default:
