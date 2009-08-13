@@ -6,6 +6,7 @@
 
 /* commands */
 #define CONNECTION_CMD "HELLO_GPS_BOARD"
+#define CONNECTION_ACK "ACK"
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
