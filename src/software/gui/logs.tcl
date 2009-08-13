@@ -43,5 +43,7 @@ proc show_logs {root_window note_book} {
 	$logs_win insert insert $buffer\n
 	close $fl
 
+	$logs_win configure -state disable
+
 	puts "=============================================================="
 }
