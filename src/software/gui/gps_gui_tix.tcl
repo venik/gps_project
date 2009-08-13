@@ -3,6 +3,7 @@
 package require Tix
 
 source logs.tcl
+source network.tcl
 
 proc create_nb {w} {
 
@@ -33,7 +34,9 @@ proc init_settings {root_window note_book} {
 	label 	$rbt.server_port_l -text "Server port: " -padx 2
 	entry 	$rbt.server_port_e -width 10 -textvar server_port -border 1
 
-	button 	$rbt.rs232_connect_b -text "Connect" -command gui_exit
+	#button 	$rbt.rs232_connect_b -text "Connect" -command connection_cmd $server_name $server_port
+	button 	$rbt.rs232_connect_b -text "Connect" -command connection_cmd 
+	button 	$rbt.rs232_exit_b -text "Exit" -command gui_exit
 
 	# headers 
 	label 	$rbt.set_l -text "Settings: " -padx 2 -font {Helvetica 14 bold}
@@ -63,7 +66,7 @@ proc init_settings {root_window note_book} {
 
 	# settings
 	place $rbt.server_name_l -relx 0 -rely 0.08
-	place $rbt.server_name_e -relx 0.18 -rely 0.08
+	place $rbt.server_name_e -relx 0.18 -rely 0.0
 	place $rbt.server_port_l -relx 0.65 -rely 0.08
 	place $rbt.server_port_e -relx 0.82 -rely 0.08
 
@@ -71,6 +74,7 @@ proc init_settings {root_window note_book} {
 	place $rbt.rs232_e -relx 0.15 -rely 0.14
 	
 	place $rbt.rs232_connect_b -relx 0.8 -rely 0.85
+	place $rbt.rs232_exit_b -relx 0.07 -rely 0.85
 	
 	#tests
 	place $rbt.rs232_test_l -relx 0 -rely 0.27 
