@@ -4,7 +4,7 @@
 --  --------------
 --  |            | <--	rs232_in - in in hardware port
 --  |            | -->	dout - received byte 
---  |   rs232    | <--	rx_done_tick - receive done
+--  |   rs232    | -->	rx_done_tick - receive done
 --  |    rx      | <--	reset - you know what is it
 --  |            | <--	clk - tick-tack
 --  |            | <--	rs232_middle_clk - clk for receive (bods/2)
@@ -27,7 +27,8 @@ entity rs232rx is
     	Port (	clk : in STD_LOGIC ;
 		--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		soft_reset : in STD_LOGIC ;
-		dout : out STD_LOGIC_VECTOR (7 downto 0) ; 
+		--dout : out STD_LOGIC_VECTOR (7 downto 0) ;
+		comm: out std_logic_vector (63 downto 0) ;		
 		rs232_in: in std_logic ;
 		rx_done_tick : out std_logic ;
 		rs232_middle_clk: in std_logic
@@ -40,6 +41,9 @@ architecture arch of rs232rx is
 	signal rs232_counter: integer range 0 to 8 := 0;
 	signal rs232_edge: std_logic_vector (1 downto 0) ;
 	signal rs232_value: STD_LOGIC_VECTOR (7 downto 0) := ( others => '0') ;
+	
+	-- comm staff
+	signal byte_counter: integer range 0 to 63;
 	
 begin
 
@@ -90,30 +94,36 @@ if rising_edge(rs232_middle_clk) then
     end if;
  
 
-   if (rs232_edge<2) then           
-
-    rs232_edge <= rs232_edge + 1 ;
-
-   else
-     rs232_edge<=b"01";
-
-     end if; 
+		if (rs232_edge<2) then           
+			rs232_edge <= rs232_edge + 1 ;
+		else
+			rs232_edge<=b"01";
+		end if; 
  
-  -- stop
-  when stop =>
-   if rs232_in = '1' then
-    rs232_next_state <= idle ;
-    dout <= rs232_value ; 
-    rx_done_tick <= '1' ;
-   end if;
- 
-  when others => NULL ;
-       
-  end case;
+	-- stop
+	when stop =>
+		if rs232_in = '1' then
+		
+			rs232_next_state <= idle ;
+			--dout <= rs232_value ; 
+			comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
+							 
+			if( byte_counter = 56 ) then
+				byte_counter <= 0 ;
+				rx_done_tick <= '1' ;
+				--comm <= x"1122334455667788" ;
+			else 
+				byte_counter <= byte_counter + 8;
+			end if ;
+			
+		end if;
+	 
+	when others => NULL ;
+			 
+	end case;
   
 end if; -- if rising_edge(rs232_clk) then 
- 
 
 end process;
-	
+
 end arch;

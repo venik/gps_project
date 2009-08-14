@@ -63,6 +63,7 @@ arbiter: entity work.arbiter(Behavioral)
 			addr => a_addr,
 			rw => a_rw,
 			data_f2s => a_data_f2s,
+			mem => a_mem,
 			data_s2f_r => data_s2f_r,
 			data_s2f_ur => data_s2f_ur,
 			ready => ready,
@@ -74,19 +75,19 @@ arbiter: entity work.arbiter(Behavioral)
 			reset => reset
 			);
 			
-test_sram: entity work.test_sram(Behavioral)
-	port map(
-			addr => t_addr,
-			rw => t_rw,
-			data_f2s => t_data_f2s,
-			data_s2f_r => data_s2f_r,
-			data_s2f_ur => data_s2f_ur,
-			ready => ready,
-			clk => clk,
-			test_done => test_done,
-			test_result => test_result,
-			reset => reset
-			);
+--test_sram: entity work.test_sram(Behavioral)
+--	port map(
+--			addr => t_addr,
+--			rw => t_rw,
+--			data_f2s => t_data_f2s,
+--			data_s2f_r => data_s2f_r,
+--			data_s2f_ur => data_s2f_ur,
+--			ready => ready,
+--			clk => clk,
+--			test_done => test_done,
+--			test_result => test_result,
+--			reset => reset
+--			);
 			
 sram_controller: entity work.sram_ctrl(arch)
 	port map( 
@@ -108,21 +109,23 @@ sram_controller: entity work.sram_ctrl(arch)
 			);
 
 			
-SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, a_addr, a_rw, a_data_f2s)
+SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, a_addr, a_rw, a_data_f2s, a_mem, t_mem)
 begin
 
 	case mode is
 	when "00" => NULL ;
 		-- arbiter drive SRAM bus
-		addr <= a_addr ;
-		rw <= a_rw ;
+		addr 		<= a_addr ;
+		rw 		<= a_rw ;
 		data_f2s <= a_data_f2s ;
+		mem 		<= a_mem ;
 		
 	when "01" => 
 		-- test_mem drive SRAM bus
-		addr <= t_addr ;
-		rw <= t_rw ;
+		addr 		<= t_addr ;
+		rw 		<= t_rw ;
 		data_f2s <= t_data_f2s ;
+		mem 		<= t_mem ;
 		
 	when "10" => NULL ;
 	when "11" => NULL ;

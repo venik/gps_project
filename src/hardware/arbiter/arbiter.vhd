@@ -19,6 +19,7 @@ entity arbiter is
 			data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
+			mem: out std_logic ;
 			
 			-- rs232
 			rs232_in: in std_logic ;
@@ -41,7 +42,7 @@ architecture Behavioral of arbiter is
 	signal	rx_done_tick : std_logic := '0' ;
 	signal	tx_done_tick : std_logic ;
 	signal	tx_start : std_logic ;
-	signal	dout : std_logic_vector (7 downto 0) ; 
+	--signal	dout : std_logic_vector (7 downto 0) ; 
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
@@ -50,10 +51,7 @@ architecture Behavioral of arbiter is
 	signal arbiter_next_state: arbiter_type := idle ;
 	
 	signal soft_reset: std_logic := '0' ;
-	
-	-- comm staff
-	signal byte_counter: integer range 0 to 63;
-	signal comm: std_logic_vector (63 downto 0) := ( others => '0') ;
+	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
 	
 	-- mem test staff
 	type test_mem_type is(idle_t_mem, read_t_mem, write_t_mem) ;
@@ -67,7 +65,8 @@ rs232main_unit: entity work.rs232main(arch)
 	port map( clk => clk,
 				 u10 => u10,
 				 soft_reset => soft_reset,
-				 dout => dout,
+				 --dout => dout,
+				 comm => comm,
 				 din => din,
 			    rs232_in => rs232_in,
 				 rs232_out => rs232_out,
@@ -89,7 +88,7 @@ begin
 	
 end process;
 	
-process(arbiter_state, clk, tx_done_tick)
+process(arbiter_state, clk, tx_done_tick, rx_done_tick)
 begin
 	if rising_edge(clk) then
 		case  arbiter_state is
@@ -97,18 +96,18 @@ begin
 --		-- idle	
 		when idle =>
 			if( rx_done_tick = '1' ) then
-				--data_f2s <= dout ;
-				comm((byte_counter + 7) downto byte_counter) <= dout ;
+				-- check the command
+				din <= x"41" ;
+				arbiter_next_state <=  send_comm ;
 				
-				if( byte_counter = 63 ) then
-					-- check the command
-					case comm(7 downto 0) is
-					when "00000001" => NULL ;
-						-- set register
-						arbiter_next_state <= idle ;
-					when "00000010" =>
-						-- memory test
-						mode <= "01" ;
+				case comm(7 downto 0) is
+				when "00000001" => NULL ;
+					-- set register
+					arbiter_next_state <= idle ;
+--				when "00000010" =>
+--					-- memory test
+--					mode <= "01" ;
+					
 --						case test_mem is
 --						when idle_t_mem =>
 --							test_mem <= write_t_mem ;
@@ -132,22 +131,26 @@ begin
 --							end if;
 --								
 --						end case;
-													
-					when "00000100" => NULL ;
-						-- start gps	
-						arbiter_next_state <= idle ;
-						
+--
+					when "10101010" =>
+						-- rs232 echo-test
+						arbiter_next_state <=  send_comm ;
+						--din <= dout ;
+						din <= comm(7 downto 0) ;
+						mem <= '0' ;
+						mode <= "00" ;
+						comm(63 downto 8) <= (others => '0') ;
+--						
+--					when "00000100" =>
+--						-- start gps	
+--						arbiter_next_state <= idle ;
+--						
 					when others =>
 						arbiter_next_state <= idle;
+						
        			end case;
 				   
-			else 
-				byte_counter <= byte_counter + 7;
-					
-				-- the old code
-				--arbiter_next_state <=  write_sram;
-			end if ;
-				
+	
 		end if ;
 			
 		-- disable rs232 tx and sram
@@ -175,7 +178,7 @@ begin
 --			end if;
 			
 --		-- send_comm			
-		when send_comm =>
+	when send_comm =>
 			tx_start <= '1';
 			
 			if( tx_done_tick = '1' ) then

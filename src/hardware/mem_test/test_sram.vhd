@@ -41,12 +41,6 @@ architecture Behavioral of test_sram is
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	
-	signal soft_reset: std_logic := '0' ;
-	
-	-- comm staff
-	signal byte_counter: integer range 0 to 63;
-	signal comm: std_logic_vector (63 downto 0) := ( others => '0') ;
-	
 	-- mem test staff
 	type test_mem_type is(idle_t_mem, read_t_mem, write_t_mem) ;
 	signal test_mem: test_mem_type := idle_t_mem;
@@ -55,7 +49,7 @@ architecture Behavioral of test_sram is
 	
 begin
 
-process(test_mem, ready)
+process(test_mem, ready, clk)
 begin
 	case test_mem is
 	when write_t_mem =>	 
