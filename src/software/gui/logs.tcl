@@ -3,6 +3,7 @@
 proc tracep {msg} {
 	global log
 	puts $log "[clock format [clock seconds] -format {%H:%M:%S}] $msg"
+	flush $log
 }
 
 proc create_logs {root_window note_book} {
