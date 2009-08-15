@@ -7,7 +7,7 @@
 /* commands */
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define CONNECTION_ACK	"ACK\r\n"
-#define ERR 		"ERR: UKNOWN COMMAND\r\n"
+#define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
@@ -37,11 +37,11 @@ struct rs232_data_s {
 	int		fd;
 	uint8_t 	recv_buf[BUF_SIZE];
 
-	uint64_t	comm_req;			// request comm
+	//uint64_t	comm_req;			// request comm
 
 	/* set register part */
-	uint64_t	reg;				/* register 27 bits */
-	uint64_t	addr;				/* address of register 4 bits */
+	//uint64_t	reg;				/* register 27 bits */
+	//uint64_t	addr;				/* address of register 4 bits */
 
 	/* network part */
 	int		sock;				/* listen socket */
