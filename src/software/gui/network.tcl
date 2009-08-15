@@ -15,22 +15,12 @@ proc read_stdin {wsock} {
 	}
 }
 
-# Read data from a channel (the server socket) and put it to stdout
-# this implements receiving and handling (viewing) a server reply 
-proc read_sock {sock server port} {
-	set l [gets $sock]
-	tracep "$l <= $server:$port"
-}
+proc connection_cmd {rbt res} {
 
-proc write_sock {sock msg} {
-	tracep "GUI => $msg"
-	puts $sock $msg
-}
-
-#proc connection_cmd {server port} {
-proc connection_cmd {} {
-	set server "localhost"
-	set port "1234"
+	set server [$rbt.server_name_e get]
+	set port   [$rbt.server_port_e get]
+	
+	puts "connect to $server:$port"
 
 	set state STATE_CONNECTION
 
@@ -42,10 +32,20 @@ proc connection_cmd {} {
 		STATE_CONNECTION {
 			if [catch {socket $server $port} serverSock] {
 				tracep "connection failed on \[$server:$port\]. error: $serverSock"
+
+				place forget $res.server
+				$res.server configure -text "FAILED" -padx 1 -background red
+				place $res.server -relx 0.5 -x -25 -rely 0.08
+
 				break;
 			}
 
 			tracep "connection successful on \[$server:$port\]"
+
+			place forget $res.server
+			$res.server configure -text "SUCCESSFUL" -padx 1 -background green 
+			place $res.server -relx 0.5 -x -44 -rely 0.08
+
 			set state SAY_HELLO;
 		}
 
@@ -58,7 +58,7 @@ proc connection_cmd {} {
 			if { [string match "ACK" $response] == 0 } {
 				# Error handler
 				tracep "ERROR: we expect ACK, but receive $response"
-				close $serverSock
+				set state FINISH_CONNECTION;
 
 				break;
 			}

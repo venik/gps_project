@@ -34,8 +34,7 @@ proc init_settings {root_window note_book} {
 	label 	$rbt.server_port_l -text "Server port: " -padx 2
 	entry 	$rbt.server_port_e -width 10 -textvar server_port -border 1
 
-	#button 	$rbt.rs232_connect_b -text "Connect" -command connection_cmd $server_name $server_port
-	button 	$rbt.rs232_connect_b -text "Connect" -command connection_cmd 
+	button 	$rbt.rs232_connect_b -text "Connect" -command "connection_cmd $rbt $res"
 	button 	$rbt.rs232_exit_b -text "Exit" -command gui_exit
 
 	# headers 
@@ -49,6 +48,7 @@ proc init_settings {root_window note_book} {
 
 	# results
 	label $res.port -text "UNCONNECTED" -padx 1
+	label $res.server -text "UNCONNECTED" -padx 1
 	label $res.rs232 -text "UNTESTED" -padx 1
 	label $res.mem -text "UNTESTED" -padx 1
 	label $res.gps -text "UNTESTED" -padx 1
@@ -66,7 +66,7 @@ proc init_settings {root_window note_book} {
 
 	# settings
 	place $rbt.server_name_l -relx 0 -rely 0.08
-	place $rbt.server_name_e -relx 0.18 -rely 0.0
+	place $rbt.server_name_e -relx 0.18 -rely 0.08
 	place $rbt.server_port_l -relx 0.65 -rely 0.08
 	place $rbt.server_port_e -relx 0.82 -rely 0.08
 
@@ -83,6 +83,7 @@ proc init_settings {root_window note_book} {
 
 	# results
 	place $res.port -relx 0.5 -x -50 -rely 0.14
+	place $res.server -relx 0.5 -x -50 -rely 0.08
 	place $res.rs232 -relx 0.5 -x -37 -rely 0.27
 	place $res.mem -relx 0.5 -x -37 -rely 0.32
 	place $res.gps -relx 0.5 -x -37 -rely 0.37
@@ -119,4 +120,6 @@ bind $w <Destroy> {
 set log [open "log" a+];
 
 create_nb $w
+
+
 
