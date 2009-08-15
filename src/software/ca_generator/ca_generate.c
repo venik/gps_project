@@ -66,9 +66,9 @@ void rotateg1(int G1[n])
 
 void rotateg2(int G2[n])
 {
-  int G2Temp;
  int i;
-G2Temp=(G2[9]+G2[8]+G2[7]+G2[5]+G2[2]+G2[1])%2;
+ int G2Temp;
+ G2Temp=(G2[9]+G2[8]+G2[7]+G2[5]+G2[2]+G2[1])%2;
   for (i=9;i>0;i--)
   {
    G2[i]=G2[i-1];
