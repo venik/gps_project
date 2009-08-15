@@ -32,39 +32,56 @@ proc connection_cmd {} {
 	set server "localhost"
 	set port "1234"
 
-	if [catch {socket $server $port} serverSock] {
-		tracep "connection failed on \[$server:$port\]. error: $serverSock"
-	} else {
-		tracep "connection successful on \[$server:$port\]"
+	set state STATE_CONNECTION
 
-		# configure channel modes
-		# ensure the socket is line buffered so we can get a line of text 
-		# at a time (Cos thats what the server expects)...
-		# Depending on your needs you may also want this unbuffered so 
-		# you don't block in reading a chunk larger than has been fed 
-		#  into the socket
-		# i.e fconfigure $esvrSock -blocking off
-		fconfigure $serverSock -buffering line
+	# Mega FSM on the text protocol
+	while 1 {
 
-		# Setup monitoring on the socket so that when there is data to be 
-		# read the proc "read_sock" is called
-		#fileevent $serverSock readable [list read_sock $serverSock $server $port]
-		#fileevent $serverSock writable [list write_sock $serverSock "HELLO_GPS_BOARD"]
-		write_sock $serverSock "HELLO_GPS_BOARD"
-		read_sock $serverSock $server $port
+		switch $state {
 
-		# this is a synchronous connection: 
-		# The command does not return until the server responds to the 
-		#  connection request
+		STATE_CONNECTION {
+			if [catch {socket $server $port} serverSock] {
+				tracep "connection failed on \[$server:$port\]. error: $serverSock"
+				break;
+			}
 
-		#if {[eof $esvrSock]} { # connection closed .. abort }
+			tracep "connection successful on \[$server:$port\]"
+			set state SAY_HELLO;
+		}
 
+		SAY_HELLO {
+			puts $serverSock "HELLO_GPS_BOARD"
+			flush $serverSock
+			tracep "GUI => HELLO_GPS_BOARD"
 
+			set response [gets $serverSock]
+			if { [string match "ACK" $response] == 0 } {
+				# Error handler
+				tracep "ERROR: we expect ACK, but receive $response"
+				close $serverSock
 
-		# wait for and handle either socket or stdin events...
-		#vwait eventLoop
+				break;
+			}
 
-		puts "Client Finished"
+			tracep "ACK <= $server:$port"
+			tracep "RS232 dumper successfully identified"
+
+			set state SET_PORT;
+			break;
+		}
+
+		SET_PORT {
+			puts "yohohoh"	
+			set state FINISH_CONNECTION;
+		}
+
+		FINISH_CONNECTION {
+			puts "Client Finished"
+			close $serverSock
+			break;
+		}
+
+		}
 
 	}
 
