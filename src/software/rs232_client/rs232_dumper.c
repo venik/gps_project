@@ -137,6 +137,19 @@ int rs232_fsm_say_ack(rs232_data_t *rs232data)
 	return 0;
 }
 
+int rs232_fsm_say_err(rs232_data_t *rs232data) 
+{
+	size_t	res;
+	size_t 	real_todo = strlen(ERR);
+	
+
+	res = write(rs232data->csock, ERR, real_todo);
+	
+	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
+
+	return 0;
+}
+
 int rs232_fsm_idle(rs232_data_t *rs232data)
 {
 	size_t	res;
@@ -145,11 +158,27 @@ int rs232_fsm_idle(rs232_data_t *rs232data)
 	res = read(rs232data->csock, rs232data->recv_buf + rs232data->done, rs232data->todo);
 
 	rs232data->done += res;
-	if( rs232data->done == real_todo ) {
-		fprintf(I, "all data sucessful received =] \n");
+	
+	res = strcmp((const char *)rs232data->recv_buf, (const char *)CONNECTION_CMD);
+
+	if( (rs232data->done == real_todo) && (res == 0) ) {
+		fprintf(I, "GUI successfully identified =] \n");
 		rs232_fsm_say_ack(rs232data);
+
 		/* FIXME to next state */
 		return BREAK;
+
+	} else {
+		rs232data->recv_buf[real_todo] = '\0';
+		fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
+				CONNECTION_CMD,
+				rs232data->recv_buf
+			);
+
+		rs232_fsm_say_err(rs232data);
+
+		return BREAK;
+		
 	}
 
 	return IDLE;
@@ -185,10 +214,10 @@ int rs232_fsm(rs232_data_t *rs232data)
 
 int main(int argc, char **argv)
 {
-	rs232_data_t	rs232data = {};
+	rs232_data_t		rs232data = {};
 	struct	sockaddr_in	sin = {};
-	socklen_t	len = sizeof(sin);
-	int	ret = 0;
+	socklen_t		len = sizeof(sin);
+	int			ret = 0;
 	
 	rs232data.port = 1234;
 
@@ -201,7 +230,7 @@ int main(int argc, char **argv)
 	}
 
 	sin.sin_family = AF_INET;
-	sin.sin_port = htons(rs232data.port);			// FIXME
+	sin.sin_port = htons(rs232data.port);		// FIXME
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);	// listen on every interface
 
 	ret = bind(rs232data.sock, (struct sockaddr *)&sin, len);

@@ -5,8 +5,9 @@
 #define BUF_SIZE	1024*1024	// 1 Mb
 
 /* commands */
-#define CONNECTION_CMD "HELLO_GPS_BOARD"
-#define CONNECTION_ACK "ACK"
+#define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
+#define CONNECTION_ACK	"ACK\r\n"
+#define ERR 		"ERR: UKNOWN COMMAND\r\n"
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
