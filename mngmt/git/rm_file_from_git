@@ -1,0 +1,3 @@
+git filter-branch -f --index-filter "git update-index --remove path/name" SHA_OF_REVISION..HEAD
+git push --force --verbose --dry-run
+git push --force
