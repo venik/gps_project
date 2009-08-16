@@ -109,7 +109,7 @@ int rs232_open_device(char *dev_name)
 
 void rs232_destroy(rs232_data_t	*rs232data)
 {
-	close(rs232data->sock);
+	close(rs232data->client[0].fd);
 	close(rs232data->fd);
 }
 
@@ -141,12 +141,11 @@ void rs232_set_reg(rs232_data_t *rs232data)
 
 int rs232_fsm_connection(rs232_data_t *rs232data)
 {
-	fprintf(I, "[%s] waiting for connection\n", __FUNCTION__);
-	rs232data->csock = accept(rs232data->sock, NULL, NULL);
+	rs232data->client[1].fd = accept(rs232data->client[0].fd, NULL, NULL);
 	rs232data->todo = strlen(CONNECTION_CMD);
 	rs232data->done = 0;
 
-	return IDLE;
+	return WAIT_FOR_HELLO;
 }
 
 int rs232_fsm_say_ack(rs232_data_t *rs232data) 
@@ -155,7 +154,7 @@ int rs232_fsm_say_ack(rs232_data_t *rs232data)
 	size_t 	real_todo = strlen(CONNECTION_ACK);
 	
 
-	res = write(rs232data->csock, CONNECTION_ACK, real_todo);
+	res = write(rs232data->client[1].fd, CONNECTION_ACK, real_todo);
 	
 	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
 
@@ -168,19 +167,19 @@ int rs232_fsm_say_err(rs232_data_t *rs232data)
 	size_t 	real_todo = strlen(ERR);
 	
 
-	res = write(rs232data->csock, ERR, real_todo);
+	res = write(rs232data->client[1].fd, ERR, real_todo);
 	
 	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
 
 	return 0;
 }
 
-int rs232_fsm_idle(rs232_data_t *rs232data)
+int rs232_fsm_hello(rs232_data_t *rs232data)
 {
 	size_t	res;
 	size_t 	real_todo = strlen(CONNECTION_CMD);
 	
-	res = read(rs232data->csock, rs232data->recv_buf + rs232data->done, rs232data->todo);
+	//res = read(rs232data->csock, rs232data->recv_buf + rs232data->done, rs232data->todo);
 
 	rs232data->done += res;
 	
@@ -206,7 +205,12 @@ int rs232_fsm_idle(rs232_data_t *rs232data)
 		
 	}
 
-	return IDLE;
+	return SET_PORT; 
+}
+
+int rs232_fsm_set_port(rs232_data_t *rs232data)
+{
+	return BREAK; 
 }
 
 int rs232_fsm(rs232_data_t *rs232data)
@@ -218,17 +222,23 @@ int rs232_fsm(rs232_data_t *rs232data)
 	while(need_exit) {
 		switch(state) {
 		case CONNECTION:
+			fprintf(I, "[%s] CONNECTION\n", __FUNCTION__);
 			state = rs232_fsm_connection(rs232data);
 			break;
 
-		case IDLE:
-			fprintf(I, "[%s] IDLE\n", __FUNCTION__);
-			state = rs232_fsm_idle(rs232data);
+		case WAIT_FOR_HELLO:
+			fprintf(I, "[%s] WAIT_FOR_HELLO\n", __FUNCTION__);
+			state = rs232_fsm_hello(rs232data);
+			break;
+
+		case SET_PORT:
+			fprintf(I, "[%s] SET_PORT\n", __FUNCTION__);
+			state = rs232_fsm_set_port(rs232data);
 			break;
 
 		case BREAK:
-			close(rs232data->csock);
-			close(rs232data->sock);
+			/* close clinet socket */
+			close(rs232data->client[1].fd);
 			return -1;
 
 		default:
@@ -265,9 +275,9 @@ int rs232_make_net(rs232_data_t* rs232data)
 	struct	sockaddr_in	sin = {};
 	socklen_t		len = sizeof(sin);
 
-	rs232data->sock = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
-	if( rs232data->sock < 0) {
-		fprintf(I, "[%s] [err] during create socket. errno %s", __FUNCTION__, strerror(errno));
+	rs232data->client[0].fd = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
+	if( rs232data->client[0].fd < 0) {
+		fprintf(I, "[%s] [err] during create socket. errno %s\n", __FUNCTION__, strerror(errno));
 		return -1;
 	}
 
@@ -275,20 +285,20 @@ int rs232_make_net(rs232_data_t* rs232data)
 	sin.sin_port = htons(rs232data->port);		// FIXME
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);	// listen on every interface
 
-	if( bind(rs232data->sock, (struct sockaddr *)&sin, len) < 0 ) {
-		fprintf(I, "[%s] [err] during bind the socket on port [%d]. errno %s",
+	if( bind(rs232data->client[0].fd, (struct sockaddr *)&sin, len) < 0 ) {
+		fprintf(I, "[%s] [err] during bind the socket on port [%d]. errno %s\n",
 				__FUNCTION__,
 				rs232data->port,
 				strerror(errno)
 			);
 
-		close(rs232data->sock);
+		close(rs232data->client[0].fd);
 		return -1;
 	}
 
-	if( listen(rs232data->sock, 2) ) {
+	if( listen(rs232data->client[0].fd, 2) ) {
 		fprintf(I, "[%s] error during listen() the socket on port [%d]", __FUNCTION__, rs232data->port);
-		close(rs232data->sock);
+		close(rs232data->client[0].fd);
 		return -1;
 	}
 

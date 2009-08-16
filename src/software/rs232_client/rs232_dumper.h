@@ -1,25 +1,29 @@
 #ifndef _RS232_DUMPER_H
 #define _RS232_DUMPER_H
 
+#include <poll.h>
+
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
 
 /* commands */
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
+#define SET_PORT_CMD	"RS232_PORT:"
 #define CONNECTION_ACK	"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
 	CONNECTION,
-	IDLE,
+	WAIT_FOR_HELLO,
 	SET_PORT
 };
 
 enum rs232_comm_request {
 	RS232_SET_REG		= 1<<0,
 	RS232_TEST_MEMORY	= 1<<1,
-	RS232_GPS_START		= 1<<2
+	RS232_GPS_START		= 1<<2,
+	RS232_TEST_RS232	= 0x55 
 };
 
 /* FIXME */
@@ -44,8 +48,7 @@ struct rs232_data_s {
 	//uint64_t	addr;				/* address of register 4 bits */
 
 	/* network part */
-	int		sock;				/* listen socket */
-	int		csock;				/* connection socket */
+	struct pollfd	client[2];
 	uint16_t	port;
 	size_t		todo;
 	size_t		done;
