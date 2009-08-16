@@ -1,5 +1,13 @@
 #!/usr/bin/wish
 
+####################################################################################3
+#
+# Description:  log module for Board-GUI
+#
+# Developer: Alex Nikiforov nikiforov.al [at] gmail.com
+#
+####################################################################################3
+
 proc tracep {msg} {
 	global log
 	puts $log "[clock format [clock seconds] -format {%H:%M:%S}] $msg"
@@ -36,6 +44,7 @@ proc create_logs {root_window note_book} {
 
 proc show_logs {root_window note_book} {
 	global log
+	global new_name
 
     	set w [$note_book subwidget log_tab]
     	set logs_f	$w.logs_f
@@ -46,7 +55,7 @@ proc show_logs {root_window note_book} {
 	
 	$logs_win configure -state normal
 
-	set fl [open log]
+	set fl [open "$new_name"]
 	$logs_win delete 1.0 end
 	set buffer [read $fl]
 	#puts $buffer

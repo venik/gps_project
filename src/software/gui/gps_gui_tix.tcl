@@ -1,5 +1,13 @@
 #!/usr/bin/wish
 
+####################################################################################3
+#
+# Description: GUI for rs232dumper. connect via tcp to the dumper 
+#
+# Developer: Alex Nikiforov nikiforov.al [at] gmail.com
+#
+####################################################################################3
+
 package require Tix
 
 source logs.tcl
@@ -117,8 +125,21 @@ bind $w <Destroy> {
   }
 }
 
-set log [open "log" a+];
+# create log-file
+set new_name "/tmp/gps_board_gui.log"
+set old_name "/tmp/gps_board_gui.log_old"
 
+if { [file exists "$old_name"] == 1 } {
+	file delete "$old_name"
+}
+
+if { [file exists "$new_name"] == 1 } {
+	file rename "$new_name" "$old_name"
+}
+
+set log [open "$new_name" w+];
+
+# Rock&Roll
 create_nb $w
 
 
