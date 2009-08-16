@@ -5,11 +5,12 @@
 
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
+#define TIMEOUT		3000		// 3 sec
 
 /* commands */
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define SET_PORT_CMD	"RS232_PORT:"
-#define CONNECTION_ACK	"ACK\r\n"
+#define ACK		"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
 enum rs232_fsm_state {
@@ -40,6 +41,7 @@ struct rs232_data_s {
 	char		name[MAXLINE];
 	int		fd;
 	uint8_t 	recv_buf[BUF_SIZE];
+	uint8_t 	send_buf[BUF_SIZE];
 
 	//uint64_t	comm_req;			// request comm
 

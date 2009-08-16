@@ -139,6 +139,90 @@ void rs232_set_reg(rs232_data_t *rs232data)
 }
 #endif
 
+int rs232_poll_read(rs232_data_t *rs232data, size_t todo)
+{
+	int nready, res;
+	struct pollfd	*pfd = &rs232data->client[1];
+
+	pfd->events = POLLIN;
+
+	nready = poll(pfd, 1, TIMEOUT);
+
+	if( nready < 1 ) {
+		fprintf(I, "[err] there is no data in the client socket, disconnect...\n");
+		/* client not ready */
+		return -1;
+	}
+
+	if( rs232data->client[1].revents & POLLIN ) {
+		
+		res = read(pfd->fd, rs232data->recv_buf, todo);
+		if( res <= 0 ) {
+			/* error occur */
+			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
+			return -1;
+
+		} else if( res != todo ) {
+			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
+				__FUNCTION__,
+				pfd->fd,
+				res,
+				todo
+				);
+
+			return -1;
+		}
+
+		return 0;
+
+	}
+			
+	return -1;
+}
+
+int rs232_poll_write(rs232_data_t *rs232data, size_t todo)
+{
+	int nready, res;
+	struct pollfd	*pfd = &rs232data->client[1];
+
+	pfd->events = POLLOUT;
+
+	nready = poll(pfd, 1, TIMEOUT);
+
+	if( nready < 1 ) {
+		fprintf(I, "[err] the GUI not ready, disconnect...\n");
+		/* client not ready */
+		return -1;
+	}
+
+	if( rs232data->client[1].revents & POLLOUT ) {
+		
+		res = write(pfd->fd, rs232data->send_buf, todo);
+		if( res <= 0 ) {
+			/* error occur */
+			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
+			return -1;
+
+		} else if( res != todo ) {
+			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
+				__FUNCTION__,
+				pfd->fd,
+				res,
+				todo
+				);
+
+			return -1;
+		}
+
+		fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
+
+		return 0;
+
+	}
+			
+	return -1;
+}
+
 int rs232_fsm_connection(rs232_data_t *rs232data)
 {
 	rs232data->client[1].fd = accept(rs232data->client[0].fd, NULL, NULL);
@@ -150,28 +234,24 @@ int rs232_fsm_connection(rs232_data_t *rs232data)
 
 int rs232_fsm_say_ack(rs232_data_t *rs232data) 
 {
-	size_t	res;
-	size_t 	real_todo = strlen(CONNECTION_ACK);
-	
+	size_t 	real_todo = strlen(ACK);
 
-	res = write(rs232data->client[1].fd, CONNECTION_ACK, real_todo);
+	strcpy((char *)rs232data->send_buf, ACK);
 	
-	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
-
+	if( rs232_poll_write(rs232data, real_todo) ) {
+		/* error occur */
+		return -1;
+	}
+	
 	return 0;
 }
 
-int rs232_fsm_say_err(rs232_data_t *rs232data) 
+static void rs232_fsm_say_err(rs232_data_t *rs232data) 
 {
-	size_t	res;
-	size_t 	real_todo = strlen(ERR);
-	
+	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: unexpecting request [%s]", rs232data->recv_buf);
+	size_t 	real_todo = strlen((char *)rs232data->send_buf);
 
-	res = write(rs232data->client[1].fd, ERR, real_todo);
-	
-	fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
-
-	return 0;
+	rs232_poll_write(rs232data, real_todo);
 }
 
 int rs232_fsm_hello(rs232_data_t *rs232data)
@@ -179,33 +259,32 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 	size_t	res;
 	size_t 	real_todo = strlen(CONNECTION_CMD);
 	
-	//res = read(rs232data->csock, rs232data->recv_buf + rs232data->done, rs232data->todo);
-
-	rs232data->done += res;
+	if( rs232_poll_read(rs232data, real_todo) < 0 ) {
+		/* error occur */
+		return BREAK;
+	}
 	
 	res = strcmp((const char *)rs232data->recv_buf, (const char *)CONNECTION_CMD);
 
-	if( (rs232data->done == real_todo) && (res == 0) ) {
+	if( res == 0 ) {
 		fprintf(I, "GUI successfully identified =] \n");
-		rs232_fsm_say_ack(rs232data);
+		if( rs232_fsm_say_ack(rs232data) < 0 )
+			return BREAK;
 
-		/* FIXME to next state */
-		return BREAK;
+		return SET_PORT; 
 
-	} else {
-		rs232data->recv_buf[real_todo] = '\0';
-		fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
-				CONNECTION_CMD,
-				rs232data->recv_buf
-			);
+	} 
 
-		rs232_fsm_say_err(rs232data);
+	rs232data->recv_buf[real_todo] = '\0';
+	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
+			CONNECTION_CMD,
+			rs232data->recv_buf
+		);
 
-		return BREAK;
+	rs232_fsm_say_err(rs232data);
+
+	return BREAK;
 		
-	}
-
-	return SET_PORT; 
 }
 
 int rs232_fsm_set_port(rs232_data_t *rs232data)
