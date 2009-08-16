@@ -1,5 +1,13 @@
 #!/usr/bin/wish
 
+####################################################################################3
+#
+# Description:  network module for Board-GUI
+#
+# Developer: Alex Nikiforov nikiforov.al [at] gmail.com
+#
+####################################################################################3
+
 # Read a line of text from stdin and send it to the echoserver socket,
 # on eof stdin closedown the echoserver client socket connection
 # this implements sending a message to the Server.
@@ -30,6 +38,7 @@ proc connection_cmd {rbt res} {
 		switch $state {
 
 		STATE_CONNECTION {
+			puts "STATE_CONNECTION"	
 			if [catch {socket $server $port} serverSock] {
 				tracep "connection failed on \[$server:$port\]. error: $serverSock"
 
@@ -50,6 +59,7 @@ proc connection_cmd {rbt res} {
 		}
 
 		SAY_HELLO {
+			puts "SAY_HELLO"	
 			puts $serverSock "HELLO_GPS_BOARD"
 			flush $serverSock
 			tracep "GUI => HELLO_GPS_BOARD"
@@ -57,26 +67,53 @@ proc connection_cmd {rbt res} {
 			set response [gets $serverSock]
 			if { [string match "ACK" $response] == 0 } {
 				# Error handler
-				tracep "ERROR: we expect ACK, but receive $response"
+				tracep "ERROR: we expect ACK, but receive: [$response]"
+				
 				set state FINISH_CONNECTION;
 
-				break;
+			} else {
+
+				tracep "ACK <= $server:$port"
+				tracep "RS232 dumper successfully identified"
+
+				set state SET_PORT;
 			}
-
-			tracep "ACK <= $server:$port"
-			tracep "RS232 dumper successfully identified"
-
-			set state SET_PORT;
-			break;
 		}
 
 		SET_PORT {
-			puts "yohohoh"	
+			puts "SET_PORT"	
+			puts $serverSock "RS232_PORT=[$rbt.server_port_e get]"
+			flush $serverSock
+			tracep "GUI => RS232_PORT=[$rbt.server_port_e get]"
+
+			set response [gets $serverSock]
+			if { [string match "ACK" $response] == 0 } {
+				# Error handler
+				tracep "ERROR: we expect ACK, but receive: [$response]"
+				
+				place forget $res.port
+				$res.port configure -text "FAILED" -padx 1 -background red
+				place $res.port -relx 0.5 -x -25 -rely 0.14
+
+				set state FINISH_CONNECTION;
+
+			} else {
+
+				tracep "ACK <= $server:$port"
+				tracep "RS232 dumper successfully identified"
+
+				place forget $res.port
+				$res.port configure -text "SUCCESSFUL" -padx 1 -background green 
+				place $res.port -relx 0.5 -x -44 -rely 0.14
+
+				set state SET_PORT;
+			}
+
 			set state FINISH_CONNECTION;
 		}
 
 		FINISH_CONNECTION {
-			puts "Client Finished"
+			puts "FINISH_CONNECTION"
 			close $serverSock
 			break;
 		}

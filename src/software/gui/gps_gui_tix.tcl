@@ -90,8 +90,8 @@ proc init_settings {root_window note_book} {
 	place $rbt.gps_test_l -relx 0 -rely 0.37
 
 	# results
-	place $res.port -relx 0.5 -x -50 -rely 0.14
 	place $res.server -relx 0.5 -x -50 -rely 0.08
+	place $res.port -relx 0.5 -x -50 -rely 0.14
 	place $res.rs232 -relx 0.5 -x -37 -rely 0.27
 	place $res.mem -relx 0.5 -x -37 -rely 0.32
 	place $res.gps -relx 0.5 -x -37 -rely 0.37
