@@ -13,6 +13,7 @@
 #define ACK		"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
+
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
 	CONNECTION,
@@ -52,9 +53,9 @@ struct rs232_data_s {
 	/* network part */
 	struct pollfd	client[2];
 	uint16_t	port;
-	size_t		todo;
-	size_t		done;
 
 };
+
+static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str);
 
 #endif /* _RS232_DUMPER_H */

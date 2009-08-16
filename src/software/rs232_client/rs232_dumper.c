@@ -57,21 +57,27 @@ void rs232_banner()
  * Description: open rs232 interface with name dev_name
  * Return: 	filedescriptor or 0 if failed
  */
-int rs232_open_device(char *dev_name)
+int rs232_open_device(rs232_data_t *rs232data)
 {
 	int fd;
 	struct termios options;
+	char 	msg[MAXLINE];
 
-	fd = open(dev_name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
+	fd = open(rs232data->name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
 
 	if( fd == -1 ) {
-		printf("[ERR] cannot open rs232 device [%s]. errno %s\n", dev_name, strerror(errno));
+		snprintf(msg, MAXLINE, "cannot open rs232 device [%s]", rs232data->name);
+		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		rs232_fsm_say_err_errno(rs232data, msg);
+
 		return 0;
 	}
 
 	errno = 0;
 	if( tcgetattr(fd, &options) == -1 ) {
-		printf("[ERR] cannot get rs232 options. errno %s\n", strerror(errno));
+		snprintf(msg, MAXLINE, "[ERR] cannot get rs232 options");
+		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		rs232_fsm_say_err_errno(rs232data, msg);
 		return 0;
 	}
 	
@@ -100,7 +106,9 @@ int rs232_open_device(char *dev_name)
 	
 	/* tcflush(fd, TCIFLUSH); */
 	if (tcsetattr(fd, TCSANOW, &options) == -1) {
-		printf("Error, can't set rs232 attributes. errno %s", strerror(errno));
+		snprintf(msg, MAXLINE, "Error, can't set rs232 attributes. errno");
+		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		rs232_fsm_say_err_errno(rs232data, msg);
 		return 0;
 	}
 
@@ -226,8 +234,6 @@ int rs232_poll_write(rs232_data_t *rs232data, size_t todo)
 int rs232_fsm_connection(rs232_data_t *rs232data)
 {
 	rs232data->client[1].fd = accept(rs232data->client[0].fd, NULL, NULL);
-	rs232data->todo = strlen(CONNECTION_CMD);
-	rs232data->done = 0;
 
 	return WAIT_FOR_HELLO;
 }
@@ -254,6 +260,14 @@ static void rs232_fsm_say_err(rs232_data_t *rs232data)
 	rs232_poll_write(rs232data, real_todo);
 }
 
+static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str) 
+{
+	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: %s. errno: %s", str, strerror(errno));
+	size_t 	real_todo = strlen((char *)rs232data->send_buf);
+
+	rs232_poll_write(rs232data, real_todo);
+}
+
 int rs232_fsm_hello(rs232_data_t *rs232data)
 {
 	size_t	res;
@@ -267,7 +281,7 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 	res = strcmp((const char *)rs232data->recv_buf, (const char *)CONNECTION_CMD);
 
 	if( res == 0 ) {
-		fprintf(I, "GUI successfully identified =] \n");
+		fprintf(I, "[%s] GUI successfully identified =] \n", __FUNCTION__);
 		if( rs232_fsm_say_ack(rs232data) < 0 )
 			return BREAK;
 
@@ -289,6 +303,64 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 
 int rs232_fsm_set_port(rs232_data_t *rs232data)
 {
+	size_t	res;
+	size_t 	real_todo = strlen(SET_PORT_CMD);
+
+	/* comm + "len=" */
+	if( rs232_poll_read(rs232data, real_todo + 4) < 0 ) {
+		/* error occur */
+		return BREAK;
+	}
+	
+	res = strncmp((const char *)rs232data->recv_buf, (const char *)SET_PORT_CMD, real_todo);
+
+	//printf("[%s] incomming [%s]\n", __FUNCTION__, rs232data->recv_buf);
+
+	if( res == 0 ) {
+		fprintf(I, "[%s] RS232_PORT command identified =] \n", __FUNCTION__);
+
+		/* convert len form the packet */
+		rs232data->recv_buf[real_todo + 4] = '\0';
+		
+		real_todo = atoi((char *)&rs232data->recv_buf[real_todo]);
+
+
+		/* name + 0x0d + 0x0a */
+		if( rs232_poll_read(rs232data, real_todo + 2) < 0 ) {
+			/* error occur */
+			return BREAK;
+		}
+
+		rs232data->recv_buf[real_todo] = '\0';
+		strncpy(rs232data->name, (char *)rs232data->recv_buf, MAXLINE);
+
+		fprintf(I, "[%s] payload [%s] size [%d]\n",
+			__FUNCTION__,
+			rs232data->recv_buf,
+			real_todo
+			);
+
+		rs232data->fd = rs232_open_device(rs232data); 
+		if( rs232data->fd == 0 )
+			return BREAK;
+
+		if( rs232_fsm_say_ack(rs232data) < 0 )
+			return BREAK;
+		
+		fprintf(I, "[%s] the COM-port succsseful opened =] \n", __FUNCTION__);
+
+		return BREAK; 
+
+	} 
+
+	rs232data->recv_buf[real_todo] = '\0';
+	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
+			SET_PORT_CMD,
+			rs232data->recv_buf
+		);
+
+	rs232_fsm_say_err(rs232data);
+
 	return BREAK; 
 }
 
@@ -317,6 +389,7 @@ int rs232_fsm(rs232_data_t *rs232data)
 
 		case BREAK:
 			/* close clinet socket */
+			fprintf(I, "[%s] BREAK\n", __FUNCTION__);
 			close(rs232data->client[1].fd);
 			return -1;
 
@@ -443,9 +516,6 @@ int main(int argc, char **argv)
 #if 0
 	/* open COM - port */
 	errno = 0;
-	rs232data.fd = rs232_open_device(rs232data.name); 
-	if( rs232data.fd == 0 )
-		return -1;
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
