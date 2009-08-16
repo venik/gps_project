@@ -25,9 +25,12 @@ proc read_stdin {wsock} {
 
 proc connection_cmd {rbt res} {
 
-	set server [$rbt.server_name_e get]
-	set port   [$rbt.server_port_e get]
+	#set server [$rbt.server_name_e get]
+	#set port   [$rbt.server_port_e get]
 	
+	set server "localhost"
+	set port   "1234"
+
 	puts "connect to $server:$port"
 
 	set state STATE_CONNECTION
@@ -67,7 +70,7 @@ proc connection_cmd {rbt res} {
 			set response [gets $serverSock]
 			if { [string match "ACK" $response] == 0 } {
 				# Error handler
-				tracep "ERROR: we expect ACK, but receive: [$response]"
+				tracep "ERROR: we expect ACK, but receive: \[$response\]"
 				
 				set state FINISH_CONNECTION;
 
@@ -82,14 +85,17 @@ proc connection_cmd {rbt res} {
 
 		SET_PORT {
 			puts "SET_PORT"	
-			puts $serverSock "RS232_PORT=[$rbt.server_port_e get]"
+			
+			set port_string [$rbt.rs232_e get]
+			set len [string length "$port_string"]
+			puts $serverSock [format "RS232_PORT:%03d=$port_string" $len]
 			flush $serverSock
-			tracep "GUI => RS232_PORT=[$rbt.server_port_e get]"
+			tracep "GUI => RS232_PORT:$len=$port_string"
 
 			set response [gets $serverSock]
 			if { [string match "ACK" $response] == 0 } {
 				# Error handler
-				tracep "ERROR: we expect ACK, but receive: [$response]"
+				tracep "ERROR: we expect ACK, but receive: \[$response\]"
 				
 				place forget $res.port
 				$res.port configure -text "FAILED" -padx 1 -background red
@@ -100,7 +106,7 @@ proc connection_cmd {rbt res} {
 			} else {
 
 				tracep "ACK <= $server:$port"
-				tracep "RS232 dumper successfully identified"
+				tracep "RS232_PORT command succsessful, now COM-port is open"
 
 				place forget $res.port
 				$res.port configure -text "SUCCESSFUL" -padx 1 -background green 
