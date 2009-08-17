@@ -112,10 +112,39 @@ proc connection_cmd {rbt res} {
 				$res.port configure -text "SUCCESSFUL" -padx 1 -background green 
 				place $res.port -relx 0.5 -x -44 -rely 0.14
 
-				set state SET_PORT;
+				set state TEST_RS232;
 			}
+		}
 
-			set state FINISH_CONNECTION;
+		TEST_RS232 {
+			puts "TEST_RS232"	
+			
+			puts $serverSock "TEST_RS232"
+			flush $serverSock
+			tracep "GUI => TEST_RS232"
+			
+			set response [gets $serverSock]
+			if { [string match "ACK" $response] == 0 } {
+				# Error handler
+				tracep "ERROR: we expect ACK, but receive: \[$response\]"
+				
+				place forget $res.rs232
+				$res.rs232 configure -text "FAILED" -padx 1 -background red 
+				place $res.rs232 -relx 0.5 -x -25 -rely 0.27
+
+				set state FINISH_CONNECTION;
+
+			} else {
+
+				tracep "ACK <= $server:$port"
+				tracep "RS232 dumper successfully identified"
+	
+				place forget $res.rs232
+				$res.rs232 xonfigure -text "OK" -padx 1 -background green 
+				place $res.rs232 -relx 0.5 -x -15 -rely 0.27
+
+				set state FINISH_CONNECTION;
+			}
 		}
 
 		FINISH_CONNECTION {
