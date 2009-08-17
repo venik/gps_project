@@ -48,7 +48,6 @@ void rs232_banner()
 	printf("Hello this is rs232 dumper for gps-board project by DSP-lab. This is real cool banner\n");
 	printf("Usage: rs232_client [options]\n");
 	printf("Options:\n");
-	printf("  -r:	give the rs232 port name, something like this /dev/ttyS0\n");
 	printf("  -p:	listen port\n");
 	printf("  -h:	display this information\n");
 }
@@ -67,7 +66,7 @@ int rs232_open_device(rs232_data_t *rs232data)
 
 	if( fd == -1 ) {
 		snprintf(msg, MAXLINE, "cannot open rs232 device [%s]", rs232data->name);
-		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		fprintf(I, "[%s] %s. errno: %s\n", __FUNCTION__, msg, strerror(errno));
 		rs232_fsm_say_err_errno(rs232data, msg);
 
 		return 0;
@@ -76,7 +75,7 @@ int rs232_open_device(rs232_data_t *rs232data)
 	errno = 0;
 	if( tcgetattr(fd, &options) == -1 ) {
 		snprintf(msg, MAXLINE, "[ERR] cannot get rs232 options");
-		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		fprintf(I, "[%s] %s. errno: %s\n", __FUNCTION__, msg, strerror(errno));
 		rs232_fsm_say_err_errno(rs232data, msg);
 		return 0;
 	}
@@ -107,7 +106,7 @@ int rs232_open_device(rs232_data_t *rs232data)
 	/* tcflush(fd, TCIFLUSH); */
 	if (tcsetattr(fd, TCSANOW, &options) == -1) {
 		snprintf(msg, MAXLINE, "Error, can't set rs232 attributes. errno");
-		fprintf(I, "[%s] %s\n", __FUNCTION__, msg);
+		fprintf(I, "[%s] %s. errno: %s\n", __FUNCTION__, msg, strerror(errno));
 		rs232_fsm_say_err_errno(rs232data, msg);
 		return 0;
 	}
@@ -324,6 +323,11 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 		
 		real_todo = atoi((char *)&rs232data->recv_buf[real_todo]);
 
+		if( real_todo == 0 ) {
+			/* error occur */
+			fprintf(I, "Bad size [%s] in the packet from GUI\n", (char *)(rs232data->recv_buf + real_todo));
+			return BREAK;
+		}
 
 		/* name + 0x0d + 0x0a */
 		if( rs232_poll_read(rs232data, real_todo + 2) < 0 ) {
@@ -464,11 +468,6 @@ int rs232_check_opts(rs232_data_t* rs232data)
 		return -1;
 	}
 	
-	if( strlen(rs232data->name) == 0 ) {
-		fprintf(I, "[err] you must set COM-port name with -r parameter\n");
-		return -1;
-	}
-
 	return 0;
 
 }
@@ -480,15 +479,11 @@ int main(int argc, char **argv)
 	
 	I = stdout;
 
-	while ( (res = getopt(argc,argv,"hp:r:")) != -1){
+	while ( (res = getopt(argc,argv,"hp:")) != -1){
 		switch (res) {
 		case 'h':
 			rs232_banner();
 			return -1;
-		case 'r':
-			fprintf(I, "RS232 port set to [%s]\n", optarg);
-			snprintf(rs232data.name, MAXLINE, "%s", optarg);
-			break;
 		
 		case 'p':
 			fprintf(I, "Set listen port to [%s]\n", optarg);
@@ -511,34 +506,6 @@ int main(int argc, char **argv)
 	
 
 	rs232_fsm(&rs232data);
-
-
-#if 0
-	/* open COM - port */
-	errno = 0;
-
-	printf("\nHello, this is rs232 dumper for GPS-project \n");
-
-	/* craft command for the board */
-	switch( rs232data.comm_req ) {
-	case RS232_SET_REG:
-		rs232_set_reg(&rs232data);
-		break;
-
-	case RS232_TEST_MEMORY:
-		rs232_test_memory(&rs232data);
-		break;
-
-	case RS232_GPS_START:
-		printf("Not implement yet\n");
-		return -1;
-
-	default:
-		printf("Unknown mode. Exit... \n");
-		return -1;
-
-	} // switch( rs232data.comm_req )
-#endif
 
 	/* free memory and close all fd's */
 	rs232_destroy(&rs232data);
