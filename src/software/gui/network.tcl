@@ -140,7 +140,7 @@ proc connection_cmd {rbt res} {
 				tracep "RS232 dumper successfully identified"
 	
 				place forget $res.rs232
-				$res.rs232 xonfigure -text "OK" -padx 1 -background green 
+				$res.rs232 configure -text "OK" -padx 1 -background green 
 				place $res.rs232 -relx 0.5 -x -15 -rely 0.27
 
 				set state FINISH_CONNECTION;

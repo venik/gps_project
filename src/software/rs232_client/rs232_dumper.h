@@ -10,6 +10,7 @@
 /* commands */
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define SET_PORT_CMD	"RS232_PORT:"
+#define TEST_RS232_CMD	"TEST_RS232"
 #define ACK		"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
@@ -18,7 +19,8 @@ enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
 	CONNECTION,
 	WAIT_FOR_HELLO,
-	SET_PORT
+	SET_PORT,
+	TEST_RS232	
 };
 
 enum rs232_comm_request {

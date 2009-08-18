@@ -170,7 +170,7 @@ int rs232_poll_read(rs232_data_t *rs232data, size_t todo)
 			return -1;
 
 		} else if( res != todo ) {
-			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
+			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]\n",
 				__FUNCTION__,
 				pfd->fd,
 				res,
@@ -300,6 +300,44 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 		
 }
 
+int rs232_fsm_test_rs232(rs232_data_t *rs232data)
+{
+	size_t	res;
+	size_t 	real_todo = strlen(TEST_RS232_CMD);
+	
+	if( rs232_poll_read(rs232data, real_todo) < 0 ) {
+		/* error occur */
+		return BREAK;
+	}
+	
+	res = strcmp((const char *)rs232data->recv_buf, (const char *)TEST_RS232_CMD);
+
+	printf(" res = %d \n", res);
+
+	if( res == 0 ) {
+		fprintf(I, "[%s] request for memeory testing \n", __FUNCTION__);
+
+		/*FIXME - work with board */
+
+		if( rs232_fsm_say_ack(rs232data) < 0 )
+			return BREAK;
+
+		return SET_PORT; 
+
+	} 
+
+	rs232data->recv_buf[real_todo] = '\0';
+	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
+			TEST_RS232_CMD,
+			rs232data->recv_buf
+		);
+
+	rs232_fsm_say_err(rs232data);
+
+	return BREAK;
+		
+}
+
 int rs232_fsm_set_port(rs232_data_t *rs232data)
 {
 	size_t	res;
@@ -353,7 +391,7 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 		
 		fprintf(I, "[%s] the COM-port succsseful opened =] \n", __FUNCTION__);
 
-		return BREAK; 
+		return TEST_RS232; 
 
 	} 
 
@@ -389,6 +427,11 @@ int rs232_fsm(rs232_data_t *rs232data)
 		case SET_PORT:
 			fprintf(I, "[%s] SET_PORT\n", __FUNCTION__);
 			state = rs232_fsm_set_port(rs232data);
+			break;
+
+		case TEST_RS232:
+			fprintf(I, "[%s] TEST_RS232\n", __FUNCTION__);
+			state = rs232_fsm_test_rs232(rs232data);
 			break;
 
 		case BREAK:
