@@ -137,7 +137,7 @@ proc connection_cmd {rbt res} {
 			} else {
 
 				tracep "ACK <= $server:$port"
-				tracep "RS232 dumper successfully identified"
+				tracep "RS232 port on board works fine"
 	
 				place forget $res.rs232
 				$res.rs232 configure -text "OK" -padx 1 -background green 
