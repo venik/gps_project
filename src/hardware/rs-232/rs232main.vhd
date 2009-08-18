@@ -15,7 +15,8 @@ entity rs232main is
     	Port (	clk : in STD_LOGIC ;
 					u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 					soft_reset : in STD_LOGIC ; -- FIXME ucf-file
-					dout : out std_logic_vector (7 downto 0) ; 
+					--dout : out std_logic_vector (7 downto 0) ; 
+					comm: out std_logic_vector (63 downto 0) ;
 					din : in std_logic_vector (7 downto 0) ; 
 					rs232_in: in std_logic ;
 					rs232_out: out std_logic ;
@@ -42,7 +43,8 @@ rs232rx_unit: entity work.rs232rx(arch)
 				clk => clk,
 				soft_reset => soft_reset,
 				--u10 => u10,
-				dout => dout,
+				--dout => dout,
+				comm => comm,
 				rs232_in => rs232_in,
 				rx_done_tick => rx_done_tick,
 				rs232_middle_clk => rs232_middle_clk

@@ -29,20 +29,18 @@ use ieee.std_logic_1164.all;
 entity sram_ctrl is
   port(
     clk: in std_logic;
-	 soft_reset: in std_logic;
+	 reset: in std_logic;
 	 
     -- to/from main system
     mem: in std_logic ;
     rw: in std_logic ;
     addr: in std_logic_vector(17 downto 0) ;
+	 ready: out std_logic ;
     data_f2s: in std_logic_vector(7 downto 0) ;
-    ready: out std_logic ;
     data_s2f_r, data_s2f_ur: out std_logic_vector(7 downto 0) ;
  
-    -- to/from chip
-    address: out std_logic_vector(17 downto 0) ;
- 
     -- sram chip
+	 address: out std_logic_vector(17 downto 0) ;
     dio_a: inout std_logic_vector(7 downto 0) ;
     s1, s2: out std_logic ;
     WE, OE: out std_logic
@@ -67,9 +65,9 @@ begin
 --  address <= ( others => '1' );
 
   -- state & data registers
-  process(clk, soft_reset)
+process(clk, reset)
   begin
-    if( soft_reset = '1') then
+    if( reset = '0') then
       state_reg <= idle;
       addr_reg <= ( others => '0' );
       data_f2s_reg <= ( others => '0' );
@@ -89,10 +87,9 @@ begin
   end process;
  
   -- next state logic
-  process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, addr_reg)
+process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, addr_reg)
   begin
     addr_next <= addr_reg;
-    --data_f2s_next <= data_s2s_reg;
     data_s2f_next <= data_s2f_reg;
     ready <= '0';
  
