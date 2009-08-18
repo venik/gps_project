@@ -27,7 +27,6 @@ entity rs232rx is
     	Port (	clk : in STD_LOGIC ;
 		--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		soft_reset : in STD_LOGIC ;
-		--dout : out STD_LOGIC_VECTOR (7 downto 0) ;
 		comm: out std_logic_vector (63 downto 0) ;		
 		rs232_in: in std_logic ;
 		rx_done_tick : out std_logic ;
@@ -71,7 +70,7 @@ if rising_edge(rs232_middle_clk) then
   when idle =>
  
    if( rs232_in = '0' ) then
-    rs232_next_state <= data; -- FIXME data or start?? checkit
+    rs232_next_state <= data; 
     --rs232_value <= ( others => '0' ) ;
     rs232_counter <= 0 ;
 
@@ -111,7 +110,6 @@ if rising_edge(rs232_middle_clk) then
 			if( byte_counter = 56 ) then
 				byte_counter <= 0 ;
 				rx_done_tick <= '1' ;
-				--comm <= x"1122334455667788" ;
 			else 
 				byte_counter <= byte_counter + 8;
 			end if ;

@@ -135,11 +135,10 @@ begin
 					when "10101010" =>
 						-- rs232 echo-test
 						arbiter_next_state <=  send_comm ;
-						--din <= dout ;
 						din <= comm(7 downto 0) ;
 						mem <= '0' ;
 						mode <= "00" ;
-						comm(63 downto 8) <= (others => '0') ;
+						--comm(63 downto 8) <= (others => '0') ;
 --						
 --					when "00000100" =>
 --						-- start gps	
