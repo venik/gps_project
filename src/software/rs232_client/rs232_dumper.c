@@ -116,7 +116,7 @@ int rs232_open_device(rs232_data_t *rs232data)
 void rs232_destroy(rs232_data_t	*rs232data)
 {
 	close(rs232data->client[0].fd);
-	close(rs232data->fd);
+	close(rs232data->client[2].fd);
 }
 
 #if 0
@@ -319,12 +319,32 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 	dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
 
 	if( res == 0 ) {
-		fprintf(I, "[%s] request for memeory testing \n", __FUNCTION__);
+		fprintf(I, "[%s] request for COM-port testing \n", __FUNCTION__);
 
-		/*FIXME - work with board */
-
-		if( rs232_fsm_say_ack(rs232data) < 0 )
+		/* work with board */
+		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
+		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
+		
+		*comm_req |= RS232_TEST_RS232;	
+		
+		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
+			/* error occur */
+			fprintf(I, "[%s] PC => Board: rs232 test\n", __FUNCTION__);
 			return BREAK;
+		}
+		
+		if( rs232_poll_read(rs232data, 2, sizeof(uint64_t)) < 0 ) {
+			/* error occur */
+			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
+			return BREAK;
+		}
+
+		if( ((*comm_req) & 0xff) == (*comm_ans) ) {
+			if( rs232_fsm_say_ack(rs232data) < 0 )
+				return BREAK;
+		}
+
+		fprintf(I, "RS232 work fine =) \n");
 
 		return BREAK; 
 
@@ -386,8 +406,8 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 			real_todo
 			);
 
-		rs232data->fd = rs232_open_device(rs232data); 
-		if( rs232data->fd == 0 )
+		rs232data->client[2].fd = rs232_open_device(rs232data); 
+		if( rs232data->client[2].fd == 0 )
 			return BREAK;
 
 		if( rs232_fsm_say_ack(rs232data) < 0 )

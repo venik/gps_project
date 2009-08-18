@@ -43,18 +43,11 @@ typedef int (*rs232_dumper_cb)(rs232_data_t *);
 struct rs232_data_s {
 
 	char		name[MAXLINE];
-	int		fd;
 	uint8_t 	recv_buf[BUF_SIZE];
 	uint8_t 	send_buf[BUF_SIZE];
 
-	//uint64_t	comm_req;			// request comm
-
-	/* set register part */
-	//uint64_t	reg;				/* register 27 bits */
-	//uint64_t	addr;				/* address of register 4 bits */
-
 	/* network part */
-	struct pollfd	client[2];
+	struct pollfd	client[3];
 	uint16_t	port;
 
 };
