@@ -29,7 +29,6 @@
 //#include "rs232_main_mode.h"
 //#include "rs232_test_mode.h"
 
-FILE 		*I;
 uint8_t		need_exit;
 
 /* signal handlers */
@@ -146,10 +145,10 @@ void rs232_set_reg(rs232_data_t *rs232data)
 }
 #endif
 
-int rs232_poll_read(rs232_data_t *rs232data, size_t todo)
+int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 {
 	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[1];
+	struct pollfd	*pfd = &rs232data->client[num];
 
 	pfd->events = POLLIN;
 
@@ -161,16 +160,18 @@ int rs232_poll_read(rs232_data_t *rs232data, size_t todo)
 		return -1;
 	}
 
-	if( rs232data->client[1].revents & POLLIN ) {
+	if( pfd->revents & POLLIN ) {
 		
 		res = read(pfd->fd, rs232data->recv_buf, todo);
+		fprintf(I, "[%s] need [%d] received [%d] \n", __FUNCTION__, todo, res);
+
 		if( res <= 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
 			return -1;
 
 		} else if( res != todo ) {
-			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]\n",
+			fprintf(I, "read less tha expect [%s] fd = [%d] res = [%d] todo = [%d]\n",
 				__FUNCTION__,
 				pfd->fd,
 				res,
@@ -187,10 +188,10 @@ int rs232_poll_read(rs232_data_t *rs232data, size_t todo)
 	return -1;
 }
 
-int rs232_poll_write(rs232_data_t *rs232data, size_t todo)
+int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 {
 	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[1];
+	struct pollfd	*pfd = &rs232data->client[num];
 
 	pfd->events = POLLOUT;
 
@@ -202,7 +203,7 @@ int rs232_poll_write(rs232_data_t *rs232data, size_t todo)
 		return -1;
 	}
 
-	if( rs232data->client[1].revents & POLLOUT ) {
+	if( pfd->revents & POLLOUT ) {
 		
 		res = write(pfd->fd, rs232data->send_buf, todo);
 		if( res <= 0 ) {
@@ -243,7 +244,7 @@ int rs232_fsm_say_ack(rs232_data_t *rs232data)
 
 	strcpy((char *)rs232data->send_buf, ACK);
 	
-	if( rs232_poll_write(rs232data, real_todo) ) {
+	if( rs232_poll_write(rs232data, 1, real_todo) ) {
 		/* error occur */
 		return -1;
 	}
@@ -256,7 +257,7 @@ static void rs232_fsm_say_err(rs232_data_t *rs232data)
 	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: unexpecting request [%s]", rs232data->recv_buf);
 	size_t 	real_todo = strlen((char *)rs232data->send_buf);
 
-	rs232_poll_write(rs232data, real_todo);
+	rs232_poll_write(rs232data, 1, real_todo);
 }
 
 static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str) 
@@ -264,7 +265,7 @@ static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str)
 	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: %s. errno: %s", str, strerror(errno));
 	size_t 	real_todo = strlen((char *)rs232data->send_buf);
 
-	rs232_poll_write(rs232data, real_todo);
+	rs232_poll_write(rs232data, 1, real_todo);
 }
 
 int rs232_fsm_hello(rs232_data_t *rs232data)
@@ -272,8 +273,9 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 	size_t	res;
 	size_t 	real_todo = strlen(CONNECTION_CMD);
 	
-	if( rs232_poll_read(rs232data, real_todo) < 0 ) {
+	if( rs232_poll_read(rs232data, 1, real_todo) < 0 ) {
 		/* error occur */
+		fprintf(I, " close connection or error. errno %s\n", strerror(errno));
 		return BREAK;
 	}
 	
@@ -305,14 +307,16 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 	size_t	res;
 	size_t 	real_todo = strlen(TEST_RS232_CMD);
 	
-	if( rs232_poll_read(rs232data, real_todo) < 0 ) {
+	if( rs232_poll_read(rs232data, 1, real_todo) < 0 ) {
 		/* error occur */
 		return BREAK;
 	}
 	
 	res = strcmp((const char *)rs232data->recv_buf, (const char *)TEST_RS232_CMD);
 
-	printf(" res = %d \n", res);
+	//printf("[%x] [%x]", rs232data->recv_buf[real_todo], rs232data->recv_buf[real_todo + 1]);
+	dump_hex(rs232data->recv_buf, real_todo);
+	dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
 
 	if( res == 0 ) {
 		fprintf(I, "[%s] request for memeory testing \n", __FUNCTION__);
@@ -322,7 +326,7 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 		if( rs232_fsm_say_ack(rs232data) < 0 )
 			return BREAK;
 
-		return SET_PORT; 
+		return BREAK; 
 
 	} 
 
@@ -344,7 +348,7 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 	size_t 	real_todo = strlen(SET_PORT_CMD);
 
 	/* comm + "len=" */
-	if( rs232_poll_read(rs232data, real_todo + 4) < 0 ) {
+	if( rs232_poll_read(rs232data, 1, real_todo + 4) < 0 ) {
 		/* error occur */
 		return BREAK;
 	}
@@ -368,7 +372,7 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 		}
 
 		/* name + 0x0d + 0x0a */
-		if( rs232_poll_read(rs232data, real_todo + 2) < 0 ) {
+		if( rs232_poll_read(rs232data, 1, real_todo + 2) < 0 ) {
 			/* error occur */
 			return BREAK;
 		}

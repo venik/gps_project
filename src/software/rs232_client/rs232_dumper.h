@@ -10,10 +10,11 @@
 /* commands */
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define SET_PORT_CMD	"RS232_PORT:"
-#define TEST_RS232_CMD	"TEST_RS232"
+#define TEST_RS232_CMD	"TEST_RS232\r\n"
 #define ACK		"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
+FILE 		*I;
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
@@ -59,5 +60,43 @@ struct rs232_data_s {
 };
 
 static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str);
+
+/* help functions */
+void dump_asci(volatile uint8_t *data, size_t size)
+{
+        unsigned long   i;
+
+        for(i=0;i<size;i++) {
+                if(!(i&0x1f)) {
+                        fprintf(I, "\n%08lx:", i);
+                }
+                uint8_t c = *data;
+                c = (c > 0x1f) && (c < 0x7f) ?c :'.';
+                fprintf(I, "  %c",  c);
+                data++;
+        }
+        fprintf(I, "\n");
+}
+
+void dump_hex(volatile uint8_t *data, size_t size)
+{
+        unsigned long   i;
+
+        dump_asci(data, size);
+
+        fprintf(I, "len: %lu@%08lx", (unsigned long)size, (unsigned long)data);
+        if(!data)
+                return;
+
+        for(i=0;i<size;i++) {
+                if(!(i&0x1f)) {
+                        fprintf(I, "\n%08lx:", i);
+                }
+
+                fprintf(I, " %02x", *data);
+                data++; 
+        } 
+        fprintf(I, "\n");
+}
 
 #endif /* _RS232_DUMPER_H */
