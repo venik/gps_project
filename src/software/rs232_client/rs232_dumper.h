@@ -28,7 +28,7 @@ enum rs232_comm_request {
 	RS232_SET_REG		= 1<<0,
 	RS232_TEST_MEMORY	= 1<<1,
 	RS232_GPS_START		= 1<<2,
-	RS232_TEST_RS232	= 0x55 
+	RS232_TEST_RS232	= 0xAA 
 };
 
 /* FIXME */

@@ -150,6 +150,8 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
+	fprintf(I, "[%s]\n", __FUNCTION__);
+
 	pfd->events = POLLIN;
 
 	nready = poll(pfd, 1, TIMEOUT);
@@ -164,6 +166,8 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 		
 		res = read(pfd->fd, rs232data->recv_buf, todo);
 		fprintf(I, "[%s] need [%d] received [%d] \n", __FUNCTION__, todo, res);
+		
+		dump_hex(rs232data->recv_buf, todo);
 
 		if( res <= 0 ) {
 			/* error occur */
@@ -193,6 +197,8 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
+	fprintf(I, "[%s]\n", __FUNCTION__);
+
 	pfd->events = POLLOUT;
 
 	nready = poll(pfd, 1, TIMEOUT);
@@ -206,6 +212,9 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	if( pfd->revents & POLLOUT ) {
 		
 		res = write(pfd->fd, rs232data->send_buf, todo);
+	
+		dump_hex(rs232data->send_buf, todo);
+		
 		if( res <= 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
@@ -315,8 +324,8 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 	res = strcmp((const char *)rs232data->recv_buf, (const char *)TEST_RS232_CMD);
 
 	//printf("[%x] [%x]", rs232data->recv_buf[real_todo], rs232data->recv_buf[real_todo + 1]);
-	dump_hex(rs232data->recv_buf, real_todo);
-	dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
+	//dump_hex(rs232data->recv_buf, real_todo);
+	//dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
 
 	if( res == 0 ) {
 		fprintf(I, "[%s] request for COM-port testing \n", __FUNCTION__);
@@ -325,7 +334,7 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
 		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
 		
-		*comm_req |= RS232_TEST_RS232;	
+		*comm_req = RS232_TEST_RS232;	
 		
 		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
 			/* error occur */
@@ -333,13 +342,13 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 			return BREAK;
 		}
 		
-		if( rs232_poll_read(rs232data, 2, sizeof(uint64_t)) < 0 ) {
+		if( rs232_poll_read(rs232data, 2, sizeof(uint8_t)) < 0 ) {
 			/* error occur */
 			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
 			return BREAK;
 		}
 
-		if( ((*comm_req) & 0xff) == (*comm_ans) ) {
+		if( ((*comm_req) & 0xFFull) == (*comm_ans) ) {
 			if( rs232_fsm_say_ack(rs232data) < 0 )
 				return BREAK;
 		}
