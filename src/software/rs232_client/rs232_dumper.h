@@ -11,6 +11,7 @@
 #define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define SET_PORT_CMD	"RS232_PORT:"
 #define TEST_RS232_CMD	"TEST_RS232\r\n"
+#define TEST_SRAM_CMD	"TEST_SRAM\r\n"
 #define ACK		"ACK\r\n"
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
@@ -21,26 +22,18 @@ enum rs232_fsm_state {
 	CONNECTION,
 	WAIT_FOR_HELLO,
 	SET_PORT,
-	TEST_RS232	
+	TEST_RS232,
+	TEST_SRAM	
 };
 
 enum rs232_comm_request {
 	RS232_SET_REG		= 1<<0,
-	RS232_TEST_MEMORY	= 1<<1,
+	RS232_TEST_SRAM		= 1<<1,
 	RS232_GPS_START		= 1<<2,
 	RS232_TEST_RS232	= 0xAA 
 };
 
-/* FIXME */
-enum rs232_comm_response {
-	BOARD_NOT_ACK		= 1<<0,
-};
-
-typedef struct rs232_data_s rs232_data_t;
-
-typedef int (*rs232_dumper_cb)(rs232_data_t *);
-
-struct rs232_data_s {
+typedef struct rs232_data_s {
 
 	char		name[MAXLINE];
 	uint8_t 	recv_buf[BUF_SIZE];
@@ -50,8 +43,9 @@ struct rs232_data_s {
 	struct pollfd	client[3];
 	uint16_t	port;
 
-};
+} rs232_data_t;
 
+static void rs232_fsm_say_err(rs232_data_t *rs232data);
 static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str);
 
 /* help functions */
