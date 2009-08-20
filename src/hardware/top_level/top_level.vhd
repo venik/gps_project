@@ -80,14 +80,15 @@ test_sram: entity work.test_sram(Behavioral)
 	port map(
 			addr => t_addr,
 			rw => t_rw,
+			mem => t_mem,
 			data_f2s => t_data_f2s,
 			data_s2f_r => data_s2f_r,
 			data_s2f_ur => data_s2f_ur,
 			ready => ready,
-			clk => clk,
+			--clk => clk,
+			--reset => reset,
 			test_result => test_result,
-			test_mem => test_mem,
-			reset => reset
+			test_mem => test_mem
 			);
 			
 sram_controller: entity work.sram_ctrl(arch)

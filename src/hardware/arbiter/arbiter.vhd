@@ -77,7 +77,7 @@ process(clk, reset)
 begin
 
 	if( reset = '0') then				-- push the reset-button
-		soft_reset <= '1' ;
+		soft_reset <= '1' ;				-- reset submodules
 		arbiter_state <= idle ;
 	elsif rising_edge(clk) then
 		soft_reset <= '0' ;
@@ -106,11 +106,18 @@ begin
 					mode <= "01" ;
 
 					if( test_result = "11" ) then
+						-- =) error occur
+						arbiter_next_state <=  send_comm ;
+						din <= not(comm(7 downto 0)) ;
+						test_mem <= '0' ;
+					elsif(test_result = "01") then
+						-- =) memory is good
 						arbiter_next_state <=  send_comm ;
 						din <= comm(7 downto 0) ;
 						test_mem <= '0' ;
-					else
-						test_mem <= '1' ;					
+					else 
+						-- need start the memeory test
+						test_mem <= '1' ;
 					end if;
 					
 				when "10101010" =>
@@ -164,6 +171,10 @@ begin
 			
 --		-- send_comm			
 	when send_comm =>
+			-- disable memory test block
+			test_mem <= '0' ;
+			
+			-- activate the rs232 interface for transfer
 			tx_start <= '1';
 			
 			if( tx_done_tick = '1' ) then

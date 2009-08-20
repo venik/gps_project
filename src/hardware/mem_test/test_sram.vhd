@@ -24,9 +24,10 @@ entity test_sram is
 			data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
+			mem: out std_logic ;
 			-- system
-			clk : in std_logic ;
-			reset : in std_logic ;
+			--clk : in std_logic ;
+			--reset : in std_logic ;
 			-- signal
 			test_mem: in std_logic ;
 			test_result: out std_logic_vector(1 downto 0)
@@ -35,60 +36,76 @@ end test_sram;
 
 architecture Behavioral of test_sram is
 		
-	type 	 memtester_type is(write_t_mem, read_t_mem) ;
+	type 	 memtester_type is(idle, write_t_mem, read_t_mem) ;
 	signal memtester_state: memtester_type ;
 	signal memtester_state_next: memtester_type := write_t_mem ;
 
-	signal data_mem: std_logic_vector (7 downto 0) := ( others => '0') ; 
+	signal data_mem: std_logic_vector (7 downto 0) := "00000001" ; 
+	signal data_store: std_logic_vector (7 downto 0) := (others => '0') ; 
 	
 begin
 
-process(ready, test_mem)
+process(test_mem, memtester_state_next)
 begin
 
-	if( test_mem = '0') then				-- push the reset-button
+	if( test_mem = '1' ) then				
 		memtester_state <= memtester_state_next ;
+	else 
+		memtester_state <= idle ;
 	end if;
 	
 end process;
 
-process(memtester_state)
+process(memtester_state, ready)
 begin
-	case memtester_state is
-	when write_t_mem => NULL ; 
+	if( ready = '1') then
 	
---		if( data_mem < 255 ) then
---			-- write into the memory test pattern
---			if ready = '1' then
---				addr(7 downto 0) <= data_mem ;
---				data_f2s <= data_mem ;
---				rw <= '1' ;
---				data_mem <= data_mem + 1 ;				
---			end if; -- if ready = '1' then
---		else
---			data_mem <= ( others => '0' );
---			test_mem_result <= "01";
---		end if; -- if( data_mem < 255 ) then   
+		case memtester_state is
+		
+		when idle => 	NULL;
+		
+		when write_t_mem => 	
+			if( data_mem < 128 ) then
+				-- write into the memory test pattern
+				if ready = '1' then
+					addr(7 downto 0) <= data_mem ;
+					data_f2s <= data_mem ;
+					rw <= '1' ;
+					mem <= '1' ;
+					data_mem(7 downto 0) <= data_mem(6 downto 0) & data_mem(7) ;				
+				end if; -- if ready = '1' then
+			else
+				data_mem(7 downto 0) <= "00000001";
+				memtester_state_next <= write_t_mem ;
+			end if; -- if( data_mem < 128 ) 
+				
+		when read_t_mem => NULL ;
+			if( data_mem < 128 ) then
+				-- write into the memory test pattern
+				addr(7 downto 0) <= data_mem ;
+				data_store <= data_s2f_r ;
+				
+				-- check data from memeory
+				if( data_store = data_mem ) then
+					-- all is oK - update values
+					rw <= '1' ;
+					mem <= '1' ;
+					data_mem(7 downto 0) <= data_mem(6 downto 0) & data_mem(7) ;	
+				else
+					-- error occur
+					memtester_state_next <= read_t_mem ;
+					test_result <= "11" ;
+				end if ;
+			else
+				data_mem(7 downto 0) <= "00000001";
+				memtester_state_next <= idle ;
+				test_result <= "01" ;
+			end if; -- if( data_mem < 128 ) 
 			
-	when read_t_mem => NULL ;
---		if( data_mem < 255 ) then
---			-- read into the memory test pattern
---			addr(7 downto 0) <= data_mem ;						
---			rw <= '0' ;
---			
---			if ready = '1' then
---				if (data_s2f_ur /= data_mem) then 
---					test_mem_result <= "11"	;
---				else
---					data_mem <= data_mem + 1 ;	
---				end if;
---			end if; -- if ready = '1' then
---		else
---			test_mem_result <= "10" ;
---		end if;
-	
-	end case;
-	
+		end case; -- case memtester_state
+		
+	end if; -- if( ready = '1')
+
 end process;
 
 end Behavioral;
