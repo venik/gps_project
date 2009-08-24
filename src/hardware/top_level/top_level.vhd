@@ -29,11 +29,7 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-			signal test_done: std_logic := '0' ;
-			signal test_result: std_logic := '0' ;
-			
-			signal mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
-			
+
 			-- sram
 			signal 	ready: std_logic := '0' ;
 			signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;
@@ -53,6 +49,11 @@ architecture Behavioral of top_level is
 			signal	t_rw: std_logic ;
 			signal	t_addr: std_logic_vector(17 downto 0) ;
 			signal 	t_data_f2s: std_logic_vector(7 downto 0) ;
+			
+			-- interprocess communication
+			signal mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
+			signal test_mem: std_logic := '0' ;
+			signal test_result: std_logic_vector(1 downto 0) := ( others => '0' ) ;
 
 begin
 
@@ -70,24 +71,25 @@ arbiter: entity work.arbiter(Behavioral)
 			clk => clk,
 			u10 => u10,
 			mode => mode,
-			test_done => test_done,
 			test_result => test_result,
+			test_mem => test_mem,
 			reset => reset
 			);
 			
---test_sram: entity work.test_sram(Behavioral)
---	port map(
---			addr => t_addr,
---			rw => t_rw,
---			data_f2s => t_data_f2s,
---			data_s2f_r => data_s2f_r,
---			data_s2f_ur => data_s2f_ur,
---			ready => ready,
---			clk => clk,
---			test_done => test_done,
---			test_result => test_result,
---			reset => reset
---			);
+test_sram: entity work.test_sram(Behavioral)
+	port map(
+			addr => t_addr,
+			rw => t_rw,
+			mem => t_mem,
+			data_f2s => t_data_f2s,
+			data_s2f_r => data_s2f_r,
+			data_s2f_ur => data_s2f_ur,
+			ready => ready,
+			clk => clk,
+			reset => reset,
+			test_result => test_result,
+			test_mem => test_mem
+			);
 			
 sram_controller: entity work.sram_ctrl(arch)
 	port map( 
