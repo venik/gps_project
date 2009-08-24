@@ -85,8 +85,8 @@ test_sram: entity work.test_sram(Behavioral)
 			data_s2f_r => data_s2f_r,
 			data_s2f_ur => data_s2f_ur,
 			ready => ready,
-			--clk => clk,
-			--reset => reset,
+			clk => clk,
+			reset => reset,
 			test_result => test_result,
 			test_mem => test_mem
 			);

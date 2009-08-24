@@ -110,7 +110,7 @@ begin
 						arbiter_next_state <=  send_comm ;
 						din <= not(comm(7 downto 0)) ;
 						test_mem <= '0' ;
-					elsif(test_result = "01") then
+					elsif(test_result = "10") then
 						-- =) memory is good
 						arbiter_next_state <=  send_comm ;
 						din <= comm(7 downto 0) ;
