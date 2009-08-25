@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 8 13 21 42 5)
+  (timeStamp 2009 8 25 22 3 7)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -6392,7 +6392,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (compInst "C56"
     (compRef "C0805_1")
     (originalName "C0805")
-    (compValue "100.0")
+    (compValue "47nF")
     (patternName "C0805")
   )
   (compInst "U38"
@@ -7522,11 +7522,11 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "U35" "1")
   )
   (net "ETH_GND"
+    (node "C56" "2")
     (node "R9" "1")
     (node "C55" "2")
     (node "R10" "1")
     (node "C54" "2")
-    (node "C56" "2")
     (node "P2" "13")
     (node "P2" "14")
     (node "U34" "21")
@@ -7560,8 +7560,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "P2" "12")
   )
   (net "ALTERA_33V"
-    (node "R8" "2")
     (node "C56" "1")
+    (node "R8" "2")
     (node "P2" "3")
     (node "U34" "8")
     (node "U35" "5")
@@ -7623,8 +7623,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "1.0mil")
       (grid "50.0mil")
+      (grid "1.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9965,8 +9965,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   )
   (schematicPrintSettings 
     (sheetList 
-      (sheetRef 1)
-      (sheetRef 2)
+      (sheetRef 4)
     )
   )
 
