@@ -45,18 +45,10 @@ proc connection_cmd {rbt res} {
 			if [catch {socket $server $port} serverSock] {
 				tracep "connection failed on \[$server:$port\]. error: $serverSock"
 
-				place forget $res.server
-				$res.server configure -text "FAILED" -padx 1 -background red
-				place $res.server -relx 0.5 -x -25 -rely 0.08
-
 				break;
 			}
 
 			tracep "connection successful on \[$server:$port\]"
-
-			place forget $res.server
-			$res.server configure -text "SUCCESSFUL" -padx 1 -background green 
-			place $res.server -relx 0.5 -x -44 -rely 0.08
 
 			set state SAY_HELLO;
 		}
@@ -71,13 +63,21 @@ proc connection_cmd {rbt res} {
 			if { [string match "ACK" $response] == 0 } {
 				# Error handler
 				tracep "ERROR: we expect ACK, but receive: \[$response\]"
-				
+
+				place forget $res.server
+				$res.server configure -text "FAILED" -padx 1 -background red
+				place $res.server -relx 0.5 -x -25 -rely 0.08
+
 				set state FINISH_CONNECTION;
 
 			} else {
 
 				tracep "ACK <= $server:$port"
 				tracep "RS232 dumper successfully identified"
+
+				place forget $res.server
+				$res.server configure -text "SUCCESSFUL" -padx 1 -background green 
+				place $res.server -relx 0.5 -x -44 -rely 0.08
 
 				set state SET_PORT;
 			}
@@ -142,6 +142,38 @@ proc connection_cmd {rbt res} {
 				place forget $res.rs232
 				$res.rs232 configure -text "OK" -padx 1 -background green 
 				place $res.rs232 -relx 0.5 -x -15 -rely 0.27
+
+				set state TEST_SRAM;
+			}
+		}
+
+		TEST_SRAM {
+			set comm "TEST_SRAM"
+
+			puts $comm 
+			puts $serverSock $comm 
+			flush $serverSock
+			tracep "GUI => $comm"
+			
+			set response [gets $serverSock]
+			if { [string match "ACK" $response] == 0 } {
+				# Error handler
+				tracep "ERROR: we expect ACK, but receive: \[$response\]"
+				
+				place forget $res.mem
+				$res.mem configure -text "FAILED" -padx 1 -background red 
+				place $res.mem -relx 0.5 -x -25 -rely 0.32
+
+				set state FINISH_CONNECTION;
+
+			} else {
+
+				tracep "ACK <= $server:$port"
+				tracep "SRAM-chip on board works fine"
+	
+				place forget $res.mem
+				$res.mem configure -text "OK" -padx 1 -background green 
+				place $res.mem -relx 0.5 -x -15 -rely 0.32
 
 				set state FINISH_CONNECTION;
 			}

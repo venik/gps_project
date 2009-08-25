@@ -32,8 +32,8 @@ entity arbiter is
 			mode: out std_logic_vector(1 downto 0) ;			
 			
 			-- signal
-			test_done: in std_logic ;
-			test_result: in std_logic
+			test_mem: out std_logic ;
+			test_result: in std_logic_vector(1 downto 0)
 	     );
 end arbiter;
 
@@ -54,8 +54,6 @@ architecture Behavioral of arbiter is
 	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
 	
 	-- mem test staff
-	type test_mem_type is(idle_t_mem, read_t_mem, write_t_mem) ;
-	signal test_mem: test_mem_type := idle_t_mem;
 	signal data_mem: std_logic_vector (7 downto 0) := ( others => '0') ; 
 	signal test_mem_result: std_logic_vector (1 downto 0) := ( others => '0' );
 	
@@ -79,7 +77,7 @@ process(clk, reset)
 begin
 
 	if( reset = '0') then				-- push the reset-button
-		soft_reset <= '1' ;
+		soft_reset <= '1' ;				-- reset submodules
 		arbiter_state <= idle ;
 	elsif rising_edge(clk) then
 		soft_reset <= '0' ;
@@ -88,7 +86,7 @@ begin
 	
 end process;
 	
-process(arbiter_state, clk, tx_done_tick, rx_done_tick)
+process(arbiter_state, clk, tx_done_tick, rx_done_tick, test_result)
 begin
 	if rising_edge(clk) then
 		case  arbiter_state is
@@ -96,60 +94,55 @@ begin
 --		-- idle	
 		when idle =>
 			if( rx_done_tick = '1' ) then
-				-- check the command
-				din <= x"41" ;
-				arbiter_next_state <=  send_comm ;
 				
 				case comm(7 downto 0) is
-				when "00000001" => NULL ;
+--				when "00000001" => NULL ;
 					-- set register
-					arbiter_next_state <= idle ;
---				when "00000010" =>
---					-- memory test
---					mode <= "01" ;
+--					arbiter_next_state <= idle ;
+--					mode <= "00" ;
 					
---						case test_mem is
---						when idle_t_mem =>
---							test_mem <= write_t_mem ;
---							
---						when write_t_mem =>
---							if( test_mem_result = "01" ) then
---								test_mem <= read_t_mem ;
---						end if;
---						
---						when read_t_mem =>
---							if( test_mem_result = "11" ) then
---								arbiter_next_state <=  send_comm ;
---								din <= "00000001" ;
---								mem <= '0' ;
---							elsif( test_mem_result = "10" ) then
---								arbiter_next_state <=  send_comm ;
---								din <= "00000010" ;
---								mem <= '0' ;
---							else 
---								mem <= '1';
---							end if;
---								
---						end case;
---
-					when "10101010" =>
-						-- rs232 echo-test
+				when "00000010" =>
+					-- memory test
+					mode <= "01" ;
+
+					if( test_result = "11" ) then
+						-- =) error occur
+						arbiter_next_state <=  send_comm ;
+						din <= not(comm(7 downto 0)) ;
+						test_mem <= '0' ;
+					elsif(test_result = "10") then
+						-- =) memory is good
 						arbiter_next_state <=  send_comm ;
 						din <= comm(7 downto 0) ;
-						mem <= '0' ;
-						mode <= "00" ;
-						--comm(63 downto 8) <= (others => '0') ;
+						test_mem <= '0' ;
+					else 
+						-- need start the memeory test
+						test_mem <= '1' ;
+					end if;
+					
+				when "10101010" =>
+					-- rs232 echo-test
+					arbiter_next_state <=  send_comm ;
+					din <= comm(7 downto 0) ;
+					mem <= '0' ;
+					mode <= "00" ;
+					test_mem <= '0' ;
+					--comm(63 downto 8) <= (others => '0') ;
 --						
 --					when "00000100" =>
 --						-- start gps	
 --						arbiter_next_state <= idle ;
 --						
-					when others =>
-						arbiter_next_state <= idle;
-						
-       			end case;
+				when others =>
+					-- unknown command
+					arbiter_next_state <=  send_comm ;
+					din <= ( others => '1' ) ;
+					mem <= '0' ;
+					mode <= "00" ;
+					test_mem <= '1' ;
+					
+				end case;
 				   
-	
 		end if ;
 			
 		-- disable rs232 tx and sram
@@ -178,6 +171,10 @@ begin
 			
 --		-- send_comm			
 	when send_comm =>
+			-- disable memory test block
+			test_mem <= '0' ;
+			
+			-- activate the rs232 interface for transfer
 			tx_start <= '1';
 			
 			if( tx_done_tick = '1' ) then

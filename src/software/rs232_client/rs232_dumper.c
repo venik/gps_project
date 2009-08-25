@@ -26,9 +26,6 @@
 
 #include "rs232_dumper.h"
 
-//#include "rs232_main_mode.h"
-//#include "rs232_test_mode.h"
-
 uint8_t		need_exit;
 
 /* signal handlers */
@@ -150,13 +147,18 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
+	fprintf(I, "[%s]\n", __FUNCTION__);
+
 	pfd->events = POLLIN;
 
 	nready = poll(pfd, 1, TIMEOUT);
 
 	if( nready < 1 ) {
-		fprintf(I, "[err] there is no data in the client socket, disconnect...\n");
 		/* client not ready */
+		strcpy((char *)rs232data->recv_buf, "[err] there is no data in the client socket, disconnect...");
+		rs232_fsm_say_err(rs232data);
+
+		fprintf(I, "[err] there is no data in the client socket, disconnect...\n");
 		return -1;
 	}
 
@@ -164,6 +166,8 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 		
 		res = read(pfd->fd, rs232data->recv_buf, todo);
 		fprintf(I, "[%s] need [%d] received [%d] \n", __FUNCTION__, todo, res);
+		
+		dump_hex(rs232data->recv_buf, todo);
 
 		if( res <= 0 ) {
 			/* error occur */
@@ -193,6 +197,8 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
+	fprintf(I, "[%s]\n", __FUNCTION__);
+
 	pfd->events = POLLOUT;
 
 	nready = poll(pfd, 1, TIMEOUT);
@@ -206,6 +212,9 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	if( pfd->revents & POLLOUT ) {
 		
 		res = write(pfd->fd, rs232data->send_buf, todo);
+	
+		dump_hex(rs232data->send_buf, todo);
+		
 		if( res <= 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
@@ -254,7 +263,7 @@ int rs232_fsm_say_ack(rs232_data_t *rs232data)
 
 static void rs232_fsm_say_err(rs232_data_t *rs232data) 
 {
-	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: unexpecting request [%s]", rs232data->recv_buf);
+	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: [%s]", rs232data->recv_buf);
 	size_t 	real_todo = strlen((char *)rs232data->send_buf);
 
 	rs232_poll_write(rs232data, 1, real_todo);
@@ -302,6 +311,67 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 		
 }
 
+int rs232_fsm_test_sram(rs232_data_t *rs232data)
+{
+	size_t	res;
+	size_t 	real_todo = strlen(TEST_SRAM_CMD);
+	
+	if( rs232_poll_read(rs232data, 1, real_todo) < 0 ) {
+		/* error occur */
+		return BREAK;
+	}
+	
+	res = strncmp((const char *)rs232data->recv_buf, (const char *)TEST_SRAM_CMD, real_todo);
+
+
+	if( res == 0 ) {
+		fprintf(I, "[%s] request for test onboard SRAM-chip \n", __FUNCTION__);
+
+		/* work with board */
+		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
+		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
+		
+		*comm_req = RS232_TEST_SRAM;	
+		
+		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
+			/* error occur */
+			fprintf(I, "[%s] PC => Board: sram-chip test failed\n", __FUNCTION__);
+			return BREAK;
+		}
+		
+		if( rs232_poll_read(rs232data, 2, sizeof(uint8_t)) < 0 ) {
+			/* error occur */
+			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
+			return BREAK;
+		}
+
+		if( ((*comm_req) & 0xFFull) == (*comm_ans) ) {
+			fprintf(I, "SRAM work fine =) \n");
+
+			if( rs232_fsm_say_ack(rs232data) < 0 )
+				return BREAK;
+		
+		} else {
+			fprintf(I, "problem with the onboard sram =( \n");
+			return BREAK;
+		}
+
+
+		return TEST_SRAM; 
+
+	} 
+
+	rs232data->recv_buf[real_todo] = '\0';
+	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
+			TEST_RS232_CMD,
+			rs232data->recv_buf
+		);
+
+	rs232_fsm_say_err(rs232data);
+
+	return BREAK;
+		
+}
 int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 {
 	size_t	res;
@@ -315,8 +385,8 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 	res = strcmp((const char *)rs232data->recv_buf, (const char *)TEST_RS232_CMD);
 
 	//printf("[%x] [%x]", rs232data->recv_buf[real_todo], rs232data->recv_buf[real_todo + 1]);
-	dump_hex(rs232data->recv_buf, real_todo);
-	dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
+	//dump_hex(rs232data->recv_buf, real_todo);
+	//dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
 
 	if( res == 0 ) {
 		fprintf(I, "[%s] request for COM-port testing \n", __FUNCTION__);
@@ -325,7 +395,7 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
 		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
 		
-		*comm_req |= RS232_TEST_RS232;	
+		*comm_req = RS232_TEST_RS232;	
 		
 		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
 			/* error occur */
@@ -333,20 +403,25 @@ int rs232_fsm_test_rs232(rs232_data_t *rs232data)
 			return BREAK;
 		}
 		
-		if( rs232_poll_read(rs232data, 2, sizeof(uint64_t)) < 0 ) {
+		if( rs232_poll_read(rs232data, 2, sizeof(uint8_t)) < 0 ) {
 			/* error occur */
 			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
 			return BREAK;
 		}
 
-		if( ((*comm_req) & 0xff) == (*comm_ans) ) {
+		if( ((*comm_req) & 0xFFull) == (*comm_ans) ) {
+			fprintf(I, "RS232 work fine =) \n");
+
 			if( rs232_fsm_say_ack(rs232data) < 0 )
 				return BREAK;
+		
+		} else {
+			fprintf(I, "problem with the RS232 connection =( \n");
+			return BREAK;
 		}
 
-		fprintf(I, "RS232 work fine =) \n");
 
-		return BREAK; 
+		return TEST_SRAM; 
 
 	} 
 
@@ -457,15 +532,20 @@ int rs232_fsm(rs232_data_t *rs232data)
 			fprintf(I, "[%s] TEST_RS232\n", __FUNCTION__);
 			state = rs232_fsm_test_rs232(rs232data);
 			break;
+			
+		case TEST_SRAM:
+			fprintf(I, "[%s] TEST_SRAM\n", __func__);
+			state = rs232_fsm_test_sram(rs232data);
+			break;
 
 		case BREAK:
-			/* close clinet socket */
+			/* close the clinet socket */
 			fprintf(I, "[%s] BREAK\n", __FUNCTION__);
 			close(rs232data->client[1].fd);
 			return -1;
 
 		default:
-			fprintf(I, "[%s] unknown state\n", __FUNCTION__);
+			fprintf(I, "[%s] unknown state [%d]n", __func__, state);
 			return -1;
 
 		} // switch(state)

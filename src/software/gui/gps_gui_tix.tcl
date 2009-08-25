@@ -18,7 +18,7 @@ proc create_nb {w} {
 	tixNoteBook $w.n -dynamicgeometry false
 
 	$w.n add settings -label "Settings" -underline 0 -createcmd "init_settings $w $w.n"
-	$w.n add work_tab -label "Work" -underline 0
+	#$w.n add work_tab -label "Work" -underline 0
 	$w.n add log_tab -label "Log" -underline 0 -createcmd "create_logs $w $w.n" -raisecmd "show_logs $w $w.n"
 
     #RunSample $frame1 $w
@@ -112,7 +112,7 @@ wm withdraw .
 set w .app
 toplevel $w;
 wm transient $w ""
-wm title $w "Tix Example"
+wm title $w "GPS-Board management interface"
 wm geometry $w 640x480
 
 bind $w <Destroy> {
