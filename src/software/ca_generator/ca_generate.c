@@ -1,5 +1,6 @@
 /*ca_generate.c*/
 #include <stdio.h>
+#include <math.h>
 #include "ca_generate.h"
 #define N 10
 #define M 37
@@ -12,6 +13,8 @@ int main()
  int k1[] = {2, 3, 4, 5, 1,  2, 1, 2,  3, 2, 3, 5, 6, 7, 8,  9, 1, 2, 3, 4, 5, 6, 1, 4, 5, 6, 7,  8, 1, 2, 3, 4,  5,  4, 1, 2, 4 } ;
  int k2[] = {6, 7, 8, 9, 9, 10, 8, 9, 10, 3, 4, 6, 7, 8, 9, 10, 4, 5, 6, 7, 8, 9, 3, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 10, 7, 8, 10 } ;
  k=0;
+ double x_re[]={0,0,0,0,0};
+ double x_im[]={0,0,0,0,0};
   printf("Input number satellite ");
   scanf("%d",&NumSat);
   
@@ -22,8 +25,9 @@ init(G1,G2);
   for (k=0;k<Length;k++)
 {
 ResultBit(G1,G2,ResBit,k,NumSat,k1,k2);
-rotateg1(G1);
-rotateg2(G2);
+RotateG1(G1);
+RotateG2(G2);
+Sig_Gen(x_re,x_im);
 }
  for(i=0;i<N;i++)
  {
@@ -38,8 +42,13 @@ for (i=0;i<N;i++)
  {
  printf("ResBit[%d]=%d \n", j+1, ResBit[j]);
  }
-}
 
+for(i=0;i<5;i++)
+{
+printf("x_re[%d]=%f \n", i+1, x_re[i]);
+printf("x_im[%d]=%f \n", i+1, x_im[i]);
+}
+}
 
 void init(int G1[n], int G2[n])
 {
@@ -52,7 +61,7 @@ void init(int G1[n], int G2[n])
 }
 
 
-void rotateg1(int G1[n])
+void RotateG1(int G1[n])
 {
  int i; 
  int G1Temp;
@@ -64,7 +73,7 @@ void rotateg1(int G1[n])
  G1[0]=G1Temp;
 }
 
-void rotateg2(int G2[n])
+void RotateG2(int G2[n])
 {
  int i;
  int G2Temp;
@@ -81,4 +90,14 @@ void ResultBit(int G1[n], int G2[n], int ResBit[], int k, int NumSat, int k1[], 
  int out1=k1[NumSat-1];
  int out2=k2[NumSat-1]; 
  ResBit[k]=(G1[9]+G2[out1-1]+G2[out2-1])%2;
+}
+
+void Sig_Gen(double x_re[5], double x_im[5])
+{
+int i;
+for (i=0;i<5;i++)
+ {
+  x_re[i]=sin(2*3.141*4.092/16.368*i);
+  x_im[i]=cos(2*3.141*4.092/16.368*i);
+ }
 }
