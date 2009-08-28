@@ -28,7 +28,7 @@ use ieee.std_logic_1164.all;
 
 entity sram_ctrl is
   port(
-    clk: in std_logic;
+    clk: in std_logic;				
 	 reset: in std_logic;
 	 
     -- to/from main system
@@ -55,6 +55,7 @@ architecture arch of sram_ctrl is
   signal  addr_reg, addr_next: std_logic_vector(17 downto 0);
   signal   we_buf, oe_buf, tri_buf: std_logic;
   signal   we_reg, oe_reg, tri_reg: std_logic;
+  signal   s1_buf, s1_reg: std_logic;
  
 begin
 
@@ -75,6 +76,7 @@ process(clk, reset)
       tri_reg <= '1';
       we_reg <= '1';
       oe_reg <= '1';
+	  --s1 <= '0';
     elsif rising_edge(clk) then   
       state_reg <= state_next;
       addr_reg <= addr_next;
@@ -83,6 +85,9 @@ process(clk, reset)
       tri_reg <= tri_buf;
       we_reg <= we_buf;
       oe_reg <= oe_buf;
+	  
+	  s1_reg <= s1_buf;
+	  
     end if;
   end process;
  
@@ -99,6 +104,7 @@ process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, 
           state_next <= idle;
         else
           addr_next <= addr;
+		  --s1_buf <= '0' ;
  
           if rw='1' then    -- write
             state_next <= wr1;
@@ -143,41 +149,62 @@ process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, 
     end case;
   end process;
  
-  -- look-ahead output logic
-  process(state_next)
+-- look-ahead output logic
+process(state_next)
   begin
     tri_buf <= '1';
     we_buf <= '1';
     oe_buf <= '1';
+	s1_buf <= '1';
  
     case state_next is
-      when idle =>
+      when idle => NULL ;
+	  
       when wr1 =>
         we_buf <= '0';
         tri_buf <= '0';
+		s1_buf <= '0' ;
+		
       when wr2 =>
         we_buf <= '0';
         tri_buf <= '0';
+		s1_buf <= '0' ;
+		
       when wr3 =>
         we_buf <= '0';
         tri_buf <= '0';
+		s1_buf <= '0' ;
+		
       when wr4 =>
         we_buf <= '0';
         tri_buf <= '0';
+		s1_buf <= '0' ;
+		
       when wr5 =>
-        tri_buf <= '0';
+	  	tri_buf <= '0';
+	  	s1_buf <= '0' ;
       
       -- read cycle
       when rd1 =>
-        oe_buf <= '0';
+	  	oe_buf <= '0';
+	  	s1_buf <= '0' ;
+		  
       when rd2 =>
-        oe_buf <= '0';
+	  	oe_buf <= '0';
+	  	s1_buf <= '0' ;
+		  
       when rd3 =>
-        oe_buf <= '0';
+	  	oe_buf <= '0';
+	  	s1_buf <= '0' ;	
+		  
       when rd4 =>
-        oe_buf <= '0';
+	  	s1_buf <= '0' ;
+        oe_buf <= '0'; 
+		
       when rd5 =>
-        oe_buf <= '0';
+	  	oe_buf <= '0';
+	  	s1_buf <= '0' ;
+		  
     end case;
   end process;
  
@@ -186,7 +213,8 @@ process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, 
   data_s2f_ur <= dio_a;
  
   -- to SRAM
-  s1 <= '0' ;
+  --s1 <= '0' ;
+  s1 <= s1_reg ;
   s2 <= '1' ;
   WE <= we_reg;
   OE <= oe_reg;

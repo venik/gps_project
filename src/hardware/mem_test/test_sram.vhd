@@ -62,7 +62,8 @@ if( rising_edge(clk) ) then
 		when idle =>
 			test_result <= "00" ;
 			if( test_mem = '1' ) then
-					memtester_state_next <= write_t_mem ;
+				memtester_state_next <= write_t_mem ;
+				addr(17 downto 0) <= ( others => '0' );
 			end if;
 			
 --		if( rising_edge(clk) ) then 
@@ -83,7 +84,7 @@ if( rising_edge(clk) ) then
 		   	if( ready = '1') then
 				if( data_mem < 256 ) then
 					-- write into the memory test pattern
-					addr(7 downto 0) <= data_mem(7 downto 0) ;
+					addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
 					data_f2s <= data_mem(7 downto 0) ;
 					rw <= '1' ;
 					mem <= '1' ;
@@ -114,7 +115,7 @@ if( rising_edge(clk) ) then
 						rw <= '0' ;
 						mem <= '1' ;
 						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
-						addr(7 downto 0) <= data_mem(7 downto 0) ;
+						addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
 					else
 						-- error occur
 						memtester_state_next <= idle ;
