@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 8 13 21 42 5)
+  (timeStamp 2009 8 26 20 52 53)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits Mil)
-  (guidString "{67B08BCA-1766-4E30-8030-DACE61226BEE}")
+  (guidString "{32AB29D6-C0E4-4619-BEC8-6BF656437DA7}")
 )
 
 (library "Library_1"
@@ -6014,7 +6014,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (compInst "C65"
     (compRef "CSMD0805_1")
     (originalName "CSMD0805")
-    (compValue "23pF")
+    (compValue "10nF")
     (patternName "C_SMD0805")
   )
   (compInst "U13"
@@ -6392,7 +6392,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (compInst "C56"
     (compRef "C0805_1")
     (originalName "C0805")
-    (compValue "100.0")
+    (compValue "47nF")
     (patternName "C0805")
   )
   (compInst "U38"
@@ -7395,12 +7395,12 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "U20" "24")
   )
   (net "NET00036"
-    (node "U20" "15")
     (node "C65" "2")
+    (node "U20" "15")
   )
   (net "NET00067"
-    (node "U13" "1")
     (node "C65" "1")
+    (node "U13" "1")
   )
   (net "NET00062"
     (node "J3" "1")
@@ -7522,11 +7522,11 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "U35" "1")
   )
   (net "ETH_GND"
+    (node "C56" "2")
     (node "R9" "1")
     (node "C55" "2")
     (node "R10" "1")
     (node "C54" "2")
-    (node "C56" "2")
     (node "P2" "13")
     (node "P2" "14")
     (node "U34" "21")
@@ -7560,8 +7560,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
     (node "P2" "12")
   )
   (net "ALTERA_33V"
-    (node "R8" "2")
     (node "C56" "1")
+    (node "R8" "2")
     (node "P2" "3")
     (node "U34" "8")
     (node "U35" "5")
@@ -9797,11 +9797,11 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
       (attr "RefDes" "" (pt 0.0 -190.0) (rotation 270.0) (isVisible True) (justify LowerRight) (textStyleRef "tiny") )
     )
     (symbol (symbolRef "COIL_1") (refDesRef "L2") (partNum 1) (pt 6300.0 10950.0) )
+    (wire (line (pt 7500.0 7350.0) (pt 7500.0 6950.0) (width 10.0) (netNameRef "GND") )
+    )
     (symbol (symbolRef "C_1") (refDesRef "C65") (partNum 1) (pt 7500.0 8400.0) (rotation 90.0) 
       (attr "Value" "" (pt 0.0 210.0) (rotation 90.0) (isVisible True) (textStyleRef "tiny") )
       (attr "RefDes" "" (pt 0.0 190.0) (rotation 90.0) (isVisible True) (justify LowerRight) (textStyleRef "tiny") )
-    )
-    (wire (line (pt 7500.0 7350.0) (pt 7500.0 6950.0) (width 10.0) (netNameRef "GND") )
     )
     (wire (line (pt 10200.0 1050.0) (pt 10200.0 1950.0) (width 10.0) (netNameRef "GND") )
     )
@@ -9965,14 +9965,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   )
   (schematicPrintSettings 
     (sheetList 
-      (sheetRef 1)
-      (sheetRef 2)
+      (sheetRef 4)
     )
   )
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 5))
+      (currentLayer (layerNumRef 4))
     )
     (gridState 
       (currentAbsGrid "50.0mil")
