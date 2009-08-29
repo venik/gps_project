@@ -2,63 +2,76 @@
 #include <stdio.h>
 #include <math.h>
 #include "ca_generate.h"
-#define N 10
+#define Num 10
 #define M 37
 
 int main()
 {
- int i,j,k,NumSat,Length;
- int G1[]={0,0,0,0,0,0,0,0,0,0};
- int G2[]={0,0,0,0,0,0,0,0,0,0}; 
- int k1[] = {2, 3, 4, 5, 1,  2, 1, 2,  3, 2, 3, 5, 6, 7, 8,  9, 1, 2, 3, 4, 5, 6, 1, 4, 5, 6, 7,  8, 1, 2, 3, 4,  5,  4, 1, 2, 4 } ;
- int k2[] = {6, 7, 8, 9, 9, 10, 8, 9, 10, 3, 4, 6, 7, 8, 9, 10, 4, 5, 6, 7, 8, 9, 3, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 10, 7, 8, 10 } ;
- k=0;
- double x_re[]={0,0,0,0,0};
- double x_im[]={0,0,0,0,0};
+ int i,j,Step,NumSat,Length,G1[Num],G2[Num]; 
+ int  k1[] = {2, 3, 4, 5, 1, 2, 1, 2, 3, 2, 3, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 1, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 4, 1, 2, 4};
+ int k2[] = {6, 7, 8, 9, 9, 10, 8, 9, 10, 3, 4, 6, 7, 8, 9, 10, 4, 5, 6, 7, 8, 9, 3, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 10, 7, 8, 10};
+
+Step=0;
   printf("Input number satellite ");
   scanf("%d",&NumSat);
   
   printf("Input length string ");
   scanf("%d",&Length);
+
+ double x_re[Length], x_im[Length];
  int ResBit[Length];
-init(G1,G2);
-  for (k=0;k<Length;k++)
+
+ Init(G1,G2,x_re,x_im,Length);
+  for (Step=0;Step<Length;Step++)
 {
-ResultBit(G1,G2,ResBit,k,NumSat,k1,k2);
+ResultBit(G1,G2,ResBit,Step,NumSat,k1,k2);
 RotateG1(G1);
 RotateG2(G2);
-Sig_Gen(x_re,x_im);
+Sig_Gen(x_re,x_im,Step);
 }
- for(i=0;i<N;i++)
+ Output(G1,G2,ResBit,x_re,x_im,Length);
+}
+
+void Output(int G1[n], int G2[n], int ResBit[n], double x_re[n], double x_im[n], int Length)
+{
+int i,j; 
+ for(i=0;i<Num;i++)
  {
   printf("G1[%d]=%d \n",i+1, G1[i]);
  }
 
-for (i=0;i<N;i++)
-{ printf("G2[%d]=%d \n",i+1, G2[i]);
-}
+ for (i=0;i<Num;i++)
+ { 
+  printf("G2[%d]=%d \n",i+1, G2[i]);
+ }
 
  for(j=0;j<Length;j++)
  {
- printf("ResBit[%d]=%d \n", j+1, ResBit[j]);
+  printf("ResBit[%d]=%d \n", j+1, ResBit[j]);
  }
 
-for(i=0;i<5;i++)
-{
-printf("x_re[%d]=%f \n", i+1, x_re[i]);
-printf("x_im[%d]=%f \n", i+1, x_im[i]);
+ for(i=0;i<Length;i++)
+ {
+  printf("x_re[%d]=%f \n", i+1, x_re[i]);
+  printf("x_im[%d]=%f \n", i+1, x_im[i]);
+ }
 }
-}
-
-void init(int G1[n], int G2[n])
+ 
+void Init(int G1[n], int G2[n], double x_re[n], double x_im[n], int Length)
 {
  int i;
-  for(i=0;i<N;i++)
+  for(i=0;i<Num;i++)
   {
    G1[i]=1;
    G2[i]=1;
   } 
+  for(i=0;i<Length;i++)
+  {
+   x_re[i]=0;
+   x_im[i]=0;
+  }
 }
+
 
 
 void RotateG1(int G1[n])
@@ -92,10 +105,10 @@ void ResultBit(int G1[n], int G2[n], int ResBit[], int k, int NumSat, int k1[], 
  ResBit[k]=(G1[9]+G2[out1-1]+G2[out2-1])%2;
 }
 
-void Sig_Gen(double x_re[5], double x_im[5])
+void Sig_Gen(double x_re[n], double x_im[n], int Step)
 {
 int i;
-for (i=0;i<5;i++)
+for (i=0;i<Step;i++)
  {
   x_re[i]=sin(2*3.141*4.092/16.368*i);
   x_im[i]=cos(2*3.141*4.092/16.368*i);
