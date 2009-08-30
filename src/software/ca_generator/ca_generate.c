@@ -7,7 +7,7 @@
 
 int main()
 {
- int i,j,Step,NumSat,Length,G1[Num],G2[Num]; 
+ int i,j,Step,NumSat,SLength,Length,G1[Num],G2[Num]; 
  int  k1[] = {2, 3, 4, 5, 1, 2, 1, 2, 3, 2, 3, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 1, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 4, 1, 2, 4};
  int k2[] = {6, 7, 8, 9, 9, 10, 8, 9, 10, 3, 4, 6, 7, 8, 9, 10, 4, 5, 6, 7, 8, 9, 3, 6, 7, 8, 9, 10, 6, 7, 8, 9, 10, 10, 7, 8, 10};
 
@@ -18,18 +18,25 @@ Step=0;
   printf("Input length string ");
   scanf("%d",&Length);
 
+SLength=Length/16;
+
  double x_re[Length], x_im[Length];
  int ResBit[Length];
-
+ 
  Init(G1,G2,x_re,x_im,Length);
-  for (Step=0;Step<Length;Step++)
-{
-ResultBit(G1,G2,ResBit,Step,NumSat,k1,k2);
-RotateG1(G1);
-RotateG2(G2);
-Sig_Gen(x_re,x_im,Step);
-}
+ CAGen(G1,G2,ResBit,Step,NumSat,k1,k2,Length);
+Sig_Gen(x_re,x_im,Length);
  Output(G1,G2,ResBit,x_re,x_im,Length);
+}
+
+void CAGen (int G1[n], int G2[n], int ResBit[n], int Step, int NumSat, int k1[n], int k2[n], int Length)
+{
+ for (Step=0;Step<Length;Step++)
+ {
+  ResultBit(G1,G2,ResBit,Step,NumSat,k1,k2);
+  RotateG1(G1);
+  RotateG2(G2);
+ }
 }
 
 void Output(int G1[n], int G2[n], int ResBit[n], double x_re[n], double x_im[n], int Length)
