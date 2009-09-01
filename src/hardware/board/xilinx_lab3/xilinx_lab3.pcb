@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 8 26 20 58 22)
+  (timeStamp 2009 9 1 21 55 0)
   (program "P-CAD 2002 PCB" "17.00.50")
   (copyright "Copyright © 1991-2002 Altium Limited")
   (fileAuthor "")
@@ -4555,13 +4555,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
     (originalName "C_TANTAL")
     (compValue "33")
   )
-  (compInst "DB1"
-    (compRef "DB25PLATE_1")
-    (originalName "DB25PLATE")
-  )
   (compInst "C23"
     (compRef "C0805_1")
     (originalName "C0805")
+  )
+  (compInst "DB1"
+    (compRef "DB25PLATE_1")
+    (originalName "DB25PLATE")
   )
   (compInst "C22"
     (compRef "C0805_1")
@@ -4732,14 +4732,14 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
     (originalName "R1206")
     (compValue "1")
   )
-  (compInst "BTN7"
-    (compRef "STDX-610-N_1")
-    (originalName "STDX-610-N")
-  )
   (compInst "R93"
     (compRef "R0603_1")
     (originalName "R0603")
     (compValue "100k")
+  )
+  (compInst "BTN7"
+    (compRef "STDX-610-N_1")
+    (originalName "STDX-610-N")
   )
   (compInst "R92"
     (compRef "R1206_1")
@@ -5055,42 +5055,42 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
     (compRef "LMV7239_1")
     (originalName "LMV7239")
   )
-  (compInst "J3"
-    (compRef "SMA_J_1")
-    (originalName "SMA_J")
-  )
   (compInst "U32"
     (compRef "WIRE_PAD_1")
     (originalName "WIRE_PAD")
     (compValue "VCC_D")
+  )
+  (compInst "J3"
+    (compRef "SMA_J_1")
+    (originalName "SMA_J")
   )
   (compInst "U33"
     (compRef "WIRE_PAD_1")
     (originalName "WIRE_PAD")
     (compValue "VCC_D")
   )
-  (compInst "J1"
-    (compRef "DS210_1")
-    (originalName "DS210")
-  )
   (compInst "U30"
     (compRef "WIRE_PAD_1")
     (originalName "WIRE_PAD")
     (compValue "VCC_A")
+  )
+  (compInst "J1"
+    (compRef "DS210_1")
+    (originalName "DS210")
   )
   (compInst "U31"
     (compRef "WIRE_PAD_1")
     (originalName "WIRE_PAD")
     (compValue "VCC_A")
   )
-  (compInst "J4"
-    (compRef "SMA_J_1")
-    (originalName "SMA_J")
-  )
   (compInst "R2"
     (compRef "R0603_1")
     (originalName "R0603")
     (compValue "300")
+  )
+  (compInst "J4"
+    (compRef "SMA_J_1")
+    (originalName "SMA_J")
   )
   (compInst "R3"
     (compRef "R1206_1")
@@ -6333,11 +6333,11 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
   (pcbDesignHeader 
     (workspaceSize 512.0 512.0)
     (gridDfns (relOrigin (pt 0.1 0.0) )
-      (grid "0.635mm")
-      (grid "0.01mm")
-      (grid "0.25mm")
-      (grid "0.5mm")
       (grid "1.27mm")
+      (grid "0.5mm")
+      (grid "0.25mm")
+      (grid "0.01mm")
+      (grid "0.635mm")
       (grid "2.54mm")
     )
     (designInfo 
@@ -7579,9 +7579,9 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.pcb"
     (pattern (patternRef "WIRE_PAD_1") (refDesRef "U39") (pt 151.35 304.25) (patternGraphicsNameRef "Primary")
       (patternGraphicsRef 
         (patternGraphicsNameRef "Primary")
-        (attr "Value" "VCC_D" (textStyleRef "rezonit15") )
         (attr "RefDes" "U39" (pt 0.0 -1.905) (justify Center) (textStyleRef "tiny12 [4]") )
         (attr "Type" "WIRE_PAD" (textStyleRef "rezonit15") )
+        (attr "Value" "VCC_D" (textStyleRef "rezonit15") )
       )
     )
     (pattern (patternRef "PLS_1") (refDesRef "1") (pt 135.4 331.5) (rotation 90.0) (patternGraphicsNameRef "Primary")
