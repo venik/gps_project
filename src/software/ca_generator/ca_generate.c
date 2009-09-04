@@ -20,12 +20,12 @@ Step=0;
 
 SLength=Length/16;
 
- double x_re[Length], x_im[Length];
+ double x_re[Length][M], x_im[Length][M];
  int ResBit[Length];
  
  Init(G1,G2,x_re,x_im,Length);
  CAGen(G1,G2,ResBit,Step,NumSat,k1,k2,Length);
-Sig_Gen(x_re,x_im,Length);
+ Sig_Gen(x_re,x_im,Length,NumSat);
  Output(G1,G2,ResBit,x_re,x_im,Length);
 }
 
@@ -39,7 +39,7 @@ void CAGen (int G1[n], int G2[n], int ResBit[n], int Step, int NumSat, int k1[n]
  }
 }
 
-void Output(int G1[n], int G2[n], int ResBit[n], double x_re[n], double x_im[n], int Length)
+void Output(int G1[n], int G2[n], int ResBit[n], double x_re[n][n], double x_im[n][n], int Length)
 {
 int i,j; 
  for(i=0;i<Num;i++)
@@ -57,16 +57,19 @@ int i,j;
   printf("ResBit[%d]=%d \n", j+1, ResBit[j]);
  }
 
- for(i=0;i<Length;i++)
+ for(j=0;j<M;j++)
  {
-  printf("x_re[%d]=%f \n", i+1, x_re[i]);
-  printf("x_im[%d]=%f \n", i+1, x_im[i]);
+  for(i=0;i<Length;i++)
+  {
+  printf("x_re[%d][%d]=%f \n", i+1,j+1, x_re[i][j]);
+  printf("x_im[%d][%d]=%f \n", i+1,j+1, x_im[i][j]);
+  }
  }
 }
  
-void Init(int G1[n], int G2[n], double x_re[n], double x_im[n], int Length)
+void Init(int G1[n], int G2[n], double x_re[n][n], double x_im[n][n], int Length)
 {
- int i;
+ int i,j;
   for(i=0;i<Num;i++)
   {
    G1[i]=1;
@@ -74,8 +77,11 @@ void Init(int G1[n], int G2[n], double x_re[n], double x_im[n], int Length)
   } 
   for(i=0;i<Length;i++)
   {
-   x_re[i]=0;
-   x_im[i]=0;
+   for(j=0;j<M;j++)
+   {
+    x_re[i][j]=1;
+    x_im[i][j]=1;
+   }
   }
 }
 
@@ -112,12 +118,12 @@ void ResultBit(int G1[n], int G2[n], int ResBit[], int k, int NumSat, int k1[], 
  ResBit[k]=(G1[9]+G2[out1-1]+G2[out2-1])%2;
 }
 
-void Sig_Gen(double x_re[n], double x_im[n], int Step)
+void Sig_Gen(double x_re[n][n], double x_im[n][n], int Step, int NumSat)
 {
 int i;
 for (i=0;i<Step;i++)
  {
-  x_re[i]=sin(2*3.141*4.092/16.368*i);
-  x_im[i]=cos(2*3.141*4.092/16.368*i);
+  x_re[i][NumSat-1]=sin(2*3.141*4.092/16.368*i);
+  x_im[i][NumSat-1]=cos(2*3.141*4.092/16.368*i);
  }
 }
