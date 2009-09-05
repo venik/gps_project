@@ -62,9 +62,12 @@ for k=1:Length;
 end;
 endfunction
 
-function [x,castr]=sig_gen(NumSat,nSample,x,ShiftSat)
+function [x_re,x_im,castr]=sig_gen(NumSat,nSample,x_re,x_im,ShiftSat)
 
-for i=1:nSample;x(i+ShiftSat,NumSat)=sin(2*3.141*4.092/16.368*i); end;
+for i=1:nSample;
+  x_re(i+ShiftSat,NumSat)=sin(2*3.141*4.092/16.368*i);
+  x_im(i+ShiftSat,NumSat)=cos(2*3.141*4.092/16.368*i);
+  end;
     cel=nSample/16;
     celint=uint32(cel);
 castr=cagen(NumSat,celint);
@@ -73,7 +76,8 @@ for i=0:celint-1;
   castr(i+1)=castr(i+1)*2-1;
    for j=0:15;
     xnum=i*16+j+1;
-    x(xnum,NumSat)=x(xnum,NumSat)*castr(i+1);
+    x_re(xnum,NumSat)=x_re(xnum,NumSat)*castr(i+1);
+    x_im(xnum,NumSat)=x_im(xnum,NumSat)*castr(i+1);
     end;  
 end;  
 endfunction  
@@ -84,23 +88,25 @@ i=1;
 length_str=x_dialog('Enter a length string or 0 for exit',["32"]);
 length_str=evstr(length_str);
  if length_str~=0 then
-  x=ones(length_str,37);
+  x_re=ones(length_str,37);
+  x_im=ones(length_str,37);
    while z~=0;
     z=x_dialog('Enter a number satellite or 0 for exit',["17"]);
     z=evstr(z);
      if z~=0 then
    shift=x_dialog('Enter shift of a signal for the set satellite',["0"]);
     shift=evstr(shift);  
-     [x,castr]=sig_gen(z,length_str,x,shift);
+     [x_re,x_im,castr]=sig_gen(z,length_str,x_re,x_im,shift);
      mem(1,i)=z; mem(2,i)=shift; i=i+1;
      end;
    end;
 end;
-output_str=prod(x,"c")
+output_str_re=prod(x_re,"c")
+output_str_im=prod(x_im,"c")
 mem
 q=0:length(output_str)-1;
 for i=1:length(output_str);
-cmplx(i)=q(i)+output_str(i)*%i;
+cmplx(i)=output_str_re(i)+output_str_im(i)*%i;
 end;
 cmplx
 //save('test.dat',output_str,mem,length_str);
