@@ -65,7 +65,7 @@ begin
 --  OE <= '1' ;
 --  address <= ( others => '1' );
 
-  -- state & data registers
+-- state & data registers
 process(clk, reset)
   begin
     if( reset = '0') then
@@ -155,10 +155,15 @@ process(state_next)
     tri_buf <= '1';
     we_buf <= '1';
     oe_buf <= '1';
-	s1_buf <= '1';
+	 s1_buf <= '1';
  
     case state_next is
       when idle => NULL ;
+--		when idle =>
+--			tri_buf <= '1';
+--			we_buf <= '1';
+--			oe_buf <= '1';
+--			s1_buf <= '1';
 	  
       when wr1 =>
         we_buf <= '0';
