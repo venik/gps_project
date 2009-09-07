@@ -88,8 +88,8 @@ i=1;
 length_str=x_dialog('Enter a length string or 0 for exit',["32"]);
 length_str=evstr(length_str);
  if length_str~=0 then
-  x_re=ones(length_str,37);
-  x_im=ones(length_str,37);
+  x_re=zeros(length_str,37);
+  x_im=zeros(length_str,37);
    while z~=0;
     z=x_dialog('Enter a number satellite or 0 for exit',["17"]);
     z=evstr(z);
@@ -101,11 +101,11 @@ length_str=evstr(length_str);
      end;
    end;
 end;
-output_str_re=prod(x_re,"c")
-output_str_im=prod(x_im,"c")
+output_str_re=sum(x_re,"c")
+output_str_im=sum(x_im,"c")
 mem
-q=0:length(output_str)-1;
-for i=1:length(output_str);
+q=0:length(output_str_re)-1;
+for i=1:length(output_str_re);
 cmplx(i)=output_str_re(i)+output_str_im(i)*%i;
 end;
 cmplx
