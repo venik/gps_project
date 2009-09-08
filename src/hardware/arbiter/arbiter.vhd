@@ -46,24 +46,19 @@ architecture Behavioral of arbiter is
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
-	type arbiter_type is(idle, write_sram, read_sram, send_comm) ;
+	type arbiter_type is(idle, parse_comm, send_comm) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	
 	signal soft_reset: std_logic := '0' ;
 	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
-	
-	-- mem test staff
-	signal data_mem: std_logic_vector (7 downto 0) := ( others => '0') ; 
-	signal test_mem_result: std_logic_vector (1 downto 0) := ( others => '0' );
-	
+		
 begin
 
 rs232main_unit: entity work.rs232main(arch)
 	port map( clk => clk,
-				 u10 => u10,
+				 --u10 => u10,
 				 soft_reset => soft_reset,
-				 --dout => dout,
 				 comm => comm,
 				 din => din,
 			    rs232_in => rs232_in,
@@ -91,10 +86,23 @@ begin
 	if rising_edge(clk) then
 		case  arbiter_state is
 
---		-- idle	
+--		-- idle - waiting for incomming command
 		when idle =>
-			if( rx_done_tick = '1' ) then
-				
+			if( rx_done_tick = '1' ) then				
+				arbiter_next_state <=  parse_comm ;
+			else 
+				u10 <= X"24" ;				-- 2		   
+			end if ;
+			
+			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
+			tx_start <= '0';
+			mem <= '0' ;
+			mode <= (others => '0');
+			test_mem <= '0';
+		
+		-- parse the incomming command and do something
+		when parse_comm =>
+		
 				case comm(7 downto 0) is
 --				when "00000001" => NULL ;
 					-- set register
@@ -103,76 +111,55 @@ begin
 					
 				when "00000010" =>
 					-- memory test
-					mode <= "01" ;
+					
+					u10 <= X"40" ;				-- 0
 
 					if( test_result = "11" ) then
 						-- =) error occur
 						arbiter_next_state <=  send_comm ;
 						din <= not(comm(7 downto 0)) ;
 						test_mem <= '0' ;
+						mode <= "00" ;
 					elsif(test_result = "10") then
 						-- =) memory is good
 						arbiter_next_state <=  send_comm ;
 						din <= comm(7 downto 0) ;
 						test_mem <= '0' ;
+						mode <= "00" ;
+					elsif( test_result = "01") then 
+						test_mem <= '0' ;
+						mode <= "01" ;
 					else 
 						-- need start the memeory test
 						test_mem <= '1' ;
+						-- test drive SRAM signals
+						mode <= "01" ;
 					end if;
 					
 				when "10101010" =>
 					-- rs232 echo-test
+					u10 <= X"03" ;				-- 1
 					arbiter_next_state <=  send_comm ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
 					mode <= "00" ;
 					test_mem <= '0' ;
-					--comm(63 downto 8) <= (others => '0') ;
---						
---					when "00000100" =>
---						-- start gps	
---						arbiter_next_state <= idle ;
---						
+
 				when others =>
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
+					-- on unknown command - send 0xFF
 					din <= ( others => '1' ) ;
 					mem <= '0' ;
 					mode <= "00" ;
-					test_mem <= '1' ;
 					
 				end case;
-				   
-		end if ;
-			
-		-- disable rs232 tx and sram
-		tx_start <= '0';
-
-----		-- write_sram
-		when write_sram => NULL ;
---			addr <= ( others => '0' ) ;
---			mem <= '1' ;	
---			rw <= '1' ;
---			
---			if ready = '1' then
---				arbiter_next_state <=  read_sram;
---			end if;
---
-----		-- write_sram
-		when read_sram => NULL ;
---			addr <= ( others => '0' ) ;
---			mem <= '1' ;	
---			rw <= '0' ;
---			
---			if ready = '1' then
---				arbiter_next_state <=  send_comm ;
---				din <= data_s2f_ur ;
---			end if;
-			
---		-- send_comm			
+				
+	-- send_comm			
 	when send_comm =>
 			-- disable memory test block
 			test_mem <= '0' ;
+			mem <= '0' ;
 			
 			-- activate the rs232 interface for transfer
 			tx_start <= '1';

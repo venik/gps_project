@@ -40,15 +40,15 @@ architecture Behavioral of top_level is
     			
 			-- arbiter
 			signal	a_mem: std_logic := '0';
-			signal	a_rw: std_logic ;
-			signal	a_addr: std_logic_vector(17 downto 0) ;
-			signal 	a_data_f2s: std_logic_vector(7 downto 0) ;
+			signal	a_rw: std_logic := '0';
+			signal	a_addr: std_logic_vector(17 downto 0) := (others => '0') ;
+			signal 	a_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
 
 			-- test_mem
 			signal	t_mem: std_logic := '0';
-			signal	t_rw: std_logic ;
-			signal	t_addr: std_logic_vector(17 downto 0) ;
-			signal 	t_data_f2s: std_logic_vector(7 downto 0) ;
+			signal	t_rw: std_logic := '0';
+			signal	t_addr: std_logic_vector(17 downto 0) := (others => '0');
+			signal 	t_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
 			
 			-- interprocess communication
 			signal mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
@@ -118,15 +118,15 @@ begin
 	when "00" => NULL ;
 		-- arbiter drive SRAM bus
 		addr 		<= a_addr ;
-		rw 		<= a_rw ;
-		data_f2s <= a_data_f2s ;
+		rw 			<= a_rw ;
+		data_f2s 	<= a_data_f2s ;
 		mem 		<= a_mem ;
 		
 	when "01" => 
 		-- test_mem drive SRAM bus
 		addr 		<= t_addr ;
-		rw 		<= t_rw ;
-		data_f2s <= t_data_f2s ;
+		rw 			<= t_rw ;
+		data_f2s 	<= t_data_f2s ;
 		mem 		<= t_mem ;
 		
 	when "10" => NULL ;

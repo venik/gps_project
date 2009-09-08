@@ -26,7 +26,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity rs232tx is
     	Port (	clk : in STD_LOGIC ;
-		u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		soft_reset : in STD_LOGIC ;
 		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
 		rs232_out : out std_logic ;
@@ -79,7 +79,7 @@ begin
 				end if;
 
 				rs232_out <= '1';
-				u10 <= X"40" ;				-- 0
+				--u10 <= X"40" ;				-- 0
 
 			-- start bit
 			when start =>
@@ -89,7 +89,7 @@ begin
 				rs232_next_state <= data;
 				rs232_counter <= 0;
 				
-				u10 <= X"03" ;				-- 1
+				--u10 <= X"03" ;				-- 1
 
 			-- data bit
 			when data =>
@@ -105,7 +105,7 @@ begin
 					--rs232_out <= '0' ;
 															
 					rs232_counter <= rs232_counter + 1 ;
-					u10 <= X"24" ;				-- 2
+					--u10 <= X"24" ;				-- 2
 				
 			-- stop
 			when stop =>
@@ -113,10 +113,10 @@ begin
 					rs232_next_state <= idle ;
 					tx_done_tick <= '1' ;
 
-					u10 <= X"30";				-- 3
+					--u10 <= X"30";				-- 3
 					
 			when others =>
-					u10 <= X"19" ;				-- 4 
+					--u10 <= X"19" ;				-- 4 
 					
 			end case;
 			

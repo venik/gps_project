@@ -13,7 +13,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity rs232main is
     	Port (	clk : in STD_LOGIC ;
-					u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+					--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 					soft_reset : in STD_LOGIC ; -- FIXME ucf-file
 					--dout : out std_logic_vector (7 downto 0) ; 
 					comm: out std_logic_vector (63 downto 0) ;
@@ -58,8 +58,8 @@ rs232tx_unit: entity work.rs232tx(arch)
 			   rs232_out => rs232_out,
 				tx_start => tx_start,
 				tx_done_tick => tx_done_tick,
-				rs232_clk => rs232_clk,
-				u10 => u10
+				--u10 => u10,
+				rs232_clk => rs232_clk
 			);	
 	
 end arch;

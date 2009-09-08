@@ -45,62 +45,65 @@ architecture Behavioral of test_sram is
 	
 begin
 
-process(memtester_state_next, clk)
+process(clk)
 begin								 
 	
-  	--if( rising_edge(clk) ) then 
+  	if( rising_edge(clk) ) then 
 		memtester_state <= memtester_state_next ;
-	--end if ;
+	end if ;
 	
 end process;
 
-process(memtester_state, ready, clk, reset)
-begin 
-if( rising_edge(clk) ) then 
+process(memtester_state, ready, test_mem, clk)
+begin
+if rising_edge(clk) then		
+	
 		case memtester_state is
 		
 		when idle =>
-			test_result <= "00" ;
+			--if rising_edge(clk) then
 			if( test_mem = '1' ) then
 				memtester_state_next <= write_t_mem ;
 				addr(17 downto 0) <= ( others => '0' );
+				mem <= '1';
+				rw <= '1' ;		  
+				test_result <= "01" ;
+			else 
+				mem <= '0' ;
+				test_result <= "00" ;
 			end if;
+			--end if;
 			
---		if( rising_edge(clk) ) then 
---			
---				if( reset = '1' ) then
---					memtester_state_next <= idle ;
---				elsif( test_mem = '1' ) then
---					memtester_state_next <= write_t_mem ;
---				else
---					memtester_state_next <= idle ;
---				end if;		  
---				
---				--test_result <= "00" ;
---				
---			end if;
+		when write_t_mem =>  
+			if( ready = '1') then 	
+				   --if rising_edge(clk) then		
 		
-		when write_t_mem => 
-		   	if( ready = '1') then
-				if( data_mem < 256 ) then
-					-- write into the memory test pattern
-					addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
-					data_f2s <= data_mem(7 downto 0) ;
-					rw <= '1' ;
-					mem <= '1' ;
-					data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;				
-				else   
-					-- switch the mode
-					data_mem(8 downto 0) <= "000000001";
-					memtester_state_next <= read_t_mem ;
-					
-					-- request for read the first byte from memory
-					rw <= '1' ;
-					mem <= '1' ;
-					addr(17 downto 0) <= "000000000000000001" ;	
-				end if; -- if( data_mem < 256 ) 		
-			end if;	  -- if( ready = '1')
-				
+				   if( data_mem(8) = '1' ) then
+	--					-- switch the mode
+	--					memtester_state_next <= read_t_mem ;
+	--					-- request for read the first byte from memory
+	--					rw <= '0' ;
+	--					mem <= '1' ;
+	--					addr(17 downto 0) <= "000000000000000001" ;	
+	
+					   	data_mem(8 downto 0) <= "000000001";
+						memtester_state_next <= idle ;
+						test_result <= "10" ;
+						mem <= '0' ;
+
+						
+					else
+						-- write into the memory test pattern
+						addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
+						data_f2s <= data_mem(7 downto 0) ;
+						rw <= '1' ;
+						mem <= '1' ;
+						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;				
+					end if; -- if( data_mem < 256 ) 
+						
+				end if;
+			--end if;
+			
 		when read_t_mem =>
 		   	if( ready = '1') then
 				if( data_mem < 256 ) then
@@ -120,18 +123,18 @@ if( rising_edge(clk) ) then
 						-- error occur
 						memtester_state_next <= idle ;
 						test_result <= "11" ;
+						mem <= '0' ;
 					end if ;
 				else
 					data_mem(8 downto 0) <= "000000001";
 					memtester_state_next <= idle ;
 					test_result <= "10" ;
+					mem <= '0' ;
 				end if; -- if( data_mem < 256 )
 			end if;	  -- if( ready = '1')
 			
 		end case; -- case memtester_state 
-
-end if ;
-		
+end if;		
 end process;
 
 end Behavioral;

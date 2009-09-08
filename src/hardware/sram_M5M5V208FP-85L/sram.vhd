@@ -92,31 +92,35 @@ process(clk, reset)
   end process;
  
   -- next state logic
-process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, addr_reg)
+--process (state_reg, mem, rw, dio_a, addr, data_f2s, data_f2s_reg, data_s2f_reg, addr_reg) 
+process (state_reg, mem, clk)
   begin
     addr_next <= addr_reg;
     data_s2f_next <= data_s2f_reg;
-    ready <= '0';
+ 	ready <= '0';
  
     case state_reg is
-      when idle =>
-        if mem = '0' then
-          state_next <= idle;
-        else
-          addr_next <= addr;
-		  --s1_buf <= '0' ;
- 
-          if rw='1' then    -- write
-            state_next <= wr1;
-            data_f2s_next <= data_f2s;
- 
-          else       --read
-            state_next <= rd1;
-          end if;
- 
-        end if;
-		  
-		ready <= '1';
+      when idle => 
+
+	        if mem = '0' then
+	          state_next <= idle;
+			  
+	        else
+
+	          addr_next <= addr;
+			  --s1_buf <= '0' ;
+	 
+	          if rw='1' then    -- write
+	            state_next <= wr1;
+	            data_f2s_next <= data_f2s;
+	 
+	          else       --read
+	            state_next <= rd1;
+	          end if;
+
+	        end if;
+			
+			ready <= '1';
 		
       -- 5 cycles - write cycle
       -- setup address and we/oe 40ns > 30 ns
@@ -155,7 +159,7 @@ process(state_next)
     tri_buf <= '1';
     we_buf <= '1';
     oe_buf <= '1';
-	 s1_buf <= '1';
+	s1_buf <= '1';
  
     case state_next is
       when idle => NULL ;
@@ -188,6 +192,7 @@ process(state_next)
       when wr5 =>
 	  	tri_buf <= '0';
 	  	s1_buf <= '0' ;
+		we_buf <= '0';
       
       -- read cycle
       when rd1 =>
