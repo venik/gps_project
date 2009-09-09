@@ -36,12 +36,12 @@ end test_sram;
 
 architecture Behavioral of test_sram is
 		
-	type 	 memtester_type is(idle, write_t_mem, read_t_mem) ;
+	type 	 memtester_type is(idle, write_t_mem, middle_t_mem, read_t_mem) ;
 	signal memtester_state: memtester_type := idle ;
 	signal memtester_state_next: memtester_type := idle ;
 
 	signal data_mem: std_logic_vector (8 downto 0) := "000000001" ; 
-	--signal data_store: std_logic_vector (7 downto 0) := (others => '0') ; 
+	signal data_mem_prev: std_logic_vector (8 downto 0) := "000000001" ; 
 	
 begin
 
@@ -76,60 +76,66 @@ if rising_edge(clk) then
 			
 		when write_t_mem =>  
 			if( ready = '1') then 	
-				   --if rising_edge(clk) then		
 		
-				   if( data_mem(8) = '1' ) then
-	--					-- switch the mode
-	--					memtester_state_next <= read_t_mem ;
-	--					-- request for read the first byte from memory
-	--					rw <= '0' ;
-	--					mem <= '1' ;
-	--					addr(17 downto 0) <= "000000000000000001" ;	
-	
-					   	data_mem(8 downto 0) <= "000000001";
-						memtester_state_next <= idle ;
-						test_result <= "10" ;
-						mem <= '0' ;
+			   if( data_mem(8) = '1' ) then	
+				   	-- next state
+					data_mem(8 downto 0) <= "000000001" ;
+					addr(17 downto 0) <= (others => '0') ;
+					memtester_state_next <= middle_t_mem ;
+					--test_result <= "10" ;
+					mem <= '1' ;
+					rw <= '0' ;
+			
+				else
+					-- write into the memory test pattern
+					addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
+					data_f2s <= data_mem(7 downto 0) ;
+					rw <= '1' ;
+					mem <= '1' ;
+					data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;				
+				end if; -- if( data_mem < 256 ) 
+				
+			end if;
 
-						
-					else
-						-- write into the memory test pattern
-						addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
-						data_f2s <= data_mem(7 downto 0) ;
-						rw <= '1' ;
-						mem <= '1' ;
-						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;				
-					end if; -- if( data_mem < 256 ) 
-						
-				end if;
-			--end if;
+		
+		when middle_t_mem =>
+			if( ready = '1') then 
+				mem <= '1' ;
+				rw <= '0' ;
+				addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
+				memtester_state_next <= read_t_mem ;
+				--data_mem_prev <= data_mem ;
+				--data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
+			end if;
 			
 		when read_t_mem =>
-		   	if( ready = '1') then
-				if( data_mem < 256 ) then
-					-- read from the memory test pattern
-	
-					--data_store <= data_s2f_r ;
+			if( ready = '1') then
+			
+				if( data_mem(8) = '1' ) then
+					-- exit
+					data_mem(8 downto 0) <= "000000001";
+					memtester_state_next <= idle ;
+					test_result <= "10" ;
+					mem <= '0' ;
+					addr(17 downto 0) <=  ( others => '0' );
 					
+				else
+					-- read from the memory test pattern
 					-- check data from memeory
-					--if( data_store = data_mem(7 downto 0) ) then
 					if( data_s2f_r = data_mem(7 downto 0) ) then
-						-- all is oK - update values
+						-- all is oK - update values 
+						--data_mem_prev <= data_mem ;
+						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
 						rw <= '0' ;
 						mem <= '1' ;
-						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
-						addr(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
+						addr(17 downto 0) <= b"0" & x"00" & data_mem(7 downto 0) & data_mem(8) ;
 					else
 						-- error occur
 						memtester_state_next <= idle ;
 						test_result <= "11" ;
 						mem <= '0' ;
 					end if ;
-				else
-					data_mem(8 downto 0) <= "000000001";
-					memtester_state_next <= idle ;
-					test_result <= "10" ;
-					mem <= '0' ;
+					
 				end if; -- if( data_mem < 256 )
 			end if;	  -- if( ready = '1')
 			
