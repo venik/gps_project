@@ -46,7 +46,7 @@ architecture Behavioral of arbiter is
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
-	type arbiter_type is(idle, parse_comm, send_comm) ;
+	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	
@@ -97,7 +97,9 @@ begin
 			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
 			tx_start <= '0';
 			mem <= '0' ;
-			mode <= (others => '0');
+			rw <= '0' ;
+			addr(17 downto 0) <=  ( others => '0' );
+			mode <= "00";
 			test_mem <= '0';
 		
 		-- parse the incomming command and do something
@@ -120,12 +122,14 @@ begin
 						din <= not(comm(7 downto 0)) ;
 						test_mem <= '0' ;
 						mode <= "00" ;
+						mem <= '0';
 					elsif(test_result = "10") then
 						-- =) memory is good
 						arbiter_next_state <=  send_comm ;
 						din <= comm(7 downto 0) ;
 						test_mem <= '0' ;
 						mode <= "00" ;
+						mem <= '0';
 					elsif( test_result = "01") then 
 						test_mem <= '0' ;
 						mode <= "01" ;
@@ -144,7 +148,29 @@ begin
 					mem <= '0' ;
 					mode <= "00" ;
 					test_mem <= '0' ;
-
+				
+				-- work with memory
+				when "00000100" =>
+				if( ready = '1') then
+					-- write
+					mode <= "00" ;
+					addr <= comm(25 downto 8) ;
+					data_f2s <= comm(33 downto 26) ;
+					mem <= '1' ;
+					rw <= '1' ;	
+					arbiter_next_state <= after_write;
+				end if;
+				
+				when "00001000" =>
+				if( ready = '1') then
+					-- read
+					mode <= "00" ;
+					addr <= comm(25 downto 8) ;
+					mem <= '1' ;
+					rw <= '0' ;
+					arbiter_next_state <= after_read;
+				end if;
+					
 				when others =>
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
@@ -154,7 +180,20 @@ begin
 					mode <= "00" ;
 					
 				end case;
-				
+
+	-- wait for writing data			
+	when after_write =>
+	if( ready = '1') then
+		arbiter_next_state <= idle;
+	end if;
+	
+	-- wait for reading data			
+	when after_read =>
+	if( ready = '1') then
+		din <= data_s2f_r ;
+		arbiter_next_state <= send_comm;
+	end if;
+		
 	-- send_comm			
 	when send_comm =>
 			-- disable memory test block
