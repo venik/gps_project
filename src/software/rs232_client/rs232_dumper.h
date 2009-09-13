@@ -8,7 +8,6 @@
 #define TIMEOUT		3000		// 3 sec
 
 /* commands */
-#define CONNECTION_CMD	"HELLO_GPS_BOARD\r\n"
 #define SET_PORT_CMD	"RS232_PORT:"
 #define TEST_RS232_CMD	"TEST_RS232\r\n"
 #define TEST_SRAM_CMD	"TEST_SRAM\r\n"
@@ -16,6 +15,33 @@
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
 FILE 		*I;
+
+/*****************************************
+ *	Text protocol GUI <=> Dumper
+ *****************************************/
+
+/* initial connection */
+char	stage1_in[][255] = 
+{
+	{"HELLO_GPS_BOARD v0.1\r\n"},
+	{""}
+};
+
+/* setup the work-settings */
+char	stage2_in[][255] = 
+{
+	{"RS232_PORT:"},
+	{""}
+};
+
+/* conversation with GPS-board */
+char	stage3_in[][255] = 
+{
+	{"TEST_RS232\r\n"},
+	{"TEST_SRAM\r\n"},
+	{""}
+};
+
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
@@ -26,13 +52,23 @@ enum rs232_fsm_state {
 	TEST_SRAM	
 };
 
+/********************************************
+ *	Binary protocol Dumper <=> GPS-Board 
+ ********************************************/
 enum rs232_comm_request {
-	RS232_SET_REG		= 1<<0,
-	RS232_TEST_SRAM		= 1<<1,
-	RS232_GPS_START		= 1<<2,
+	/* 0x00 - 0x10 	SRAM-command */
+	RS232_TEST_SRAM		= 0x02,
+	RS232_WRITE_BYTE	= 0x04,
+	RS232_READ_BYTE		= 0x08,
+	/* 0x11 - 0x20 	GPS-command */
+	RS232_SET_REG		= 0x11,
+	/* Other */
 	RS232_TEST_RS232	= 0xAA 
 };
 
+/********************************************
+ *	Work definition 
+ ********************************************/
 typedef struct rs232_data_s {
 
 	char		name[MAXLINE];

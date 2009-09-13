@@ -55,9 +55,11 @@ proc connection_cmd {rbt res} {
 
 		SAY_HELLO {
 			puts "SAY_HELLO"	
-			puts $serverSock "HELLO_GPS_BOARD"
+
+			set comm "HELLO_GPS_BOARD v0.1"
+			puts $serverSock $comm 
 			flush $serverSock
-			tracep "GUI => HELLO_GPS_BOARD"
+			tracep "GUI => $comm"
 
 			set response [gets $serverSock]
 			if { [string match "ACK" $response] == 0 } {
