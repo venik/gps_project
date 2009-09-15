@@ -5,7 +5,6 @@ entity gps_clk is
 		Port (
 			-- system
 			clk : in std_logic ;
-			reset : in std_logic ;
 			-- gps
 			gps_clk: out std_logic
 		);
