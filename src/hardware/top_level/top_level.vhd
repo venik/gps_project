@@ -21,6 +21,14 @@ entity top_level is
 			dio_a: inout std_logic_vector(7 downto 0) ;
 			s1, s2: out std_logic ;
 			WE, OE: out std_logic ;
+			-- gps
+--			q: in std_logic_vector(1 downto 0) ;
+--			i: in std_logic_vector(1 downto 0) ;
+--			ld_gps: in std_logic ;
+			sclk: out std_logic ;
+			sdata: out std_logic ;
+			cs: out std_logic ;
+--			clkout: in std_logic ;
 			-- system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
@@ -59,6 +67,9 @@ begin
 
 arbiter: entity work.arbiter(Behavioral)
 	port map(
+			cs_a => cs,
+			sclk_a => sclk,
+			sdata_a => sdata,
 			rs232_in => rs232_in,
 			rs232_out => rs232_out,
 			addr => a_addr,

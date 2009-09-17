@@ -71,11 +71,12 @@ NET "reset"  LOC = "P66"  ;
 #############################################################
 # GPS
 #############################################################
-NET "q(0)"  LOC = "P18"  ;  
-NET "q(1)"  LOC = "P17"  ; 
-NET "i(0)"  LOC = "P20"  ;
-NET "i(1)"  LOC = "P21"  ; 
-NET "clkout"  LOC = "P16"  ;
-NET "sclk"  LOC = "P9"  ; 
-NET "cs"  LOC = "P10"  ;  
-NET "sdata"  LOC = "P8"  ;  
+NET "cs"  LOC = "P141"  ;  
+NET "sclk"  LOC = "P3"  ; 
+NET "sdata"  LOC = "P4"  ; 
+#NET "ld_gps"  LOC = "P5"  ; 
+#NET "i<0>"  LOC = "P137"  ;
+#NET "i<1>"  LOC = "P134"  ; 
+#NET "q<0>"  LOC = "P138"  ;  
+#NET "q<1>"  LOC = "P139"  ; 
+#NET "clkout"  LOC = "P140"  ;

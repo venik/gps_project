@@ -29,7 +29,12 @@ entity arbiter is
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
 			reset : in std_logic ;
-			mode: out std_logic_vector(1 downto 0) ;			
+			mode: out std_logic_vector(1 downto 0) ;
+
+			-- GPS
+			cs_a : out std_logic ;
+			sclk_a : out std_logic ;
+			sdata_a : out std_logic ;
 			
 			-- signal
 			test_mem: out std_logic ;
@@ -50,6 +55,11 @@ architecture Behavioral of arbiter is
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	
+	-- GPS
+	signal gps_word_a: std_logic_vector (31 downto 0) := (others => '0') ;	
+	signal program_gps_a: std_logic := '0' ;
+	signal gps_programmed_a: std_logic := '0' ;
+	
 	signal soft_reset: std_logic := '0' ;
 	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
 		
@@ -67,6 +77,19 @@ rs232main_unit: entity work.rs232main(arch)
 				 tx_done_tick => tx_done_tick, 
 		       tx_start => tx_start
 			);
+			
+gps_serial_unit: entity work.gps_serial(gps_serial)
+	port map(
+			cs_s => cs_a,
+			sclk_s => sclk_a,
+			sdata_s => sdata_a,
+			gps_word_s => gps_word_a,
+			program_gps_s => program_gps_a,
+			gps_programmed_s => gps_programmed_a,
+			clk => clk,
+			soft_reset => soft_reset
+		) ;
+
 
 process(clk, reset)
 begin
@@ -91,7 +114,9 @@ begin
 			if( rx_done_tick = '1' ) then				
 				arbiter_next_state <=  parse_comm ;
 			else 
-				u10 <= X"24" ;				-- 2		   
+				u10 <= X"24" ;				-- 2
+				arbiter_next_state <=  send_comm ;
+				din <= X"AA" ;
 			end if ;
 			
 			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem

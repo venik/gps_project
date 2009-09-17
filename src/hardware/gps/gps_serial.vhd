@@ -4,16 +4,16 @@ use IEEE.STD_LOGIC_1164.all;
 entity gps_serial is
 			Port (
 			-- gps
-			cs : out std_logic ;
-			sclk : out std_logic ;
-			sdata : out std_logic ;
+			cs_s : out std_logic ;
+			sclk_s : out std_logic ;
+			sdata_s : out std_logic ;
 			-- data
-			gps_word: in std_logic_vector (31 downto 0) ;
-			program_gps: in std_logic ;
-			gps_programmed: out std_logic ;
+			gps_word_s : in std_logic_vector (31 downto 0) ;
+			program_gps_s : in std_logic ;
+			gps_programmed_s : out std_logic ;
 			-- system
 			clk : in std_logic ;
-			reset : in std_logic
+			soft_reset : in std_logic
 		) ;
 end gps_serial;
 
@@ -31,7 +31,7 @@ begin
 gps_clk_uplevel: entity work.gps_clk(gps_clk)
 port map( 
 			clk => clk,
-			gps_clk => sclk,
+			gps_clk => sclk_s,
 			gps_clk_local_middle => gps_clk_serial_middle,
 			gps_clk_local => gps_clk_serial
 		);	
@@ -45,22 +45,22 @@ begin
 	
 end process;		
 
-process(gps_serial_state, gps_clk_serial_middle, program_gps)
+process(gps_serial_state, gps_clk_serial_middle, program_gps_s)
 begin
 if rising_edge(gps_clk_serial_middle) then
 	
 	case  gps_serial_state is
 	when idle =>
-		if program_gps = '1' then
+		if program_gps_s = '1' then
 			gps_serial_state_next <= data;
 			gps_counter <= 32 ;
-			cs <= '0' ;
+			cs_s <= '0' ;
 			gps_cycle <= 0;
 		else 
-			cs <= '1' ;
+			cs_s <= '1' ;
 		end if;
 		
-		gps_programmed <= '0' ;
+		gps_programmed_s <= '0' ;
 		
 	when data => NULL ;
 		if(gps_counter = 0) then
@@ -73,13 +73,13 @@ if rising_edge(gps_clk_serial_middle) then
 				gps_cycle <= gps_cycle + 1;
 			end if;
 			
-			sdata <= gps_word(gps_counter - 1) ;
+			sdata_s <= gps_word_s(gps_counter - 1) ;
 			--sdata <= '1';
 		end if;
 		
 	when data_done =>
 		gps_serial_state_next <= idle ;
-		gps_programmed <= '1';
+		gps_programmed_s <= '1';
 	
 	when others => NULL ;
 	end case ;
