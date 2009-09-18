@@ -51,9 +51,10 @@ architecture Behavioral of arbiter is
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
-	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm) ;
+	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
+	signal gps_activate_counter: integer range 0 to 2 := 0 ;
 	
 	-- GPS
 	signal gps_word_a: std_logic_vector (31 downto 0) := (others => '0') ;	
@@ -115,8 +116,8 @@ begin
 				arbiter_next_state <=  parse_comm ;
 			else 
 				u10 <= X"24" ;				-- 2
-				arbiter_next_state <=  send_comm ;
-				din <= X"AA" ;
+				--arbiter_next_state <=  send_comm ;
+				--din <= X"AA" ;
 			end if ;
 			
 			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
@@ -126,15 +127,22 @@ begin
 			addr(17 downto 0) <=  ( others => '0' );
 			mode <= "00";
 			test_mem <= '0';
+			program_gps_a <= '0' ;
+			gps_activate_counter <= 0 ;
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
 		
 				case comm(7 downto 0) is
---				when "00000001" => NULL ;
-					-- set register
---					arbiter_next_state <= idle ;
---					mode <= "00" ;
+				when "00000001" => 
+				--if( gps_programmed_s = '0') then
+					-- send to the GPS serial
+					mode <= "00" ;
+					gps_word_a <= comm(39 downto 8) ;
+					mem <= '0' ;
+					arbiter_next_state <= waite_for_gps;
+					program_gps_a <= '1' ; 
+				--end if;
 					
 				when "00000010" =>
 					-- memory test
@@ -218,7 +226,22 @@ begin
 		din <= data_s2f_r ;
 		arbiter_next_state <= send_comm;
 	end if;
-		
+	
+	-- waite while all data are write in the GPS
+	when waite_for_gps =>
+	
+	if(gps_activate_counter < 2 ) then
+		gps_activate_counter <= gps_activate_counter + 1 ;
+	else 
+		program_gps_a <= '0' ;
+	end if;
+	
+	if( gps_programmed_a = '1') then
+		arbiter_next_state <= idle; 
+	end if;
+	
+	
+	
 	-- send_comm			
 	when send_comm =>
 			-- disable memory test block

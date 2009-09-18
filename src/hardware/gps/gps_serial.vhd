@@ -62,9 +62,10 @@ if rising_edge(gps_clk_serial_middle) then
 		
 		gps_programmed_s <= '0' ;
 		
-	when data => NULL ;
+	when data =>
 		if(gps_counter = 0) then
-			gps_serial_state_next <= data_done ;
+			gps_serial_state_next <= data_done ; 
+			cs_s <= '1' ;
 		else
 			if(gps_cycle = 1) then
 				gps_counter <= gps_counter - 1 ;
