@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2009 9 15 21 33 30)
+  (timeStamp 2009 9 17 21 58 35)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits Mil)
-  (guidString "{37F44727-C7B4-4BEF-A541-148AD363A714}")
+  (guidString "{BA7DB5B0-9236-4697-891E-22A98FE32245}")
 )
 
 (library "Library_1"
@@ -5398,13 +5398,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (compInst "R1"
     (compRef "R1206_1")
     (originalName "R1206")
-    (compValue "240")
+    (compValue "330")
     (patternName "C0805")
   )
   (compInst "R3"
     (compRef "R1206_1")
     (originalName "R1206")
-    (compValue "100")
+    (compValue "2x300=150")
     (patternName "C0805")
   )
   (compInst "R14"
@@ -7644,8 +7644,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "50.0mil")
       (grid "1.0mil")
+      (grid "50.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -10003,7 +10003,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_lab3\xilinx_lab3.sch"
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 1))
+      (currentLayer (layerNumRef 2))
     )
     (gridState 
       (currentAbsGrid "50.0mil")
