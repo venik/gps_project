@@ -1,6 +1,6 @@
 clc, clear all ;
 
-Fin = 16.384 ;
+Fin = 20 ;
 Fout = 16.368 ;
 err = 1e10 ;
 optLcount = 0 ;
@@ -12,7 +12,7 @@ for Lcount = 1:4095
             optLcount = Lcount ;
             optMcount = Mcount ;
             err = abs(k-Fout/Fin) ;
-            disp(sprintf('L=%5d, M=%5d, err: %f',optLcount,optMcount,err)) ;
+            disp(sprintf('L=0x%05x, M=0x%05x, err: %f',optLcount,optMcount,err)) ;
         end
     end
 end
