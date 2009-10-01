@@ -22,13 +22,14 @@ entity top_level is
 			s1, s2: out std_logic ;
 			WE, OE: out std_logic ;
 			-- gps
---			q: in std_logic_vector(1 downto 0) ;
---			i: in std_logic_vector(1 downto 0) ;
+			q: in std_logic_vector(1 downto 0) ;
+			i: in std_logic_vector(1 downto 0) ;
 --			ld_gps: in std_logic ;
 			sclk: out std_logic ;
 			sdata: out std_logic ;
 			cs: out std_logic ;
---			clkout: in std_logic ;
+			gps_clkout: in std_logic ;
+			gps_clk_out: out std_logic ;
 			-- system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
@@ -62,14 +63,31 @@ architecture Behavioral of top_level is
 			signal mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
 			signal test_mem: std_logic := '0' ;
 			signal test_result: std_logic_vector(1 downto 0) := ( others => '0' ) ;
-
+			
+			-- gps
+			signal	m_mem: std_logic := '0';
+			signal	m_rw: std_logic := '0';
+			signal	m_addr: std_logic_vector(17 downto 0) := (others => '0') ;
+			signal 	m_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
+			signal  gps_start: std_logic := '0' ;
+			signal  gps_done: std_logic := '0' ;
+					
 begin
+
+process(clk)
+begin
+if(rising_edge(clk)) then
+	gps_clk_out <= gps_clkout ;
+end if;
+end process;
 
 arbiter: entity work.arbiter(Behavioral)
 	port map(
 			cs_a => cs,
 			sclk_a => sclk,
 			sdata_a => sdata,
+			gps_start_a => gps_start,
+			gps_done_a => gps_done,
 			rs232_in => rs232_in,
 			rs232_out => rs232_out,
 			addr => a_addr,
@@ -120,13 +138,27 @@ sram_controller: entity work.sram_ctrl(arch)
 			WE => WE,
 			OE => OE
 			);
-
 			
-SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, a_addr, a_rw, a_data_f2s, a_mem, t_mem)
+gps: entity work.gps_main(gps_main)
+	port map (
+			q_m => q,
+			i_m => i,
+			gps_clkout_m => gps_clkout,
+			gps_start_m => gps_start,
+			gps_done_m => gps_done,
+			addr_m => m_addr,
+			data_f2s_m => m_data_f2s,
+			ready_m => ready,
+			rw_m => m_rw,
+			mem_m => m_mem,
+			clk => clk
+		);
+			
+SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, t_mem, a_addr, a_rw, a_data_f2s, m_mem, m_addr, m_rw)
 begin
 
 	case mode is
-	when "00" => NULL ;
+	when "00" => 
 		-- arbiter drive SRAM bus
 		addr 		<= a_addr ;
 		rw 			<= a_rw ;
@@ -140,11 +172,16 @@ begin
 		data_f2s 	<= t_data_f2s ;
 		mem 		<= t_mem ;
 		
-	when "10" => NULL ;
-	when "11" => NULL ;
+	when "10" =>
+		-- gps drive SRAM bus
+		addr 		<= m_addr ;
+		rw 			<= m_rw ;
+		data_f2s 	<= m_data_f2s ;
+		mem 		<= m_mem ;
+		
 	when others => NULL ;
 	end case;
-	
+		
 end process SRAM_MUX;
 
 end Behavioral;

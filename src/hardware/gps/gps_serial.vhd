@@ -58,6 +58,8 @@ if rising_edge(gps_clk_serial_middle) then
 			gps_cycle <= 0;
 		else 
 			cs_s <= '1' ;
+			-- FIXME - strange bug here
+			--sdata_s <= '0' ;
 		end if;
 		
 		gps_programmed_s <= '0' ;

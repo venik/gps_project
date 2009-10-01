@@ -35,6 +35,8 @@ entity arbiter is
 			cs_a : out std_logic ;
 			sclk_a : out std_logic ;
 			sdata_a : out std_logic ;
+			gps_start_a : out std_logic ;
+			gps_done_a : in std_logic ;
 			
 			-- signal
 			test_mem: out std_logic ;
@@ -51,7 +53,7 @@ architecture Behavioral of arbiter is
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
-	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps) ;
+	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_zero_in_rx, waite_for_gps_data) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	signal gps_activate_counter: integer range 0 to 2 := 0 ;
@@ -129,6 +131,7 @@ begin
 			test_mem <= '0';
 			program_gps_a <= '0' ;
 			gps_activate_counter <= 0 ;
+			gps_start_a <= '0' ;
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
@@ -140,10 +143,20 @@ begin
 					mode <= "00" ;
 					gps_word_a <= comm(39 downto 8) ;
 					mem <= '0' ;
-					arbiter_next_state <= waite_for_gps;
-					program_gps_a <= '1' ; 
+					arbiter_next_state <= waite_for_zero_in_rx;
+
 				--end if;
-					
+				
+				when "00000011" => 
+				--if( gps_programmed_s = '0') then
+					-- get gps data
+					mode <= "10" ;
+					arbiter_next_state <= waite_for_gps_data;
+					gps_activate_counter <= 0 ;
+					gps_start_a <= '1' ;
+
+				--end if;
+				
 				when "00000010" =>
 					-- memory test
 					
@@ -227,21 +240,42 @@ begin
 		arbiter_next_state <= send_comm;
 	end if;
 	
-	-- waite while all data are write in the GPS
+	
+		
+-- GPS states
 	when waite_for_gps =>
-	
-	if(gps_activate_counter < 2 ) then
-		gps_activate_counter <= gps_activate_counter + 1 ;
-	else 
-		program_gps_a <= '0' ;
-	end if;
-	
-	if( gps_programmed_a = '1') then
-		arbiter_next_state <= idle; 
-	end if;
-	
-	
-	
+	-- wait for the GPS data
+		if(gps_activate_counter < 2 ) then
+			gps_activate_counter <= gps_activate_counter + 1 ;
+		else 
+			program_gps_a <= '0' ;
+		end if;
+		
+		if( gps_programmed_a = '1') then
+			din <= comm(7 downto 0) ;
+			arbiter_next_state <= send_comm;
+		end if;
+		
+	-- waite while all data are write in the GPS	
+	when waite_for_zero_in_rx =>
+		if( rx_done_tick = '0' ) then
+			program_gps_a <= '1' ; 	
+			arbiter_next_state <= waite_for_gps;
+		end if;
+		
+	when waite_for_gps_data =>
+		if(gps_activate_counter < 2 ) then
+			gps_activate_counter <= gps_activate_counter + 1 ;
+		else 
+			program_gps_a <= '0' ;
+		end if;
+		
+		if( gps_done_a = '1') then
+			din <= comm(7 downto 0) ;
+			arbiter_next_state <= send_comm;
+		end if;
+
+-- RS232 states
 	-- send_comm			
 	when send_comm =>
 			-- disable memory test block
