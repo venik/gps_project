@@ -230,7 +230,8 @@ begin
 	-- wait for writing data			
 	when after_write =>
 	if( ready = '1') then
-		arbiter_next_state <= idle;
+		din <= comm(7 downto 0);
+		arbiter_next_state <= send_comm;
 	end if;
 	
 	-- wait for reading data			
