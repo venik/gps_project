@@ -1,9 +1,11 @@
-TEX = texi2pdf
+TEX = texi2dvi
 
-all:	main.tex
-	${TEX} main.tex
+TEX_FLAGS = --dvipdf
+
+main:	main.tex
+	${TEX} ${TEX_FLAGS} main.tex
 
 main.tex: main.tex title.tex
 
 clean:
-	rm *.log main.aux main.toc main.pdf
+	rm *.log main.aux main.toc main.pdf main.dvi
