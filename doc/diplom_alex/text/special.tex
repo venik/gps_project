@@ -65,29 +65,12 @@ Cвязка :len=value является не обязательным парам
 \subsubsection{Доступные команды}
 в разделе ПО
 
-\subsection{SRAM - статическая память}
-\subsubsection{Специфика hardware}
-Частота работы платы 50Mhz=20ns. Длительность цикла чтения/записи из/в SRAM для чипа M5M5V208FP-85L 85ns\\
+\subsection{Контроллер для SRAM-микросхемы M5M5V208FP-85}
+\label{sec:sram_controller}
+olala
 
-Цикл операции записи в SRAM:
-\begin{tabbing}
-Название цикла\qquad\=Обозначение\qquad\=Время\qquad\=Тактов кварца\qquad\=Реальное время\\
-\\
-выставить адрес \> tsu(A) \> 0ns \> 0 \> 0ns \\
-выставить WE/OE \> tdis(W) \> 30ns \> 2 \> 40ns \\
-выставить данные \> tsu(D) \> 35ns \> 2 \> 40ns \\
-снять WE/OE \> ten(W) \> 5ns \> 1 \> 20ns \\
-\\
-Итого \> \> \> 5  \> 100ns\\
-\end{tabbing}
-
-Цикл операции чтения из SRAM:
-\begin{tabbing}
-Название цикла\qquad\=Обозначение\qquad\=Время\qquad\=Тактов кварца\qquad\=Реальное время\\
-выставить адрес \> ta(A) \> 85ns \> 5 \> 100ns \\
-Итого \> \> \> 5 \> 100ns \\
-\end{tabbing}
-
-\subsubsection{Контроллер SRAM}
+\subsection{Контроллер последовательного интерфейса для GPS микросхемы MAX2769}
+\label{sec:gps_serial}
+olala
 
 \newpage
