@@ -42,7 +42,7 @@ architecture rs232_tx_new of rs232_tx_new is
 	
 	-- tx part
 	signal rs232_tx_counter: integer range 0 to 8 := 0;
-	signal rs232_tx_value: std_logic_vector (7 downto 0) := ( others => '0') ;
+	signal rs232_tx_value: std_logic_vector (8 downto 0) := ( others => '1') ;
 		
 begin
 	
@@ -80,7 +80,7 @@ if rising_edge(clk) then
 			
 			if tx_start = '1' then
 				rs232_tx_next_state <= tx_startbit;
-				rs232_tx_value <= din;
+				rs232_tx_value(7 downto 0) <= din;
 				rst_NewBaudSignal <= '1' ;
 				rs232_tx_counter <= 0;
 			end if;
@@ -98,12 +98,14 @@ if rising_edge(clk) then
 			rs232_out <= rs232_tx_value(rs232_tx_counter);
 			
 			if rs232_tx_tick = '1' then
-			
+				
+				rs232_tx_counter <= rs232_tx_counter + 1;
+				
 				if (rs232_tx_counter + 1) = 8 then
 					rs232_tx_next_state <= tx_stopbit;
 					rs232_out <= '1' ;
 				else
-					rs232_tx_counter <= rs232_tx_counter + 1;
+					
 					rs232_out <= rs232_tx_value(rs232_tx_counter + 1);
 				end if;
 			
@@ -115,7 +117,6 @@ if rising_edge(clk) then
 		
 			if rs232_tx_tick = '1' then
 				rs232_tx_next_state <= tx_idle;
-				rs232_out <= '0' ;
 				tx_done_tick <= '1' ;
 			end if;	   	
 		
