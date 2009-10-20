@@ -13,7 +13,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity rs232main is
     	Port (	clk : in STD_LOGIC ;
-					--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+					u9 : out  STD_LOGIC_VECTOR (7 downto 0) ;
 					soft_reset : in STD_LOGIC ; -- FIXME ucf-file
 					--dout : out std_logic_vector (7 downto 0) ; 
 					comm: out std_logic_vector (63 downto 0) ;
@@ -31,35 +31,52 @@ architecture arch of rs232main is
 		signal rs232_middle_clk: std_logic ;
 begin
 
-rs232clk_unit: entity work.rs232clk(arch)
-	port map( 
-				clk => clk,
-				rs232_clk => rs232_clk,
-				rs232_middle_clk => rs232_middle_clk
-			);	
+--rs232clk_unit: entity work.rs232clk(arch)
+--	port map( 
+--				clk => clk,
+--				rs232_clk => rs232_clk,
+--				rs232_middle_clk => rs232_middle_clk
+--			);	
 
-rs232rx_unit: entity work.rs232rx(arch)
-	port map(	
-				clk => clk,
-				soft_reset => soft_reset,
-				--u10 => u10,
-				--dout => dout,
-				comm => comm,
-				rs232_in => rs232_in,
-				rx_done_tick => rx_done_tick,
-				rs232_middle_clk => rs232_middle_clk
-			);	
+--rs232rx_unit: entity work.rs232rx(arch)
+--	port map(	
+--				clk => clk,
+--				soft_reset => soft_reset,
+--				comm => comm,
+--				rs232_in => rs232_in,
+--				rx_done_tick => rx_done_tick,
+--				rs232_middle_clk => rs232_middle_clk
+--			);	
 
-rs232tx_unit: entity work.rs232tx(arch)
+rs232rx_unit: entity work.rs232_rx_new(rs232_rx_new)
 	port map(
-				clk => clk,
-				soft_reset => soft_reset,
-				din => din,
-			   rs232_out => rs232_out,
-				tx_start => tx_start,
-				tx_done_tick => tx_done_tick,
-				--u10 => u10,
-				rs232_clk => rs232_clk
-			);	
+		clk => clk,
+		u9_rx => u9,
+		comm => comm,
+		rx_done_tick => rx_done_tick,
+		rs232_in => rs232_in
+	);
+
+rs232tx_unit: entity work.rs232_tx_new(rs232_tx_new)
+	port map(
+		clk => clk,
+		din => din,
+		rs232_out => rs232_out,
+		tx_start => tx_start,
+		tx_done_tick => tx_done_tick
+	);
+	
+--	
+--rs232tx_unit: entity work.rs232tx(arch)
+--	port map(
+--				clk => clk,
+--				soft_reset => soft_reset,
+--				din => din,
+--			   rs232_out => rs232_out,
+--				tx_start => tx_start,
+--				tx_done_tick => tx_done_tick,
+--				--u10 => u10,
+--				rs232_clk => rs232_clk
+--			);	
 	
 end arch;
