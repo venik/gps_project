@@ -21,6 +21,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity rs232_rx_new is
 	Port (
 		clk : in STD_LOGIC ;
+		u9_rx : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		comm: out std_logic_vector (63 downto 0) ;		
 		rx_done_tick : out std_logic ;
 		rs232_in: in std_logic 
@@ -33,7 +34,7 @@ architecture rs232_rx_new of rs232_rx_new is
 	signal rs232_rx_state, rs232_rx_next_state: rs232_type;
 	
 	-- compare part
-	signal	NewBaudSignal: integer range 0 to 433 ;
+	signal	NewBaudSignal: integer range 0 to 435 ;
 	signal	rst_NewBaudSignal: std_logic := '0' ; 
 	signal	rst_start_bit: std_logic := '0' ;
 	signal	rs232_rx_tick: std_logic := '0' ;
@@ -45,36 +46,34 @@ architecture rs232_rx_new of rs232_rx_new is
 begin
 
 -- comapre module
-process(NewBaudSignal)
-begin
-
-	if( NewBaudSignal = 433 ) then
-		rst_NewBaudSignal <= '1' ;
-		rs232_rx_tick <= '0' ;
-	elsif ( NewBaudSignal = 216 ) then
-		rs232_rx_tick <= '1' ;
-		rst_NewBaudSignal <= '0' ;
-	else 
-		rs232_rx_tick <= '0' ;
-		rst_NewBaudSignal <= '0' ;
-	end if;
-	
-end process;
-
-process(clk)
-begin
+process(NewBaudSignal, clk)
+begin					
 	
 if rising_edge(clk) then
+
 	rs232_rx_state <= rs232_rx_next_state ;
 	
 	if( rst_NewBaudSignal = '1' or rst_start_bit = '1' ) then
 		NewBaudSignal <= 0;
+		rst_NewBaudSignal <= '0' ;
 	else
 		NewBaudSignal <= NewBaudSignal + 1;
-	end if;
 	
-end if;
+		if( NewBaudSignal >= 433 ) then
+			rst_NewBaudSignal <= '1' ;
+			rs232_rx_tick <= '0' ;
+		elsif ( NewBaudSignal = 216 ) then
+		--elsif ( NewBaudSignal = 300 ) then
+			rs232_rx_tick <= '1' ;
+			rst_NewBaudSignal <= '0' ;
+		else 
+			rs232_rx_tick <= '0' ;
+			rst_NewBaudSignal <= '0' ;
+		end if;
+	end if;		
 
+end if;
+	
 end process;
 
 -- FSM
@@ -87,18 +86,21 @@ if rising_edge(clk) then
 	case rs232_rx_state is
 	-- idle
 	when rx_idle =>
+	
+		u9_rx <= X"40" ;				-- 0
+		rst_start_bit <= '1' ;
+		
 		if( rs232_in = '0' ) then
     		rs232_rx_next_state <= rx_start; 
     		rs232_counter <= 0 ;
-			rst_start_bit <= '1' ;
-		else 
-			rst_start_bit <= '0' ;
-   		end if;
-		   
+			--rst_start_bit <= '1' ;
+		end if;
+	
 	-- skip the start bit
  	when rx_start =>
 	 
 	 	rst_start_bit <= '0' ;
+		u9_rx <= X"79" ;				-- 1
 	 
 	 	if( rs232_rx_tick = '1' ) then
 			rs232_rx_next_state <= rx_data ; 
@@ -106,7 +108,9 @@ if rising_edge(clk) then
 		
 	-- data bits
  	when rx_data =>
-           
+	
+    u9_rx <= X"24" ;				-- 2       
+	 
     if( rs232_counter = 8 ) then 
 		-- move to finish
     	rs232_rx_next_state <= rx_stop;
@@ -114,17 +118,21 @@ if rising_edge(clk) then
     	rs232_value(rs232_counter) <= rs232_in;
     	rs232_counter <= rs232_counter + 1 ;
     end if;
- 
+	
+	-- stop bit
 	when rx_stop =>
 	
-		if( rs232_in = '1' )then
+		u9_rx <= X"30" ;				-- 3
+		
+		--if( rs232_in = '1' )then
 			if( rs232_rx_tick = '1' ) then
-				
+							
 				rs232_rx_next_state <= rx_idle ;
 				comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
 				
 				-- byte counter for 64 bits input comm
-				if( byte_counter = 56 ) then
+				--if( byte_counter = 56 ) then
+				if( byte_counter = 0 ) then
 					byte_counter <= 0 ;
 					rx_done_tick <= '1' ;
 				else 
@@ -132,8 +140,10 @@ if rising_edge(clk) then
 				end if ;
 				
 			end if;
-		end if;
-	
+		--end if;
+		
+		
+		
 	end case;
 	
 end if;

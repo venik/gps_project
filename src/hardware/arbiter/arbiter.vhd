@@ -28,6 +28,8 @@ entity arbiter is
 			--system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
+			u9 : out  std_logic_vector (7 downto 0) ;
+			u8 : out  std_logic_vector (7 downto 0) ;
 			reset : in std_logic ;
 			mode: out std_logic_vector(1 downto 0) ;
 
@@ -70,7 +72,8 @@ begin
 
 rs232main_unit: entity work.rs232main(arch)
 	port map( clk => clk,
-				 --u10 => u10,
+				 u9 => u9,
+				 u8 => u8,
 				 soft_reset => soft_reset,
 				 comm => comm,
 				 din => din,
@@ -115,19 +118,21 @@ begin
 --		-- idle - waiting for incomming command
 		when idle =>
 			if( rx_done_tick = '1' ) then				
-				arbiter_next_state <=  parse_comm ;
+				--arbiter_next_state <=  parse_comm ;
+				arbiter_next_state <=  send_comm ;
+				din <= comm(7 downto 0) ;
+				tx_start <= '1';
+				mode <= "00";
 			else 
-				u10 <= X"24" ;				-- 2
-				--arbiter_next_state <=  send_comm ;
-				--din <= X"AA" ;
+				u10 <= X"40" ;				-- 0
+				--u10 <= comm(7 downto 0);
+				tx_start <= '0';
 			end if ;
 			
 			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
-			tx_start <= '0';
 			mem <= '0' ;
 			rw <= '0' ;
 			addr(17 downto 0) <=  ( others => '0' );
-			mode <= "00";
 			test_mem <= '0';
 			program_gps_a <= '0' ;
 			gps_activate_counter <= 0 ;
@@ -135,7 +140,8 @@ begin
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
-		
+				u10 <= X"79" ;				-- 1
+				
 				case comm(7 downto 0) is
 				when "00000001" => 
 				--if( gps_programmed_s = '0') then
@@ -160,8 +166,6 @@ begin
 				when "00000010" =>
 					-- memory test
 					
-					u10 <= X"40" ;				-- 0
-
 					if( test_result = "11" ) then
 						-- =) error occur
 						arbiter_next_state <=  send_comm ;
@@ -188,7 +192,6 @@ begin
 					
 				when "10101010" =>
 					-- rs232 echo-test
-					u10 <= X"03" ;				-- 1
 					arbiter_next_state <=  send_comm ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
@@ -206,7 +209,7 @@ begin
 					rw <= '1' ;	
 					arbiter_next_state <= after_write;
 				end if;
-				
+			
 				when "00001000" =>
 				if( ready = '1') then
 					-- read
@@ -218,34 +221,43 @@ begin
 				end if;
 					
 				when others =>
+				if( rx_done_tick = '0' ) then
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
+					u10 <= comm(7 downto 0) ;
 					-- on unknown command - send 0xFF
 					din <= ( others => '1' ) ;
 					mem <= '0' ;
 					mode <= "00" ;
+				end if;
 					
 				end case;
 
 	-- wait for writing data			
 	when after_write =>
-	if( ready = '1') then
-		din <= comm(7 downto 0);
-		arbiter_next_state <= send_comm;
+	
+	u10 <= X"24" ;				-- 2
+	if( rx_done_tick = '0' ) then
+		if( ready = '1') then
+			din <= comm(7 downto 0);
+			arbiter_next_state <= send_comm;
+		end if;
 	end if;
 	
 	-- wait for reading data			
 	when after_read =>
+	
+	u10 <= X"30" ;				-- 3
+	
 	if( ready = '1') then
 		din <= data_s2f_r ;
 		arbiter_next_state <= send_comm;
 	end if;
-	
-	
 		
 -- GPS states
 	when waite_for_gps =>
 	-- wait for the GPS data
+		
 		if(gps_activate_counter < 2 ) then
 			gps_activate_counter <= gps_activate_counter + 1 ;
 		else 
@@ -284,10 +296,11 @@ begin
 			mem <= '0' ;
 			
 			-- activate the rs232 interface for transfer
-			tx_start <= '1';
+			--tx_start <= '1';
+			tx_start <= '0';
 			
 			if( tx_done_tick = '1' ) then
-					arbiter_next_state <= idle ;
+				arbiter_next_state <= idle ;
 			end if;
 			
 		end case;

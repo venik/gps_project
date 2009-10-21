@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity rs232_tx_new is
 	Port (
 		clk : in STD_LOGIC ;
-		--u10 : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		u8_tx : out  STD_LOGIC_VECTOR (7 downto 0) ;
 		din : in STD_LOGIC_VECTOR (7 downto 0) ; 
 		rs232_out : out std_logic ;
 		tx_done_tick : out std_logic ;
@@ -36,7 +36,7 @@ architecture rs232_tx_new of rs232_tx_new is
 	signal rs232_tx_state, rs232_tx_next_state: rs232_tx_type;
 	
 	-- compare part
-	signal	NewBaudSignal: integer range 0 to 433 ;
+	signal	NewBaudSignal: integer range 0 to 433 := 0 ;
 	signal	rst_NewBaudSignal: std_logic := '0' ; 
 	signal	rs232_tx_tick: std_logic := '0' ;
 	
@@ -77,6 +77,7 @@ if rising_edge(clk) then
 		-- -- idle
 		when tx_idle =>
 			rs232_out <= '1';
+			u8_tx <= X"40" ;				-- 0
 			
 			if tx_start = '1' then
 				rs232_tx_next_state <= tx_startbit;
@@ -88,7 +89,8 @@ if rising_edge(clk) then
 		-- -- start bit
 		when tx_startbit =>
 			rs232_out <= '0' ;				
-		
+			u8_tx <= X"79" ;				-- 1
+			
 			if rs232_tx_tick = '1' then
 				rs232_tx_next_state <= tx_databits;
 			end if;	   
@@ -96,6 +98,7 @@ if rising_edge(clk) then
 		-- -- data bits
 		when tx_databits =>
 			rs232_out <= rs232_tx_value(rs232_tx_counter);
+			u8_tx <= X"24" ;				-- 2
 			
 			if rs232_tx_tick = '1' then
 				
@@ -114,6 +117,7 @@ if rising_edge(clk) then
 		-- -- start bit
 		when tx_stopbit => 
 			rs232_out <= '1' ;
+			u8_tx <= X"30" ;				-- 3
 		
 			if rs232_tx_tick = '1' then
 				rs232_tx_next_state <= tx_idle;

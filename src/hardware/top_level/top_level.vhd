@@ -33,6 +33,8 @@ entity top_level is
 			-- system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
+			u9 : out  std_logic_vector (7 downto 0) ;
+			u8 : out  std_logic_vector (7 downto 0) ;
 			reset : in std_logic
 	     );
 end top_level;
@@ -46,36 +48,40 @@ architecture Behavioral of top_level is
 			signal	mem: std_logic := '0';
 			signal	rw: std_logic := '0';
 			signal	addr: std_logic_vector(17 downto 0) := (others => '0') ;
+			signal	u9_tops: std_logic_vector(7 downto 0) ;
     			
 			-- arbiter
 			signal	a_mem: std_logic := '0';
 			signal	a_rw: std_logic := '0';
 			signal	a_addr: std_logic_vector(17 downto 0) := (others => '0') ;
-			signal 	a_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
+			signal 	a_data_f2s: std_logic_vector(7 downto 0) := (others => '0') ;
 
 			-- test_mem
 			signal	t_mem: std_logic := '0';
 			signal	t_rw: std_logic := '0';
 			signal	t_addr: std_logic_vector(17 downto 0) := (others => '0');
 			signal 	t_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
+			signal	u9_topt: std_logic_vector(7 downto 0) ;
+			signal	u8_topt: std_logic_vector(7 downto 0) ;
 			
 			-- interprocess communication
-			signal mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
-			signal test_mem: std_logic := '0' ;
-			signal test_result: std_logic_vector(1 downto 0) := ( others => '0' ) ;
+			signal   mode: std_logic_vector(1 downto 0) := ( others => '0' ) ;
+			signal   test_mem: std_logic := '0' ;
+			signal   test_result: std_logic_vector(1 downto 0) := ( others => '0' ) ;
 			
 			-- gps
 			signal	m_mem: std_logic := '0';
 			signal	m_rw: std_logic := '0';
 			signal	m_addr: std_logic_vector(17 downto 0) := (others => '0') ;
 			signal 	m_data_f2s: std_logic_vector(7 downto 0) := (others => '0');
-			signal  gps_start: std_logic := '0' ;
-			signal  gps_done: std_logic := '0' ;
+			signal   gps_start: std_logic := '0' ;
+			signal   gps_done: std_logic := '0' ;
 					
 begin
 
 process(clk)
 begin
+
 if(rising_edge(clk)) then
 	gps_clk_out <= gps_clkout ;
 end if;
@@ -99,6 +105,8 @@ arbiter: entity work.arbiter(Behavioral)
 			ready => ready,
 			clk => clk,
 			u10 => u10,
+			u9 => u9,
+			u8 => u8,
 			mode => mode,
 			test_result => test_result,
 			test_mem => test_mem,
@@ -116,6 +124,8 @@ test_sram: entity work.test_sram(Behavioral)
 			ready => ready,
 			clk => clk,
 			reset => reset,
+			u9_test => u9_topt,
+			u8_test => u8_topt,
 			test_result => test_result,
 			test_mem => test_mem
 			);
@@ -124,6 +134,7 @@ sram_controller: entity work.sram_ctrl(arch)
 	port map( 
 			clk => clk,
 			reset => reset,
+			u9_sram => u9_tops,
 			mem => mem,
 			rw => rw,
 			s1 => s1,
@@ -154,6 +165,8 @@ gps: entity work.gps_main(gps_main)
 			clk => clk
 		);
 			
+
+
 SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, t_mem, a_addr, a_rw, a_data_f2s, m_mem, m_addr, m_rw)
 begin
 
@@ -164,6 +177,7 @@ begin
 		rw 			<= a_rw ;
 		data_f2s 	<= a_data_f2s ;
 		mem 		<= a_mem ;
+		--u9 	<= u9_tops ;
 		
 	when "01" => 
 		-- test_mem drive SRAM bus
@@ -171,6 +185,7 @@ begin
 		rw 			<= t_rw ;
 		data_f2s 	<= t_data_f2s ;
 		mem 		<= t_mem ;
+		--u9 	<= u9_topt;
 		
 	when "10" =>
 		-- gps drive SRAM bus
