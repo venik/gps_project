@@ -74,7 +74,7 @@ if rising_edge(rs232_middle_clk) then
     --rs232_value <= ( others => '0' ) ;
     rs232_counter <= 0 ;
 
-    rs232_edge <= B"01";
+    rs232_edge <= B"01";
 
    end if;
  

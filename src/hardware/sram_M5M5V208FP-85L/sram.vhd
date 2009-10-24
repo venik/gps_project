@@ -29,7 +29,8 @@ use ieee.std_logic_1164.all;
 entity sram_ctrl is
   port(
     clk: in std_logic;				
-	 reset: in std_logic;
+	 reset: in std_logic;
+	 u9_sram: out std_logic_vector(7 downto 0) ;
 	 
     -- to/from main system
     mem: in std_logic ;
@@ -86,9 +87,13 @@ process(clk, reset)
       we_reg <= we_buf;
       oe_reg <= oe_buf;
 	  
-	  s1_reg <= s1_buf;
+	   s1_reg <= s1_buf;
 	  
-    end if;
+    end if;
+	 
+	u9_sram <= data_s2f_reg;
+  --u9_sram <= X"24" ;
+  
   end process;
  
   -- next state logic
@@ -230,6 +235,6 @@ process(state_next)
   OE <= oe_reg;
   address <= addr_reg;
  
-  dio_a <= data_f2s_reg when tri_reg = '0' else (others => 'Z');
+  dio_a <= data_f2s_reg when tri_reg = '0' else (others => 'Z');
  
 end arch;
