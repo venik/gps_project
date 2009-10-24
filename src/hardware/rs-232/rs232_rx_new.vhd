@@ -89,12 +89,12 @@ if rising_edge(clk) then
 	
 		u9_rx <= X"40" ;				-- 0
 		rst_start_bit <= '1' ;
+		--u9_rx <= conv_std_logic_vector(byte_counter, 8);
 		
 		if( rs232_in = '0' ) then
     		rs232_rx_next_state <= rx_start; 
     		rs232_counter <= 0 ;
-			--rst_start_bit <= '1' ;
-		end if;
+   	end if;
 	
 	-- skip the start bit
  	when rx_start =>
@@ -125,8 +125,10 @@ if rising_edge(clk) then
 		u9_rx <= X"30" ;				-- 3
 		
 		--if( rs232_in = '1' )then
-			if( rs232_rx_tick = '1' ) then
-							
+			--if( rs232_rx_tick = '1' ) then 
+			-- wait for trailing-edge of the stop-bit
+			if( NewBaudSignal >= 433 ) then
+				
 				rs232_rx_next_state <= rx_idle ;
 				comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
 				
@@ -141,9 +143,7 @@ if rising_edge(clk) then
 				
 			end if;
 		--end if;
-		
-		
-		
+
 	end case;
 	
 end if;
