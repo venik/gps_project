@@ -118,18 +118,18 @@ begin
 --		-- idle - waiting for incomming command
 		when idle =>
 			if( rx_done_tick = '1' ) then				
-				--arbiter_next_state <=  parse_comm ;
-				arbiter_next_state <=  send_comm ;
-				din <= comm(7 downto 0) ;
-				tx_start <= '1';
+				arbiter_next_state <=  parse_comm ;
+				--arbiter_next_state <=  send_comm ;
+				--din <= comm(7 downto 0) ;
+				--tx_start <= '1';
 				mode <= "00";
 			else 
-				u10 <= X"40" ;				-- 0
-				--u10 <= comm(7 downto 0);
+				u10 <= X"40" ;				-- 0
 				tx_start <= '0';
 			end if ;
 			
-			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
+			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
+			tx_start <= '0';
 			mem <= '0' ;
 			rw <= '0' ;
 			addr(17 downto 0) <=  ( others => '0' );
@@ -168,14 +168,16 @@ begin
 					
 					if( test_result = "11" ) then
 						-- =) error occur
-						arbiter_next_state <=  send_comm ;
+						arbiter_next_state <=  send_comm ;
+						tx_start <= '1' ;
 						din <= not(comm(7 downto 0)) ;
 						test_mem <= '0' ;
 						mode <= "00" ;
 						mem <= '0';
 					elsif(test_result = "10") then
 						-- =) memory is good
-						arbiter_next_state <=  send_comm ;
+						arbiter_next_state <=  send_comm ;
+						tx_start <= '1' ;
 						din <= comm(7 downto 0) ;
 						test_mem <= '0' ;
 						mode <= "00" ;
@@ -192,7 +194,8 @@ begin
 					
 				when "10101010" =>
 					-- rs232 echo-test
-					arbiter_next_state <=  send_comm ;
+					arbiter_next_state <=  send_comm ;
+					tx_start <= '1' ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
 					mode <= "00" ;
@@ -223,7 +226,8 @@ begin
 				when others =>
 				if( rx_done_tick = '0' ) then
 					-- unknown command
-					arbiter_next_state <=  send_comm ;
+					arbiter_next_state <=  send_comm ;
+					tx_start <= '1' ;
 					u10 <= comm(7 downto 0) ;
 					-- on unknown command - send 0xFF
 					din <= ( others => '1' ) ;
@@ -235,24 +239,24 @@ begin
 
 	-- wait for writing data			
 	when after_write =>
-	
-	u10 <= X"24" ;				-- 2
-	if( rx_done_tick = '0' ) then
+		u10 <= X"24" ;				-- 2
+		
 		if( ready = '1') then
-			din <= comm(7 downto 0);
+			din <= comm(7 downto 0);
+			tx_start <= '1' ;		
 			arbiter_next_state <= send_comm;
 		end if;
-	end if;
+	
 	
 	-- wait for reading data			
 	when after_read =>
-	
-	u10 <= X"30" ;				-- 3
-	
-	if( ready = '1') then
-		din <= data_s2f_r ;
-		arbiter_next_state <= send_comm;
-	end if;
+		u10 <= X"30" ;				-- 3
+		
+		if( ready = '1') then
+			din <= data_s2f_r ;
+			tx_start <= '1' ;
+			arbiter_next_state <= send_comm;
+		end if;
 		
 -- GPS states
 	when waite_for_gps =>
