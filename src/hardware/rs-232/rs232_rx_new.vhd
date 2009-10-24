@@ -42,7 +42,7 @@ architecture rs232_rx_new of rs232_rx_new is
 	-- rx part
 	signal rs232_counter: integer range 0 to 8 := 0;
 	signal rs232_value: std_logic_vector (7 downto 0) := ( others => '0') ;
-	signal byte_counter: integer range 0 to 63;
+	signal byte_counter: integer range 0 to 65 := 0;
 begin
 
 -- comapre module
@@ -94,7 +94,7 @@ if rising_edge(clk) then
 		if( rs232_in = '0' ) then
     		rs232_rx_next_state <= rx_start; 
     		rs232_counter <= 0 ;
-   	end if;
+		end if;
 	
 	-- skip the start bit
  	when rx_start =>
@@ -125,21 +125,22 @@ if rising_edge(clk) then
 		u9_rx <= X"30" ;				-- 3
 		
 		--if( rs232_in = '1' )then
-			--if( rs232_rx_tick = '1' ) then 
 			-- wait for trailing-edge of the stop-bit
 			if( NewBaudSignal >= 433 ) then
 				
 				rs232_rx_next_state <= rx_idle ;
 				comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
-				
+								
 				-- byte counter for 64 bits input comm
-				--if( byte_counter = 56 ) then
-				if( byte_counter = 0 ) then
-					byte_counter <= 0 ;
-					rx_done_tick <= '1' ;
-				else 
-					byte_counter <= byte_counter + 8;
-				end if ;
+				if( rs232_rx_next_state = rx_idle ) then
+					if( byte_counter = 56 ) then
+						--if( byte_counter = 0 ) then
+						byte_counter <= 0 ;
+						rx_done_tick <= '1' ;
+					else
+						byte_counter <= byte_counter + 8 ;
+					end if ;
+				end if;
 				
 			end if;
 		--end if;
