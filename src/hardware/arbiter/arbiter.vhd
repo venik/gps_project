@@ -55,7 +55,7 @@ architecture Behavioral of arbiter is
 	signal	din : std_logic_vector (7 downto 0) ; 
 
 	-- local
-	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_zero_in_rx, waite_for_gps_data) ;
+	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_gps_data) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 	signal gps_activate_counter: integer range 0 to 2 := 0 ;
@@ -92,8 +92,7 @@ gps_serial_unit: entity work.gps_serial(gps_serial)
 			gps_word_s => gps_word_a,
 			program_gps_s => program_gps_a,
 			gps_programmed_s => gps_programmed_a,
-			clk => clk,
-			soft_reset => soft_reset
+			clk => clk
 		) ;
 
 
@@ -124,18 +123,18 @@ begin
 				--tx_start <= '1';
 				mode <= "00";
 			else 
-				u10 <= X"40" ;				-- 0
+				u10 <= X"40" ;				-- 0
 				tx_start <= '0';
 			end if ;
 			
-			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
+			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
 			tx_start <= '0';
 			mem <= '0' ;
 			rw <= '0' ;
 			addr(17 downto 0) <=  ( others => '0' );
 			test_mem <= '0';
 			program_gps_a <= '0' ;
-			gps_activate_counter <= 0 ;
+			--gps_activate_counter <= 0 ;
 			gps_start_a <= '0' ;
 		
 		-- parse the incomming command and do something
@@ -149,8 +148,8 @@ begin
 					mode <= "00" ;
 					gps_word_a <= comm(39 downto 8) ;
 					mem <= '0' ;
-					arbiter_next_state <= waite_for_zero_in_rx;
-
+					program_gps_a <= '1' ; 	
+					arbiter_next_state <= waite_for_gps;
 				--end if;
 				
 				when "00000011" => 
@@ -168,7 +167,7 @@ begin
 					
 					if( test_result = "11" ) then
 						-- =) error occur
-						arbiter_next_state <=  send_comm ;
+						arbiter_next_state <=  send_comm ;
 						tx_start <= '1' ;
 						din <= not(comm(7 downto 0)) ;
 						test_mem <= '0' ;
@@ -176,7 +175,7 @@ begin
 						mem <= '0';
 					elsif(test_result = "10") then
 						-- =) memory is good
-						arbiter_next_state <=  send_comm ;
+						arbiter_next_state <=  send_comm ;
 						tx_start <= '1' ;
 						din <= comm(7 downto 0) ;
 						test_mem <= '0' ;
@@ -194,7 +193,7 @@ begin
 					
 				when "10101010" =>
 					-- rs232 echo-test
-					arbiter_next_state <=  send_comm ;
+					arbiter_next_state <=  send_comm ;
 					tx_start <= '1' ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
@@ -224,25 +223,23 @@ begin
 				end if;
 					
 				when others =>
-				if( rx_done_tick = '0' ) then
 					-- unknown command
-					arbiter_next_state <=  send_comm ;
+					arbiter_next_state <=  send_comm ;
 					tx_start <= '1' ;
 					u10 <= comm(7 downto 0) ;
 					-- on unknown command - send 0xFF
 					din <= ( others => '1' ) ;
 					mem <= '0' ;
 					mode <= "00" ;
-				end if;
-					
+									
 				end case;
 
 	-- wait for writing data			
 	when after_write =>
-		u10 <= X"24" ;				-- 2
+		u10 <= X"24" ;				-- 2
 		
 		if( ready = '1') then
-			din <= comm(7 downto 0);
+			din <= comm(7 downto 0);
 			tx_start <= '1' ;		
 			arbiter_next_state <= send_comm;
 		end if;
@@ -253,7 +250,7 @@ begin
 		u10 <= X"30" ;				-- 3
 		
 		if( ready = '1') then
-			din <= data_s2f_r ;
+			din <= data_s2f_r ;
 			tx_start <= '1' ;
 			arbiter_next_state <= send_comm;
 		end if;
@@ -262,23 +259,18 @@ begin
 	when waite_for_gps =>
 	-- wait for the GPS data
 		
-		if(gps_activate_counter < 2 ) then
-			gps_activate_counter <= gps_activate_counter + 1 ;
-		else 
-			program_gps_a <= '0' ;
-		end if;
+		--if(gps_activate_counter < 2 ) then
+		--	gps_activate_counter <= gps_activate_counter + 1 ;
+		--else 
+		program_gps_a <= '0' ;
+		--end if;
 		
 		if( gps_programmed_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
+			tx_start <= '1' ;	
 		end if;
 		
-	-- waite while all data are write in the GPS	
-	when waite_for_zero_in_rx =>
-		if( rx_done_tick = '0' ) then
-			program_gps_a <= '1' ; 	
-			arbiter_next_state <= waite_for_gps;
-		end if;
 		
 	when waite_for_gps_data =>
 		if(gps_activate_counter < 2 ) then

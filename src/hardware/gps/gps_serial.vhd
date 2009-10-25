@@ -12,8 +12,7 @@ entity gps_serial is
 			program_gps_s : in std_logic ;
 			gps_programmed_s : out std_logic ;
 			-- system
-			clk : in std_logic ;
-			soft_reset : in std_logic
+			clk : in std_logic
 		) ;
 end gps_serial;
 
@@ -22,32 +21,47 @@ architecture gps_serial of gps_serial is
 	signal gps_serial_state: gps_serial_type := idle ;
 	signal gps_serial_state_next: gps_serial_type := idle ;
 	
-	signal gps_clk_serial: std_logic ;
-	signal gps_clk_serial_middle: std_logic ;
 	signal gps_counter: integer range 0 to 32 := 32 ;
-	signal gps_cycle: integer range 0 to 2 := 0 ;
+	signal rst_idle: std_logic := '1' ;
+	
+	signal NewGPSSignal: integer range 0 to 4 := 0 ;
+	
 begin
-
-gps_clk_uplevel: entity work.gps_clk(gps_clk)
-port map( 
-			clk => clk,
-			gps_clk => sclk_s,
-			gps_clk_local_middle => gps_clk_serial_middle,
-			gps_clk_local => gps_clk_serial
-		);	
 
 process(clk)
 begin								 
+if( rising_edge(clk) ) then 
+	-- fsm
+	gps_serial_state <= gps_serial_state_next ;
 	
-  	if( rising_edge(clk) ) then 
-		gps_serial_state <= gps_serial_state_next ;
-	end if ;
-	
+	if( rst_idle = '0' ) then 
+		
+		NewGPSSignal <= NewGPSSignal + 1;
+		
+		-- clock generator
+		if( NewGPSSignal = 0 ) then
+			sclk_s <= '0';
+		elsif( NewGPSSignal = 1 ) then 
+			sclk_s <= '0';
+		elsif( NewGPSSignal = 2 ) then
+			sclk_s <= '1';
+		else 
+			sclk_s <= '1';
+			NewGPSSignal <= 0 ;
+		end if;	
+	else 
+		-- in the idle state
+		sclk_s <= '0' ;
+		NewGPSSignal <= 1 ;
+	end if;
+		
+end if ;
 end process;		
 
-process(gps_serial_state, gps_clk_serial_middle, program_gps_s)
+-- FSM
+process(gps_serial_state, clk, program_gps_s)
 begin
-if rising_edge(gps_clk_serial_middle) then
+if rising_edge(clk) then
 	
 	case  gps_serial_state is
 	when idle =>
@@ -55,29 +69,31 @@ if rising_edge(gps_clk_serial_middle) then
 			gps_serial_state_next <= data;
 			gps_counter <= 32 ;
 			cs_s <= '0' ;
-			gps_cycle <= 0;
+			rst_idle <= '0';
+			sdata_s <= gps_word_s(gps_counter - 1) ;
 		else 
 			cs_s <= '1' ;
-			-- FIXME - strange bug here
+			rst_idle <= '1' ;
 			--sdata_s <= '0' ;
 		end if;
 		
 		gps_programmed_s <= '0' ;
 		
 	when data =>
+	
 		if(gps_counter = 0) then
+			-- all done
 			gps_serial_state_next <= data_done ; 
 			cs_s <= '1' ;
+			rst_idle <= '1' ;
 		else
-			if(gps_cycle = 1) then
+			cs_s <= '0' ;
+			if(NewGPSSignal = 0) then
 				gps_counter <= gps_counter - 1 ;
-				gps_cycle <= 0;
-			else
-				gps_cycle <= gps_cycle + 1;
 			end if;
 			
 			sdata_s <= gps_word_s(gps_counter - 1) ;
-			--sdata <= '1';
+			
 		end if;
 		
 	when data_done =>
