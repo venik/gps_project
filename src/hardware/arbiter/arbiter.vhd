@@ -58,7 +58,7 @@ architecture Behavioral of arbiter is
 	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_gps_data) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
-	signal gps_activate_counter: integer range 0 to 2 := 0 ;
+	--signal gps_activate_counter: integer range 0 to 2 := 0 ;
 	
 	-- GPS
 	signal gps_word_a: std_logic_vector (31 downto 0) := (others => '0') ;	
@@ -157,7 +157,6 @@ begin
 					-- get gps data
 					mode <= "10" ;
 					arbiter_next_state <= waite_for_gps_data;
-					gps_activate_counter <= 0 ;
 					gps_start_a <= '1' ;
 
 				--end if;
@@ -257,31 +256,25 @@ begin
 		
 -- GPS states
 	when waite_for_gps =>
-	-- wait for the GPS data
+		-- wait for the GPS data
 		
-		--if(gps_activate_counter < 2 ) then
-		--	gps_activate_counter <= gps_activate_counter + 1 ;
-		--else 
 		program_gps_a <= '0' ;
-		--end if;
-		
+
 		if( gps_programmed_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
-			tx_start <= '1' ;	
+			tx_start <= '1' ;
 		end if;
 		
 		
 	when waite_for_gps_data =>
-		if(gps_activate_counter < 2 ) then
-			gps_activate_counter <= gps_activate_counter + 1 ;
-		else 
-			program_gps_a <= '0' ;
-		end if;
+		u10 <= X"99" ;				-- 3
+		gps_start_a <= '0' ;
 		
 		if( gps_done_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
+			tx_start <= '1' ;
 		end if;
 
 -- RS232 states

@@ -29,7 +29,7 @@ entity top_level is
 			sdata: out std_logic ;
 			cs: out std_logic ;
 			gps_clkout: in std_logic ;
-			gps_clk_out: out std_logic ;
+			test_spot: out std_logic ;
 			-- system
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
@@ -79,13 +79,12 @@ architecture Behavioral of top_level is
 					
 begin
 
-process(clk)
-begin
-
-if(rising_edge(clk)) then
-	gps_clk_out <= gps_clkout ;
-end if;
-end process;
+--process(clk)
+--begin
+--if(rising_edge(clk)) then
+--	test_spot <= gps_clkout ;
+--end if;
+--end process;
 
 arbiter: entity work.arbiter(Behavioral)
 	port map(
@@ -162,6 +161,7 @@ gps: entity work.gps_main(gps_main)
 			ready_m => ready,
 			rw_m => m_rw,
 			mem_m => m_mem,
+			test_spot_m =>test_spot,
 			clk => clk
 		);
 			
