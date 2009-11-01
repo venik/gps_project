@@ -6,7 +6,7 @@
 --  |            | <--	clk - clock
 --  |            | <--	soft_reset - reset
 --  |            | <--	mem - memory operation
---  |            | <--	rw - w = 0 / r = 1
+--  |            | <--	rw - w = 1 / r = 0
 --  |   SRAM     | <--	addr - address
 --  | controller | <--	data_f2s - fpga to sram data
 --  |            | -->	ready - sram controller is ready (1 is ready)
@@ -29,7 +29,7 @@ use ieee.std_logic_1164.all;
 entity sram_ctrl is
   port(
     clk: in std_logic;				
-	 reset: in std_logic;
+	 reset: in std_logic;
 	 u9_sram: out std_logic_vector(7 downto 0) ;
 	 
     -- to/from main system
@@ -89,10 +89,10 @@ process(clk, reset)
 	  
 	   s1_reg <= s1_buf;
 	  
-    end if;
-	 
+    end if;
+	 
 	u9_sram <= data_s2f_reg;
-  --u9_sram <= X"24" ;
+  --u9_sram <= X"24" ;
   
   end process;
  
@@ -235,6 +235,6 @@ process(state_next)
   OE <= oe_reg;
   address <= addr_reg;
  
-  dio_a <= data_f2s_reg when tri_reg = '0' else (others => 'Z');
+  dio_a <= data_f2s_reg when tri_reg = '0' else (others => 'Z');
  
 end arch;

@@ -17,7 +17,7 @@ entity gps_serial is
 end gps_serial;
 
 architecture gps_serial of gps_serial is
-	type   gps_serial_type is(idle, data, data_lsb, addr_msb, addr_lsb, data_done) ;
+	type   gps_serial_type is(idle, data, data_done) ;
 	signal gps_serial_state: gps_serial_type := idle ;
 	signal gps_serial_state_next: gps_serial_type := idle ;
 	
