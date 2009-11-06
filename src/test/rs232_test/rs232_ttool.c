@@ -143,10 +143,10 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 		printf("=replay= [0x%02x]\t addr [%06lld]\n", buff[addr], addr);
 
 		sprintf(str_i_q, "%d\t%d\n%d\t%d\n", 
-			gps_value[buff[addr]&i1],
-			gps_value[(buff[addr]&q1)>>2],
-			gps_value[(buff[addr]&i2)>>4],
-			gps_value[(buff[addr]&q2)>>6]
+			gps_value[GET_I1(buff[addr])],
+			gps_value[GET_Q1(buff[addr])],
+			gps_value[GET_I2(buff[addr])],
+			gps_value[GET_Q2(buff[addr])]
 		);
 
 		write(fd, str_i_q, strlen(str_i_q));
@@ -401,6 +401,8 @@ int main(int argc, char **argv)
 	rs232_data_t	rs232data = {};
 	int 		res;
 	
+	//printf("reg 0000 [%x]\n", reg_addr_000);
+
 	while ( (res = getopt(argc,argv,"hp:tc:")) != -1){
 		switch (res) {
 		case 'h':
