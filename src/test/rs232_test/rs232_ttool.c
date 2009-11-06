@@ -172,8 +172,9 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 	//comm_64 |= (0x7<<8);			// address
 	//comm_64 |= (0x3fff1d9ull<<12);		// data
 
-	comm_64 |= (0x03<<0x08);		// address
-	reg |= (VCOEN|IVCO_n|REFOUTEN|REFDIV_x1|IXTAL_bnc|ICP_05ma|PFDEN_en|INT_PLL_frac|PWSAV_off|REG_23);
+	comm_64 |= (0x01<<0x08);		// address
+	//reg |= (VCOEN|IVCO_n|REFOUTEN|REFDIV_x1|IXTAL_bnc|ICP_05ma|PFDEN_en|INT_PLL_frac|PWSAV_off|REG_23);
+	reg = 0x855028c;
 	comm_64 |= (reg<<12);	// data
 
 	//comm_64 = (comm_64 | 0x56ull<<8 | 0xabull<<26);
