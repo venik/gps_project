@@ -11,24 +11,20 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
----- Uncomment the following library declaration if instantiating
----- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity test_sram is
     	Port (
 			-- sram
 			addr: out std_logic_vector(17 downto 0) ;
 			data_f2s: out std_logic_vector(7 downto 0) ;
-			data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
+			--data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
+			data_s2f: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
 			mem: out std_logic ;
 			-- system
 			clk : in std_logic ;
 			reset : in std_logic ;
-			u9_test: out std_logic_vector(7 downto 0) ;
+			u9_test: out std_logic_vector(7 downto 0) ;
 			u8_test: out std_logic_vector(7 downto 0) ;
 			-- signal
 			test_mem: in std_logic ;
@@ -81,7 +77,7 @@ if rising_edge(clk) then
 		
 			   if( data_mem(8) = '1' ) then	
 				   	-- next state
-					data_mem(8 downto 0) <= "000000001" ;
+					data_mem(8 downto 0) <= "000000001" ;
 					addr(17 downto 0) <= (others => '0') ;
 					memtester_state_next <= middle_t_mem ;
 					--test_result <= "10" ;
@@ -124,7 +120,7 @@ if rising_edge(clk) then
 				else
 					-- read from the memory test pattern
 					-- check data from memeory
-					if( data_s2f_r = data_mem(7 downto 0) ) then
+					if( data_s2f = data_mem(7 downto 0) ) then
 						-- all is oK - update values 
 						--data_mem_prev <= data_mem ;
 						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
@@ -136,7 +132,7 @@ if rising_edge(clk) then
 						memtester_state_next <= idle ;
 						test_result <= "11" ;
 						mem <= '0' ;
-						u9_test <= data_s2f_r ;
+						u9_test <= data_s2f ;
 						u8_test <= data_mem(7 downto 0) ;
 						addr(17 downto 0) <= ( others => '0' );
 						--u9_test <= data_mem(7 downto 0);

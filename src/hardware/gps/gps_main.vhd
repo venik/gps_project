@@ -36,7 +36,7 @@ architecture gps_main of gps_main is
 	signal gps_state, gps_next_state: gps_get_data_type := idle ;
 		
 	signal data_mem: std_logic_vector (7 downto 0) := (others => '0') ;
-	signal one: unsigned(17 downto 0) := (0=>'1', others => '0') ;
+	--signal one: unsigned(17 downto 0) := (0=>'1', others => '0') ;
 	signal result: unsigned(17 downto 0) := (others => '0') ;
 	
 	-- new signals
@@ -98,7 +98,9 @@ if rising_edge(clk) then
 			elsif( gps_tick = '1' ) then
 					data_mem(3 downto 0) <= q_m & i_m ;
 					addr_m <= std_logic_vector(result);
-					result <= result + one;
+					--result <= result + one;
+					result <= result + ( X"0000" & b"01" );
+					
 					gps_next_state <= get_msb ;
 					
 					-- try to write

@@ -7,16 +7,16 @@
 -----------------------------------------------------------
 
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.numeric_std.all;
 
 entity arbiter is
     	Port (
 			-- sram
-			addr: out std_logic_vector(17 downto 0) ;
+			addr_a: out std_logic_vector(17 downto 0) ;
 			data_f2s: out std_logic_vector(7 downto 0) ;
-			data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
+			--data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;\
+			data_s2f: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
 			mem: out std_logic ;
@@ -51,38 +51,44 @@ architecture Behavioral of arbiter is
 	signal	rx_done_tick : std_logic := '0' ;
 	signal	tx_done_tick : std_logic ;
 	signal	tx_start : std_logic ;
-	--signal	dout : std_logic_vector (7 downto 0) ; 
 	signal	din : std_logic_vector (7 downto 0) ; 
-
+	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
+	
 	-- local
-	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_gps_data) ;
+	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_gps_data, wait_for_mem_test) ;
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
-	--signal gps_activate_counter: integer range 0 to 2 := 0 ;
-	
+		
 	-- GPS
 	signal gps_word_a: std_logic_vector (31 downto 0) := (others => '0') ;	
 	signal program_gps_a: std_logic := '0' ;
 	signal gps_programmed_a: std_logic := '0' ;
 	
 	signal soft_reset: std_logic := '0' ;
-	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
+	--signal addr_a_int: std_logic_vector(17 downto 0) := ( others => '0' ) ;	
+	-- SRAM
+	signal result: unsigned (17 downto 0) := (others => '0') ;
 		
 begin
 
-rs232main_unit: entity work.rs232main(arch)
-	port map( clk => clk,
-				 u9 => u9,
-				 u8 => u8,
-				 soft_reset => soft_reset,
-				 comm => comm,
-				 din => din,
-			    rs232_in => rs232_in,
-				 rs232_out => rs232_out,
-		       rx_done_tick => rx_done_tick,
-				 tx_done_tick => tx_done_tick, 
-		       tx_start => tx_start
-			);
+rs232rx_unit: entity work.rs232_rx_new(rs232_rx_new)
+	port map(
+		clk => clk,
+		u9_rx => u9,
+		comm => comm,
+		rx_done_tick => rx_done_tick,
+		rs232_in => rs232_in
+	);
+
+rs232tx_unit: entity work.rs232_tx_new(rs232_tx_new)
+	port map(
+		clk => clk,
+		din => din,
+		u8_tx => u8,
+		rs232_out => rs232_out,
+		tx_start => tx_start,
+		tx_done_tick => tx_done_tick
+	);
 			
 gps_serial_unit: entity work.gps_serial(gps_serial)
 	port map(
@@ -109,7 +115,7 @@ begin
 	
 end process;
 	
-process(arbiter_state, clk, tx_done_tick, rx_done_tick, test_result)
+process(arbiter_state, clk, tx_done_tick, rx_done_tick, test_result, ready)
 begin
 	if rising_edge(clk) then
 		case  arbiter_state is
@@ -121,20 +127,20 @@ begin
 				--arbiter_next_state <=  send_comm ;
 				--din <= comm(7 downto 0) ;
 				--tx_start <= '1';
-				mode <= "00";
 			else 
 				u10 <= X"40" ;				-- 0
 				tx_start <= '0';
 			end if ;
 			
 			-- disable rs232 tx and sram , set arbiter drive bus mode and no test mem
+			mode <= "00";
 			tx_start <= '0';
 			mem <= '0' ;
 			rw <= '0' ;
-			addr(17 downto 0) <=  ( others => '0' );
+			addr_a(17 downto 0) <=  ( others => '0' );
+			result(17 downto 0) <= (others => '0');
 			test_mem <= '0';
 			program_gps_a <= '0' ;
-			--gps_activate_counter <= 0 ;
 			gps_start_a <= '0' ;
 		
 		-- parse the incomming command and do something
@@ -143,52 +149,24 @@ begin
 				
 				case comm(7 downto 0) is
 				when "00000001" => 
-				--if( gps_programmed_s = '0') then
 					-- send to the GPS serial
 					mode <= "00" ;
 					gps_word_a <= comm(39 downto 8) ;
 					mem <= '0' ;
 					program_gps_a <= '1' ; 	
 					arbiter_next_state <= waite_for_gps;
-				--end if;
 				
 				when "00000011" => 
-				--if( gps_programmed_s = '0') then
 					-- get gps data
 					mode <= "10" ;
 					arbiter_next_state <= waite_for_gps_data;
 					gps_start_a <= '1' ;
-
-				--end if;
 				
 				when "00000010" =>
-					-- memory test
-					
-					if( test_result = "11" ) then
-						-- =) error occur
-						arbiter_next_state <=  send_comm ;
-						tx_start <= '1' ;
-						din <= not(comm(7 downto 0)) ;
-						test_mem <= '0' ;
-						mode <= "00" ;
-						mem <= '0';
-					elsif(test_result = "10") then
-						-- =) memory is good
-						arbiter_next_state <=  send_comm ;
-						tx_start <= '1' ;
-						din <= comm(7 downto 0) ;
-						test_mem <= '0' ;
-						mode <= "00" ;
-						mem <= '0';
-					elsif( test_result = "01") then 
-						test_mem <= '0' ;
-						mode <= "01" ;
-					else 
-						-- need start the memeory test
-						test_mem <= '1' ;
-						-- test drive SRAM signals
-						mode <= "01" ;
-					end if;
+					-- test sram
+					test_mem <= '1' ;
+					mode <= "01" ;
+					arbiter_next_state <= wait_for_mem_test;
 					
 				when "10101010" =>
 					-- rs232 echo-test
@@ -197,25 +175,56 @@ begin
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
 					mode <= "00" ;
-					test_mem <= '0' ;
-				
+									
 				-- work with memory
 				when "00000100" =>
 				if( ready = '1') then
 					-- write
 					mode <= "00" ;
-					addr <= comm(25 downto 8) ;
+					addr_a <= comm(25 downto 8) ;
 					data_f2s <= comm(33 downto 26) ;
 					mem <= '1' ;
 					rw <= '1' ;	
 					arbiter_next_state <= after_write;
+				end if;	 
+				
+				when "00000101" =>
+				-- ZEROOOOO mem	 FIXME
+				mode <= "00" ;
+				--data_f2s <= ( others => '0' );
+				--data_f2s <= ( others => '1' );
+				data_f2s <= std_logic_vector(result( 7 downto 0 ));
+				rw <= '1' ;
+													
+				if( result(17 downto 0) = X"3FFFF" ) then	
+				--if( addr_a_int(17 downto 0) = X"3FFFF" ) then
+					-- already ZEROOOOed
+					arbiter_next_state <= send_comm;
+					din <= comm(7 downto 0) ;
+					--result <= ( 0=>'1', others => '0' );
+					result <= X"0000" & b"01" ;
+					addr_a <= ( others => '0' );
+					
+					tx_start <= '1';
+				else 
+					if( ready = '1') then
+						mem <= '1' ;	
+						addr_a <= std_logic_vector(result);
+						--addr_a <= addr_ant + '1';
+						--result <= result + one;
+						--result <= result + ( X"0000" & b"01" );
+						result <= result + 1;
+						--result <= one;
+					  else 
+						mem <= '0' ;
+					end if;
 				end if;
 			
 				when "00001000" =>
 				if( ready = '1') then
 					-- read
 					mode <= "00" ;
-					addr <= comm(25 downto 8) ;
+					addr_a <= comm(25 downto 8) ;
 					mem <= '1' ;
 					rw <= '0' ;
 					arbiter_next_state <= after_read;
@@ -232,7 +241,27 @@ begin
 					mode <= "00" ;
 									
 				end case;
-
+				
+	when wait_for_mem_test =>
+		-- wait for end of the memory test
+		test_mem <= '0' ;
+		if( test_result = "11" ) then
+			-- =) error occur
+			arbiter_next_state <=  send_comm ;
+			tx_start <= '1' ;
+			din <= not(comm(7 downto 0)) ;
+			mode <= "00" ;
+			mem <= '0';
+		elsif(test_result = "10") then
+			-- =) memory is good
+			arbiter_next_state <=  send_comm ;
+			tx_start <= '1' ;
+			din <= comm(7 downto 0) ;
+			
+			mode <= "00" ;
+			mem <= '0';
+		end if;
+	
 	-- wait for writing data			
 	when after_write =>
 		u10 <= X"24" ;				-- 2
@@ -247,9 +276,10 @@ begin
 	-- wait for reading data			
 	when after_read =>
 		u10 <= X"30" ;				-- 3
+		mem <= '0' ;
 		
 		if( ready = '1') then
-			din <= data_s2f_r ;
+			din <= data_s2f ;
 			tx_start <= '1' ;
 			arbiter_next_state <= send_comm;
 		end if;
@@ -275,13 +305,15 @@ begin
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
 			tx_start <= '1' ;
+			
+			mode <= "00" ;
+			mem <= '0' ;
 		end if;
 
 -- RS232 states
 	-- send_comm			
 	when send_comm =>
 			-- disable memory test block
-			test_mem <= '0' ;
 			mem <= '0' ;
 			
 			-- activate the rs232 interface for transfer
