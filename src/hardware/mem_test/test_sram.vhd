@@ -23,7 +23,6 @@ entity test_sram is
 			mem: out std_logic ;
 			-- system
 			clk : in std_logic ;
-			reset : in std_logic ;
 			u9_test: out std_logic_vector(7 downto 0) ;
 			u8_test: out std_logic_vector(7 downto 0) ;
 			-- signal
@@ -78,7 +77,6 @@ if rising_edge(clk) then
 			if( ready = '1') then 	
 			   if( data_mem(8) = '1' ) then	
 				   	-- next state
-					data_mem(8 downto 0) <= "000000001" ;
 					addr_t(17 downto 0) <= (0 => '1', others => '0') ;
 					memtester_state_next <= middle_t_mem ;
 								
@@ -102,18 +100,18 @@ if rising_edge(clk) then
 			mem <= '1' ;
 			addr_t(17 downto 0) <= ( 0 => '1', others => '0' ) ;
 			memtester_state_next <= read_t_mem ;
+			data_mem(8 downto 0) <= "000000001" ;
 									
 		when read_t_mem =>
 			if( ready = '1') then
 			
 				if( data_mem(8) = '1' ) then
 					-- exit
-					data_mem(8 downto 0) <= "000000001";
 					memtester_state_next <= idle ;
 					test_result <= "10" ;
 					mem <= '0' ;
-					addr_t(17 downto 0) <=  ( others => '0' );
-					
+					addr_t(17 downto 0) <=  ( others => '0' ) ;
+										
 				else
 					-- read from the memory test pattern
 					-- check data from memeory

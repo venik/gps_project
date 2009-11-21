@@ -121,7 +121,6 @@ test_sram: entity work.test_sram(Behavioral)
 			data_s2f => data_s2f,
 			ready => ready,
 			clk => clk,
-			reset => reset,
 			u9_test => u9_topt,
 			u8_test => u8_topt,
 			test_result => test_result,
@@ -163,9 +162,10 @@ gps: entity work.gps_main(gps_main)
 			clk => clk
 		);
 			
-SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, t_mem,
+SRAM_MUX: process(mode,
+						t_addr, t_rw, t_data_f2s, t_mem,
 						a_addr, a_rw, a_data_f2s, a_mem,
-						m_addr, m_rw, m_mem
+						m_addr, m_rw, m_data_f2s, m_mem
 					)
 begin
 	

@@ -15,7 +15,6 @@ entity arbiter is
 			-- sram
 			addr_a: out std_logic_vector(17 downto 0) ;
 			data_f2s: out std_logic_vector(7 downto 0) ;
-			--data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;\
 			data_s2f: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
@@ -192,7 +191,7 @@ begin
 				-- ZEROOOOO mem	 FIXME
 				mode <= "00" ;
 				--data_f2s <= ( others => '0' );
-				--data_f2s <= ( others => '1' );
+				data_f2s <= ( others => '1' );
 				data_f2s <= std_logic_vector(result( 7 downto 0 ));
 				rw <= '1' ;
 													
@@ -210,9 +209,6 @@ begin
 					if( ready = '1') then
 						mem <= '1' ;	
 						addr_a <= std_logic_vector(result);
-						--addr_a <= addr_ant + '1';
-						--result <= result + one;
-						--result <= result + ( X"0000" & b"01" );
 						result <= result + 1;
 						--result <= one;
 					  else 
