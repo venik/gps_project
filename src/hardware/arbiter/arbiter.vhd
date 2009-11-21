@@ -64,9 +64,9 @@ architecture Behavioral of arbiter is
 	signal gps_programmed_a: std_logic := '0' ;
 	
 	signal soft_reset: std_logic := '0' ;
-	--signal addr_a_int: std_logic_vector(17 downto 0) := ( others => '0' ) ;	
 	-- SRAM
 	signal result: unsigned (17 downto 0) := (others => '0') ;
+	signal old_ready: std_logic := '0' ;
 		
 begin
 
@@ -141,6 +141,7 @@ begin
 			test_mem <= '0';
 			program_gps_a <= '0' ;
 			gps_start_a <= '0' ;
+			old_ready <= ready ;
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
@@ -192,11 +193,9 @@ begin
 				mode <= "00" ;
 				--data_f2s <= ( others => '0' );
 				data_f2s <= ( others => '1' );
-				data_f2s <= std_logic_vector(result( 7 downto 0 ));
 				rw <= '1' ;
 													
 				if( result(17 downto 0) = X"3FFFF" ) then	
-				--if( addr_a_int(17 downto 0) = X"3FFFF" ) then
 					-- already ZEROOOOed
 					arbiter_next_state <= send_comm;
 					din <= comm(7 downto 0) ;
@@ -206,12 +205,16 @@ begin
 					
 					tx_start <= '1';
 				else 
+					old_ready <= ready ;
+					
 					if( ready = '1') then
 						mem <= '1' ;	
 						addr_a <= std_logic_vector(result);
-						result <= result + 1;
-						--result <= one;
-					  else 
+						
+						if( old_ready = '1' ) then
+							result <= result + 1;
+						end if ;
+					else 
 						mem <= '0' ;
 					end if;
 				end if;
@@ -294,7 +297,7 @@ begin
 		
 		
 	when waite_for_gps_data =>
-		u10 <= X"99" ;				-- 3
+		u10 <= X"99" ;				-- 4
 		gps_start_a <= '0' ;
 		
 		if( gps_done_a = '1') then

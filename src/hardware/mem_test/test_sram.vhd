@@ -58,18 +58,21 @@ if rising_edge(clk) then
 		case memtester_state is
 		
 		when idle =>
-			if( test_mem = '1' ) then
-				memtester_state_next <= write_t_mem ;
+		
+			if memtester_state_next = idle then
+				mem <= '0' ;
+				test_result <= "00" ;
 				addr_t(17 downto 0) <= ( 0 => '1', others => '0' );
 				data_mem(7 downto 0) <= ( 0 => '0', 1 => '1', others => '0' ) ;
 				data_f2s(7 downto 0) <= ( 0 => '1', others => '0' ) ;
+			end if;
+		
+			if( test_mem = '1' ) then
+				memtester_state_next <= write_t_mem ;
 				mem <= '1';
 				rw <= '1' ;		  
-			else 
-				mem <= '0' ;
-				test_result <= "00" ;
-			end if;
-						
+			end if; 
+					
 		when write_t_mem =>  
 		
 			mem <= not data_mem(8) ;	 	
