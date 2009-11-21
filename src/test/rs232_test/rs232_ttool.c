@@ -120,7 +120,7 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	uint64_t	comm_64;
 	int 		res, fd;
 	
-	fd = open("flush", O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+	fd = open("flush", (O_WRONLY | O_CREAT), (S_IRUSR | S_IWUSR | S_IROTH | S_IRGRP) );
 	char	header_string[] = "i\tq\n";
 	char	str_i_q[255] = {};
 	write(fd, header_string, strlen(header_string));
@@ -174,23 +174,26 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 
 	comm_64 |= (0x01<<0x08);		// address
 	//reg |= (VCOEN|IVCO_n|REFOUTEN|REFDIV_x1|IXTAL_bnc|ICP_05ma|PFDEN_en|INT_PLL_frac|PWSAV_off|REG_23);
-	reg = 0x855028c;
+	//reg = 0x8ec0000;
+	//reg = 0xeaff1dc;
+	//reg = 0x855048c;
+	//reg = 0xa2939a3;
 	comm_64 |= (reg<<12);	// data
 
 	//comm_64 = (comm_64 | 0x56ull<<8 | 0xabull<<26);
 
-	res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
+	//res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
 	//res = write(rs232data->fd, &byte, sizeof(uint8_t));
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
+	//printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	//printf("write 0x%02x, res [%d]\n", byte, res);
 
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x]\t\n", buff);
+	//res = read(rs232data->fd, &buff, 1);
+	//printf("=replay= [0x%02x]\t\n", buff);
 
-#if 0
+#if 1
 	int i;
-	//for(i=0; i<8; i++) {
-	while(2) {
+	for(i=0; i<8; i++) {
+	//for(i=0; i<1; i++) {
 		comm_64 = rs232data->cmd;
 		comm_64 |= ((0x01ull<<i)<<8);		// address
 		//comm_64 |= (0x55ull<<26);		// data
@@ -199,46 +202,11 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 		//printf("data for mem [%x]\n", (uint8_t)(comm_64>>26));
 		
 		//res = write(rs232data->fd, &comm_64, todo);
-		res = write(rs232data->fd, &comm_64, 1);
+		res = write(rs232data->fd, &comm_64, sizeof(comm_64));
 		printf("write 0x%016llx, res [%d]\n", comm_64, res);
 		res = read(rs232data->fd, &buff, 1);
 		printf("=replay= [0x%02x] \n", buff);
 	}
-#endif
-
-#if 0 
-	uint8_t		byte = 1;
-	//uint8_t		byte = 0x55;
-	uint64_t	counter = 0;
-	do {
-		comm_64 = ((uint64_t)byte)     | ((uint64_t)byte<<8)  |		\
-		          ((uint64_t)byte<<16) | ((uint64_t)byte<<24) |		\
-			  ((uint64_t)byte<<32) | ((uint64_t)byte<<40) |		\
-		    	  ((uint64_t)byte<<48) | ((uint64_t)byte<<56);
-
-		res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
-		//res = write(rs232data->fd, &byte, sizeof(uint8_t));
-		printf("write 0x%016llx, res [%d]\n", comm_64, res);
-		//printf("write 0x%02x, res [%d]\n", byte, res);
-
-		res = read(rs232data->fd, &buff, 1);
-		printf("=replay= [0x%02x]\t [%10lld]\n", buff, counter);
-		
-		while(0) {
-			res = read(rs232data->fd, &buff, 1);
-			printf("=replay= [0x%02x]\n", buff);
-		}
-
-		if(buff != byte ) {
-			printf("ERROR get [0x%02x] but must [0x%02x] on the [%lld]\n", buff, byte, counter);
-			exit(-1);
-		}
-
-		byte = ((byte & 0x80)>>7) | (byte<<1);
-		counter++;
-		//usleep(9000);
-
-	} while(1);
 #endif
 
 
@@ -277,7 +245,8 @@ int rs232_send(rs232_data_t *rs232data)
 
 	/* 0000 */
 	comm_64 |= (0x00<<8);			// address
-	comm_64 |= (0xa2919a3ull<<12);		// data
+	//comm_64 |= (0xa2919a3ull<<12);		// data
+	comm_64 |= (0xa2939a3ull<<12);
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
@@ -286,7 +255,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0001 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x01<<8);			// address
-	comm_64 |= (0x055028cull<<12);		// data
+	//comm_64 |= (0x055028cull<<12);		// data
+	comm_64 |= (0x0855048cull<<12);		// data
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
