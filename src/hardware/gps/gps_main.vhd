@@ -32,11 +32,10 @@ entity gps_main is
 end gps_main;
 
 architecture gps_main of gps_main is
-	type   gps_get_data_type is(idle, get_lsb, get_msb) ;
+	type   gps_get_data_type is(idle, wait_for_ready, get_lsb, get_msb) ;
 	signal gps_state, gps_next_state: gps_get_data_type := idle ;
 		
 	signal data_mem: std_logic_vector (7 downto 0) := (others => '0') ;
-	signal one: unsigned(17 downto 0) := (0=>'1', others => '0') ;
 	signal result: unsigned(17 downto 0) := (others => '0') ;
 	
 	-- new signals
@@ -69,11 +68,11 @@ end process;
 process(clk)
 begin
 if rising_edge(clk) then
-		gps_done_m <= '0' ;
 		
 		case gps_state is
 		
 		when idle =>
+			gps_done_m <= '0' ;
 			addr_m(17 downto 0) <= (others => '0');
 			data_mem(7 downto 0) <= (others => '0');
 			result(17 downto 0) <= (others => '0');
@@ -81,41 +80,42 @@ if rising_edge(clk) then
 			--test_spot_m <= '0' ;
 			
 			if( gps_start_m = '1' ) then
+				gps_next_state <= wait_for_ready;
+			end if;		   
+			
+		when wait_for_ready =>
+			if( ready_m = '1' ) then
 				gps_next_state <= get_lsb ;
 				rw_m <= '1' ;
-				--mem_m <= '1' ;
 			end if;
 			
 		when get_lsb =>
 			test_spot_m <= '1' ;
+			mem_m <= '0' ;
 			
 			if( result(17 downto 0) = X"3FFFF" ) then
 				-- memory is full - exit
 				gps_done_m <= '1' ;
 				gps_next_state <= idle ;
-				mem_m <= '0' ;
-					
 			elsif( gps_tick = '1' ) then
 					data_mem(3 downto 0) <= q_m & i_m ;
-					addr_m <= std_logic_vector(result);
-					result <= result + one;
+					--data_mem(3 downto 0) <= b"0100" ;
 					gps_next_state <= get_msb ;
-					
-					-- try to write
-					if(ready_m = '1' ) then
-						mem_m <= '1' ;
-						data_f2s_m <= data_mem;
-					else 
-						mem_m <= '0' ;
-					end if;
-			end if;
-		
+			end if;		
+			
 		when get_msb =>
 			test_spot_m <= '0' ;
 			
 			if( gps_tick = '1' ) then
 				data_mem(7 downto 4) <= q_m & i_m ;
+				--data_mem(7 downto 4) <= b"1110" ;
 				gps_next_state <= get_lsb ;
+								
+				-- try to write
+				mem_m <= '1' ;
+				data_f2s_m <= data_mem ;
+				addr_m <= std_logic_vector(result) ;
+				result <= result + 1 ;
 			end if;
 			
 		end case; -- case gps_state					

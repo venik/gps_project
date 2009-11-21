@@ -43,7 +43,8 @@ architecture Behavioral of top_level is
 
 			-- sram
 			signal 	ready: std_logic := '0' ;
-			signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;
+			--signal	data_s2f_r, data_s2f_ur: std_logic_vector(7 downto 0) ;	
+			signal	data_s2f: std_logic_vector(7 downto 0) ;
 			signal	data_f2s: std_logic_vector(7 downto 0) ;
 			signal	mem: std_logic := '0';
 			signal	rw: std_logic := '0';
@@ -95,12 +96,11 @@ arbiter: entity work.arbiter(Behavioral)
 			gps_done_a => gps_done,
 			rs232_in => rs232_in,
 			rs232_out => rs232_out,
-			addr => a_addr,
+			addr_a => a_addr,
 			rw => a_rw,
 			data_f2s => a_data_f2s,
 			mem => a_mem,
-			data_s2f_r => data_s2f_r,
-			data_s2f_ur => data_s2f_ur,
+			data_s2f => data_s2f,
 			ready => ready,
 			clk => clk,
 			u10 => u10,
@@ -114,15 +114,13 @@ arbiter: entity work.arbiter(Behavioral)
 			
 test_sram: entity work.test_sram(Behavioral)
 	port map(
-			addr => t_addr,
+			addr_t => t_addr,
 			rw => t_rw,
 			mem => t_mem,
 			data_f2s => t_data_f2s,
-			data_s2f_r => data_s2f_r,
-			data_s2f_ur => data_s2f_ur,
+			data_s2f => data_s2f,
 			ready => ready,
 			clk => clk,
-			reset => reset,
 			u9_test => u9_topt,
 			u8_test => u8_topt,
 			test_result => test_result,
@@ -134,7 +132,7 @@ sram_controller: entity work.sram_ctrl(arch)
 			clk => clk,
 			reset => reset,
 			u9_sram => u9_tops,
-			mem => mem,
+			mem_s => mem,
 			rw => rw,
 			s1 => s1,
 			s2 => s2,
@@ -142,8 +140,7 @@ sram_controller: entity work.sram_ctrl(arch)
 			addr => addr,
 			data_f2s => data_f2s,
 			ready => ready,
-			data_s2f_r => data_s2f_r,
-			data_s2f_ur => data_s2f_ur,
+			data_s2f => data_s2f,
 			dio_a => dio_a,
 			WE => WE,
 			OE => OE
@@ -165,11 +162,13 @@ gps: entity work.gps_main(gps_main)
 			clk => clk
 		);
 			
-
-
-SRAM_MUX: process(mode, t_addr, t_rw, t_data_f2s, t_mem, a_addr, a_rw, a_data_f2s, m_mem, m_addr, m_rw)
+SRAM_MUX: process(mode,
+						t_addr, t_rw, t_data_f2s, t_mem,
+						a_addr, a_rw, a_data_f2s, a_mem,
+						m_addr, m_rw, m_data_f2s, m_mem
+					)
 begin
-
+	
 	case mode is
 	when "00" => 
 		-- arbiter drive SRAM bus
@@ -188,15 +187,16 @@ begin
 		--u9 	<= u9_topt;
 		
 	when "10" =>
-		-- gps drive SRAM bus
+ 		-- gps drive SRAM bus
 		addr 		<= m_addr ;
 		rw 			<= m_rw ;
 		data_f2s 	<= m_data_f2s ;
 		mem 		<= m_mem ;
 		
 	when others => NULL ;
+	
 	end case;
-		
+	
 end process SRAM_MUX;
 
 end Behavioral;
