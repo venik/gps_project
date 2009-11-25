@@ -21,7 +21,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity rs232_rx_new is
 	Port (
 		clk : in STD_LOGIC ;
-		u9_rx : out  STD_LOGIC_VECTOR (7 downto 0) ;
+		u9_rx : out  STD_LOGIC_VECTOR (6 downto 0) ;
 		comm: out std_logic_vector (63 downto 0) ;		
 		rx_done_tick : out std_logic ;
 		rs232_in: in std_logic 
@@ -87,7 +87,7 @@ if rising_edge(clk) then
 	-- idle
 	when rx_idle =>
 	
-		u9_rx <= X"40" ;				-- 0
+		u9_rx <= b"1000000" ;				-- 0
 		rst_start_bit <= '1' ;
 		--u9_rx <= conv_std_logic_vector(byte_counter, 8);
 		
@@ -100,7 +100,7 @@ if rising_edge(clk) then
  	when rx_start =>
 	 
 	 	rst_start_bit <= '0' ;
-		u9_rx <= X"79" ;				-- 1
+		u9_rx <= b"1111001" ;				-- 1
 	 
 	 	if( rs232_rx_tick = '1' ) then
 			rs232_rx_next_state <= rx_data ; 
@@ -109,7 +109,7 @@ if rising_edge(clk) then
 	-- data bits
  	when rx_data =>
 	
-    u9_rx <= X"24" ;				-- 2       
+    u9_rx <= b"0100100" ;				-- 2       
 	 
     if( rs232_counter = 8 ) then 
 		-- move to finish
@@ -122,7 +122,7 @@ if rising_edge(clk) then
 	-- stop bit
 	when rx_stop =>
 	
-		u9_rx <= X"30" ;				-- 3
+		u9_rx <= b"0110000" ;				-- 3
 		
 		--if( rs232_in = '1' )then
 			-- wait for trailing-edge of the stop-bit

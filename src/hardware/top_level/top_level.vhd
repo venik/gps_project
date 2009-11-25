@@ -24,7 +24,7 @@ entity top_level is
 			-- gps
 			q: in std_logic_vector(1 downto 0) ;
 			i: in std_logic_vector(1 downto 0) ;
---			ld_gps: in std_logic ;
+			ld_gps: in std_logic ;
 			sclk: out std_logic ;
 			sdata: out std_logic ;
 			cs: out std_logic ;
@@ -87,6 +87,10 @@ begin
 --end if;
 --end process;
 
+u8(7) <= ld_gps ;
+u9(7) <= ld_gps ;
+u10(7) <= ld_gps ;
+
 arbiter: entity work.arbiter(Behavioral)
 	port map(
 			cs_a => cs,
@@ -103,9 +107,9 @@ arbiter: entity work.arbiter(Behavioral)
 			data_s2f => data_s2f,
 			ready => ready,
 			clk => clk,
-			u10 => u10,
-			u9 => u9,
-			u8 => u8,
+			u10 => u10(6 downto 0),
+			u9 => u9(6 downto 0),
+			u8 => u8(6 downto 0),
 			mode => mode,
 			test_result => test_result,
 			test_mem => test_mem,

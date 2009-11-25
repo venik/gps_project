@@ -26,9 +26,9 @@ entity arbiter is
 			
 			--system
 			clk : in std_logic ;
-			u10 : out  std_logic_vector (7 downto 0) ;
-			u9 : out  std_logic_vector (7 downto 0) ;
-			u8 : out  std_logic_vector (7 downto 0) ;
+			u10 : out  std_logic_vector (6 downto 0) ;
+			u9 : out  std_logic_vector (6 downto 0) ;
+			u8 : out  std_logic_vector (6 downto 0) ;
 			reset : in std_logic ;
 			mode: out std_logic_vector(1 downto 0) ;
 
@@ -127,7 +127,7 @@ begin
 				--din <= comm(7 downto 0) ;
 				--tx_start <= '1';
 			else 
-				u10 <= X"40" ;				-- 0
+				u10 <= b"1000000" ;				-- 0
 				tx_start <= '0';
 			end if ;
 			
@@ -145,7 +145,7 @@ begin
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
-				u10 <= X"79" ;				-- 1
+				u10 <= b"1111001" ;				-- 1
 				
 				case comm(7 downto 0) is
 				when "00000001" => 
@@ -191,8 +191,8 @@ begin
 				when "00000101" =>
 				-- ZEROOOOO mem	 FIXME
 				mode <= "00" ;
-				--data_f2s <= ( others => '0' );
-				data_f2s <= ( others => '1' );
+				data_f2s <= ( others => '0' );
+				--data_f2s <= ( others => '1' );
 				rw <= '1' ;
 													
 				if( result(17 downto 0) = X"3FFFF" ) then	
@@ -233,7 +233,7 @@ begin
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
 					tx_start <= '1' ;
-					u10 <= comm(7 downto 0) ;
+					--u10 <= comm(6 downto 0) ;
 					-- on unknown command - send 0xFF
 					din <= ( others => '1' ) ;
 					mem <= '0' ;
@@ -263,7 +263,7 @@ begin
 	
 	-- wait for writing data			
 	when after_write =>
-		u10 <= X"24" ;				-- 2
+		u10 <= b"0100100" ;				-- 2
 		
 		if( ready = '1') then
 			din <= comm(7 downto 0);
@@ -274,7 +274,7 @@ begin
 	
 	-- wait for reading data			
 	when after_read =>
-		u10 <= X"30" ;				-- 3
+		u10 <= b"0110000" ;				-- 3
 		mem <= '0' ;
 		
 		if( ready = '1') then
@@ -297,7 +297,7 @@ begin
 		
 		
 	when waite_for_gps_data =>
-		u10 <= X"99" ;				-- 4
+		u10 <= b"0011001" ;				-- 4
 		gps_start_a <= '0' ;
 		
 		if( gps_done_a = '1') then
