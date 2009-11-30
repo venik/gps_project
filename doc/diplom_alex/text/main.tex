@@ -11,9 +11,13 @@
 \renewcommand{\@biblabel}[1]{#1.} 		% Заменяем библиографию с квадратных скобок на точку:
 \makeatother
 
+%\renewcommand\large{\@setfontsize\large{15.5}{17}}
+%\renewcommand\Large{\@setfontsize\Large{16.5}{19}}
+%\renewcommand\small{\@setfontsize\small{9}{9.5}}
+
 \usepackage{geometry} 				% Меняем поля страницы
 \geometry{left=2cm}				% левое поле
-\geometry{right=1.5cm}				% правое поле
+\geometry{right=1.4cm}				% правое поле
 \geometry{top=1cm}				% верхнее поле
 \geometry{bottom=2cm}				% нижнее поле
 
@@ -26,6 +30,7 @@
 
 \begin{document}
 \input{title}					% это титульный лист
+\input{diplom_task}
 \tableofcontents 				% это оглавление, которое генерируется автоматически
 \newpage
 \input{research}				% исследовательский раздел 
