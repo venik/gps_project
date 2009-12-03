@@ -1,9 +1,9 @@
 -----------------------------------------------------------
--- Name:	gps arbiter 
+-- Name:		gps arbiter 
 -- Description:	get data from gps and store in sram, after
---		sram is full send it via rs232
+--				sram is full send it via rs232
 --
--- Developer: Alex Nikiforov nikiforov.al [at] gmail.com
+-- Developer: 	Alex Nikiforov nikiforov.al [at] gmail.com
 -----------------------------------------------------------
 
 library IEEE;
@@ -54,7 +54,12 @@ architecture Behavioral of arbiter is
 	signal comm: std_logic_vector (63 downto 0) := (others => '0') ;	
 	
 	-- local
-	type arbiter_type is(idle, parse_comm, after_write, after_read, send_comm, waite_for_gps, waite_for_gps_data, wait_for_mem_test) ;
+	type arbiter_type is(	idle, parse_comm,
+							zero_mem_0, zero_mem_1, wait_for_mem_test, after_write, after_read,
+							waite_for_gps, waite_for_gps_data,
+							send_comm
+						) ;
+							
 	signal arbiter_state: arbiter_type := idle ;
 	signal arbiter_next_state: arbiter_type := idle ;
 		
@@ -66,7 +71,6 @@ architecture Behavioral of arbiter is
 	signal soft_reset: std_logic := '0' ;
 	-- SRAM
 	signal result: unsigned (17 downto 0) := (others => '0') ;
-	signal old_ready: std_logic := '0' ;
 		
 begin
 
@@ -141,7 +145,6 @@ begin
 			test_mem <= '0';
 			program_gps_a <= '0' ;
 			gps_start_a <= '0' ;
-			old_ready <= ready ;
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
@@ -166,7 +169,15 @@ begin
 					-- test sram
 					test_mem <= '1' ;
 					mode <= "01" ;
-					arbiter_next_state <= wait_for_mem_test;
+					arbiter_next_state <= wait_for_mem_test; 
+		
+				when "00000101" =>
+					-- ZEROOOOO mem
+					mode <= "00" ;
+					data_f2s <= ( others => '0' );
+					--data_f2s <= ( others => '1' );
+					rw <= '1' ;
+					arbiter_next_state <= zero_mem_0;
 					
 				when "10101010" =>
 					-- rs232 echo-test
@@ -187,37 +198,6 @@ begin
 					rw <= '1' ;	
 					arbiter_next_state <= after_write;
 				end if;	 
-				
-				when "00000101" =>
-				-- ZEROOOOO mem	 FIXME
-				mode <= "00" ;
-				data_f2s <= ( others => '0' );
-				--data_f2s <= ( others => '1' );
-				rw <= '1' ;
-													
-				if( result(17 downto 0) = X"3FFFF" ) then	
-					-- already ZEROOOOed
-					arbiter_next_state <= send_comm;
-					din <= comm(7 downto 0) ;
-					--result <= ( 0=>'1', others => '0' );
-					result <= X"0000" & b"01" ;
-					addr_a <= ( others => '0' );
-					
-					tx_start <= '1';
-				else 
-					old_ready <= ready ;
-					
-					if( ready = '1') then
-						mem <= '1' ;	
-						addr_a <= std_logic_vector(result);
-						
-						if( old_ready = '1' ) then
-							result <= result + 1;
-						end if ;
-					else 
-						mem <= '0' ;
-					end if;
-				end if;
 			
 				when "00001000" =>
 				if( ready = '1') then
@@ -240,6 +220,38 @@ begin
 					mode <= "00" ;
 									
 				end case;
+
+-- memory states  
+
+	when zero_mem_0 =>
+	if( result(17 downto 0) = X"3FFFF" ) then	
+		-- already ZEROOOOed
+		arbiter_next_state <= send_comm;
+		din <= comm(7 downto 0) ;
+		--result <= ( others => '0' );
+		--result <= X"0000" & b"01" ;
+		addr_a <= ( others => '0' );
+		
+		tx_start <= '1';
+	else
+		mem <= '0' ;
+		if arbiter_next_state = zero_mem_1 then
+			result <= result + 1;
+		end if;
+		
+		if( ready = '1') then
+			mem <= '1' ;
+			addr_a <= std_logic_vector(result);
+			arbiter_next_state <= zero_mem_1 ;
+		end if;
+	end if;	
+	
+	when zero_mem_1 =>
+	mem <= '0' ;
+	if( ready = '1') then
+		arbiter_next_state <= zero_mem_0 ;
+	end if;		
+
 				
 	when wait_for_mem_test =>
 		-- wait for end of the memory test
