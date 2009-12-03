@@ -5,10 +5,13 @@ First version of the board will contain
 			Hardware:
 				onboard RS-232 port and the management VHDL		[done]
 				256K SRAM memory and the SRAM controller in VHDL	[done]
-				GPS chip arbiter					[not started]
+				GPS chip arbiter					[done]
 
 			Software:
 				correlation code on C under Linux			[unknown]
 				GPS-satellite signal generator				[unknown]
 				RS232 client in C under Linux				[in progress]
 				GUI for software modules				[in progress]
+
+
+Stage:				test the board and the software
