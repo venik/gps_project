@@ -55,13 +55,17 @@ architecture Behavioral of arbiter is
 	
 	-- local
 	type arbiter_type is(	idle, parse_comm,
-							zero_mem_0, zero_mem_1, wait_for_mem_test, after_write, after_read,
+							zero_mem_0, zero_mem_1,
+							wait_for_mem_test,
+							after_write, after_read,
 							waite_for_gps, waite_for_gps_data,
+							flush_mem_0, flush_mem_1,
 							send_comm
 						) ;
 							
 	signal arbiter_state: arbiter_type := idle ;
-	signal arbiter_next_state: arbiter_type := idle ;
+	signal arbiter_next_state: arbiter_type := idle ; 
+	signal arbiter_move_to: arbiter_type := idle ;
 		
 	-- GPS
 	signal gps_word_a: std_logic_vector (31 downto 0) := (others => '0') ;	
@@ -179,9 +183,16 @@ begin
 					rw <= '1' ;
 					arbiter_next_state <= zero_mem_0;
 					
+				when "00000111" =>
+					-- flush all mem data
+					mode <= "00" ;
+					rw <= '0' ;
+					arbiter_next_state <= flush_mem_0;
+					
 				when "10101010" =>
 					-- rs232 echo-test
 					arbiter_next_state <=  send_comm ;
+					arbiter_move_to <= idle ;
 					tx_start <= '1' ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
@@ -212,6 +223,7 @@ begin
 				when others =>
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
+					arbiter_move_to <= idle ;
 					tx_start <= '1' ;
 					--u10 <= comm(6 downto 0) ;
 					-- on unknown command - send 0xFF
@@ -226,7 +238,8 @@ begin
 	when zero_mem_0 =>
 	if( result(17 downto 0) = X"3FFFF" ) then	
 		-- already ZEROOOOed
-		arbiter_next_state <= send_comm;
+		arbiter_next_state <= send_comm ;
+		arbiter_move_to <= idle ;
 		din <= comm(7 downto 0) ;
 		--result <= ( others => '0' );
 		--result <= X"0000" & b"01" ;
@@ -252,10 +265,39 @@ begin
 		arbiter_next_state <= zero_mem_0 ;
 	end if;		
 
+	when flush_mem_0 =>
+	if( result(17 downto 0) = X"3FFFF" ) then	
+		-- all data have flushed
+		arbiter_next_state <= idle ;
+		addr_a <= ( others => '0' ) ;
+		arbiter_move_to <= idle ;
+	else
+		mem <= '0' ;
+		if arbiter_next_state = flush_mem_1 then
+			result <= result + 1;
+		end if;
+		
+		if( ready = '1') then
+			mem <= '1' ;
+			addr_a <= std_logic_vector(result);
+			arbiter_next_state <= flush_mem_1 ;
+		end if;
+	end if;
+	
+	when flush_mem_1 => 	
+	mem <= '0' ;
+	arbiter_move_to <= flush_mem_0 ;
+	if( ready = '1') then
+		arbiter_next_state <= send_comm ;
+		din <= data_s2f ;
+		tx_start <= '1' ;
+	end if;	
 				
 	when wait_for_mem_test =>
 		-- wait for end of the memory test
 		test_mem <= '0' ;
+		arbiter_move_to <= idle ;
+		
 		if( test_result = "11" ) then
 			-- =) error occur
 			arbiter_next_state <=  send_comm ;
@@ -265,7 +307,7 @@ begin
 			mem <= '0';
 		elsif(test_result = "10") then
 			-- =) memory is good
-			arbiter_next_state <=  send_comm ;
+			arbiter_next_state <= send_comm ;
 			tx_start <= '1' ;
 			din <= comm(7 downto 0) ;
 			
@@ -280,7 +322,8 @@ begin
 		if( ready = '1') then
 			din <= comm(7 downto 0);
 			tx_start <= '1' ;		
-			arbiter_next_state <= send_comm;
+			arbiter_next_state <= send_comm ; 
+			arbiter_move_to <= idle ;
 		end if;
 	
 	
@@ -292,7 +335,8 @@ begin
 		if( ready = '1') then
 			din <= data_s2f ;
 			tx_start <= '1' ;
-			arbiter_next_state <= send_comm;
+			arbiter_next_state <= send_comm ; 
+			arbiter_move_to <= idle ;
 		end if;
 		
 -- GPS states
@@ -303,7 +347,8 @@ begin
 
 		if( gps_programmed_a = '1') then
 			din <= comm(7 downto 0) ;
-			arbiter_next_state <= send_comm;
+			arbiter_next_state <= send_comm ;
+			arbiter_move_to <= idle ;
 			tx_start <= '1' ;
 		end if;
 		
@@ -315,6 +360,7 @@ begin
 		if( gps_done_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
+			arbiter_move_to <= idle ;
 			tx_start <= '1' ;
 			
 			mode <= "00" ;
@@ -332,7 +378,7 @@ begin
 			tx_start <= '0';
 			
 			if( tx_done_tick = '1' ) then
-				arbiter_next_state <= idle ;
+				arbiter_next_state <= arbiter_move_to ;
 			end if;
 			
 		end case;
