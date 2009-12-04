@@ -38,8 +38,7 @@ architecture Behavioral of test_sram is
 	signal memtester_state_next: memtester_type := idle ;
 
 	signal data_mem: std_logic_vector (8 downto 0) := "000000001" ; 
-	signal data_mem_prev: std_logic_vector (8 downto 0) := "000000001" ; 
-	
+		
 begin
 
 process(clk)

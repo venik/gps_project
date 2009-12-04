@@ -72,7 +72,6 @@ architecture Behavioral of arbiter is
 	signal program_gps_a: std_logic := '0' ;
 	signal gps_programmed_a: std_logic := '0' ;
 	
-	signal soft_reset: std_logic := '0' ;
 	-- SRAM
 	signal result: unsigned (17 downto 0) := (others => '0') ;
 		
@@ -112,11 +111,7 @@ gps_serial_unit: entity work.gps_serial(gps_serial)
 process(clk, reset)
 begin
 
-	if( reset = '0') then				-- push the reset-button
-		soft_reset <= '1' ;				-- reset submodules
-		arbiter_state <= idle ;
-	elsif rising_edge(clk) then
-		soft_reset <= '0' ;
+	if rising_edge(clk) then
 		arbiter_state <= arbiter_next_state ;
 	end if;
 	
@@ -149,6 +144,7 @@ begin
 			test_mem <= '0';
 			program_gps_a <= '0' ;
 			gps_start_a <= '0' ;
+			arbiter_move_to <= idle ;
 		
 		-- parse the incomming command and do something
 		when parse_comm =>
@@ -192,7 +188,6 @@ begin
 				when "10101010" =>
 					-- rs232 echo-test
 					arbiter_next_state <=  send_comm ;
-					arbiter_move_to <= idle ;
 					tx_start <= '1' ;
 					din <= comm(7 downto 0) ;
 					mem <= '0' ;
@@ -223,7 +218,6 @@ begin
 				when others =>
 					-- unknown command
 					arbiter_next_state <=  send_comm ;
-					arbiter_move_to <= idle ;
 					tx_start <= '1' ;
 					--u10 <= comm(6 downto 0) ;
 					-- on unknown command - send 0xFF
@@ -239,7 +233,6 @@ begin
 	if( result(17 downto 0) = X"3FFFF" ) then	
 		-- already ZEROOOOed
 		arbiter_next_state <= send_comm ;
-		arbiter_move_to <= idle ;
 		din <= comm(7 downto 0) ;
 		--result <= ( others => '0' );
 		--result <= X"0000" & b"01" ;
@@ -296,7 +289,6 @@ begin
 	when wait_for_mem_test =>
 		-- wait for end of the memory test
 		test_mem <= '0' ;
-		arbiter_move_to <= idle ;
 		
 		if( test_result = "11" ) then
 			-- =) error occur
@@ -323,7 +315,6 @@ begin
 			din <= comm(7 downto 0);
 			tx_start <= '1' ;		
 			arbiter_next_state <= send_comm ; 
-			arbiter_move_to <= idle ;
 		end if;
 	
 	
@@ -336,7 +327,6 @@ begin
 			din <= data_s2f ;
 			tx_start <= '1' ;
 			arbiter_next_state <= send_comm ; 
-			arbiter_move_to <= idle ;
 		end if;
 		
 -- GPS states
@@ -348,7 +338,6 @@ begin
 		if( gps_programmed_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm ;
-			arbiter_move_to <= idle ;
 			tx_start <= '1' ;
 		end if;
 		
@@ -360,7 +349,6 @@ begin
 		if( gps_done_a = '1') then
 			din <= comm(7 downto 0) ;
 			arbiter_next_state <= send_comm;
-			arbiter_move_to <= idle ;
 			tx_start <= '1' ;
 			
 			mode <= "00" ;
