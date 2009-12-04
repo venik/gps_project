@@ -115,7 +115,7 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	printf("flush sram\n");
 	uint8_t		buff[1<<18] = {};
 	uint64_t	addr = 0;
-	uint64_t	max_addr = (1<<18);
+	uint32_t	max_addr = (1<<18) - 2;
 	
 	uint64_t	comm_64;
 	int 		res, fd;
@@ -125,20 +125,14 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	char	str_i_q[255] = {};
 	write(fd, header_string, strlen(header_string));
 
+	/* flush it */
+	comm_64 = (0x7ull) ;
+	res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
+	
 	for(addr = 0; addr < max_addr; addr++ ) {
-
-		comm_64 = ((0x8ull) | (addr<<8) | (0x0ull<<26));
-
-		res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
-		printf("write 0x%016llx, res [%d]\n", comm_64, res);
 
 		res = read(rs232data->fd, buff+addr, 1);
 
-#if 0
-		if( buff[addr] != 0x0 ) {
-			printf("addr[%lld] data [%02x]\n", addr, buff[addr]);
-		}
-#endif
 
 		printf("=replay= [0x%02x]\t addr [%06lld]\n", buff[addr], addr);
 
@@ -152,7 +146,7 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 		write(fd, str_i_q, strlen(str_i_q));
 
 	}
-
+	
 	close(fd);
 
 	return 0;
@@ -192,8 +186,8 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 
 #if 1
 	int i;
-	for(i=0; i<8; i++) {
-	//for(i=0; i<1; i++) {
+	//for(i=0; i<8; i++) {
+	for(i=0; i<1; i++) {
 		comm_64 = rs232data->cmd;
 		comm_64 |= ((0x01ull<<i)<<8);		// address
 		//comm_64 |= (0x55ull<<26);		// data
@@ -256,7 +250,7 @@ int rs232_send(rs232_data_t *rs232data)
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x01<<8);			// address
 	//comm_64 |= (0x055028cull<<12);		// data
-	comm_64 |= (0x0855048cull<<12);		// data
+	comm_64 |= (0x0855048Cull<<12);		// data
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
@@ -265,7 +259,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0010 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x02<<8);			// address
-	comm_64 |= (0xeafe1dcull<<12);		// data
+	//comm_64 |= (0xeafe1dcull<<12);		// data
+	comm_64 |= (0xeaff1dcull<<12);		// data				// FIXME
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
