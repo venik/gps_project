@@ -9,8 +9,25 @@
 /* table for tranfer byte i,q and i,q */
 int8_t gps_value[] = {0, 1, -2, -1};
 
-/* GPS - registers */ 
+void hex2str(char *str, uint8_t src)
+{
+	uint8_t	i = 128, j = 0;
+	do {
+		if( src & i ) {
+			str[j] = '1' ;				
+		} else {
+			str[j] = '0' ;				
+		}
+		
+		j++;
+		i >>= 1 ;
+	} while(i);
 
+	str[j] = '\0' ;
+}
+
+
+/* GPS - registers */ 
 typedef enum {
 	CHIPEN_en	= 1<<27,		/* Chip enable. Set 1 to enable the device and */
 	CHIPEN_off	= 0<<27,		/* 0 to disable the entire device except the serial bus */

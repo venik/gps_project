@@ -119,6 +119,8 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	
 	uint64_t	comm_64;
 	int 		res, fd;
+
+	char		str[10] = {};
 	
 	fd = open("flush", (O_WRONLY | O_CREAT), (S_IRUSR | S_IWUSR | S_IROTH | S_IRGRP) );
 	char	header_string[] = "i\tq\n";
@@ -133,8 +135,9 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 
 		res = read(rs232data->fd, buff+addr, 1);
 
+		hex2str(str, buff[addr]);
 
-		printf("=replay= [0x%02x]\t addr [%06lld]\n", buff[addr], addr);
+		printf("=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
 
 		sprintf(str_i_q, "%d\t%d\n%d\t%d\n", 
 			gps_value[GET_I1(buff[addr])],
@@ -239,7 +242,6 @@ int rs232_send(rs232_data_t *rs232data)
 
 	/* 0000 */
 	comm_64 |= (0x00<<8);			// address
-	//comm_64 |= (0xa2919a3ull<<12);		// data
 	comm_64 |= (0xa2939a3ull<<12);
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
@@ -249,8 +251,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0001 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x01<<8);			// address
-	//comm_64 |= (0x055028cull<<12);		// data
 	comm_64 |= (0x0855048Cull<<12);		// data
+	//comm_64 |= (0x08550c8Cull<<12);		// data
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
@@ -366,8 +368,6 @@ int main(int argc, char **argv)
 	rs232_data_t	rs232data = {};
 	int 		res;
 	
-	//printf("reg 0000 [%x]\n", reg_addr_000);
-
 	while ( (res = getopt(argc,argv,"hp:tc:")) != -1){
 		switch (res) {
 		case 'h':
