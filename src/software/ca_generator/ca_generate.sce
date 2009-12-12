@@ -101,13 +101,15 @@ length_str=evstr(length_str);
      end;
    end;
 end;
+diary('test.txt');
 output_str_re=sum(x_re,"c")
 output_str_im=sum(x_im,"c")
 mem
 q=0:length(output_str_re)-1;
 for i=1:length(output_str_re);
-cmplx(i)=output_str_re(i)+output_str_im(i)*%i;
+cmplx(i)=output_str_re(i)+output_str_im(i)*%i;  //output A
 end;
 cmplx
-//save('test.dat',output_str,mem,length_str);
+diary(0);
+//save('test.dat',output_str_re,output_str_im,mem,length_str);
 
