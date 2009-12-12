@@ -7,7 +7,8 @@
 #define GET_Q2(x) ( (x & (0x3<<6)) >> 6)
 
 /* table for tranfer byte i,q and i,q */
-int8_t gps_value[] = {0, 1, -2, -1};
+//int8_t gps_value[] = {0, 1, -2, -1};
+int8_t gps_value[] = {0, 1, -1, -2};
 
 void hex2str(char *str, uint8_t src)
 {

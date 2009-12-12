@@ -251,8 +251,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0001 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x01<<8);			// address
-	comm_64 |= (0x0855048Cull<<12);		// data
-	//comm_64 |= (0x08550c8Cull<<12);		// data
+	//comm_64 |= (0x0855048Cull<<12);		// data
+	comm_64 |= (0x0855028Cull<<12);		// data
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
