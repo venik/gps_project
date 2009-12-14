@@ -117,7 +117,7 @@ int rs232_open_flush(rs232_data_t *rs232data)
 {
 	errno = 0;
 
-	rs232data->fd_flush = open("flush", O_RDWR|O_CREAT|O_EXCL, 0666);
+	rs232data->fd_flush = open("flush", O_RDWR|O_CREAT|O_TRUNC, 0666);
 
 	if( rs232data->fd_flush < 0 ) {
 		printf("[err] during open the flush file. errno %s\n", strerror(errno));
@@ -427,10 +427,13 @@ int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
 	int 		res;
-/*
-	uint8_t		val = 0x2b;
 
-	printf("[%x] => %d\t[%x] => %d\n",
+#if 0	
+	uint8_t		val = 0x2b;
+	
+
+for(val = 0; val < 16; val ++)
+	printf("%d [%x] => %d\t[%x] => %d\n", val,
 		GET_3b_FIRST_VAL(val),
 		gps_val_3bit_usign[GET_3b_FIRST_VAL(val)],
 		GET_3b_SECOND_VAL(val),
@@ -438,7 +441,7 @@ int main(int argc, char **argv)
 	);
 
 	exit(-1);
-*/
+#endif 
 
 	while ( (res = getopt(argc,argv,"hp:tc:")) != -1){
 		switch (res) {
@@ -479,7 +482,8 @@ int main(int argc, char **argv)
 	} else if(rs232data.cmd == 0xb) {
 		rs232_zero_mem(&rs232data);
 	} else if(rs232data.cmd == 0xff) {
-		rs232_send_cmd_flush(&rs232data);
+		//rs232_send_cmd_flush(&rs232data);
+		rs232_send_cmd_flush_3bit(&rs232data);
 	} else {
 		 rs232_send_cmd(&rs232data);
 	}

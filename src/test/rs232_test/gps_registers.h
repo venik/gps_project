@@ -12,7 +12,7 @@
 int8_t gps_value[] = {2, 6, -2, -6};
 
 /* 3 bits form */
-#define GET_3b_FIRST_VAL(x) ( (GET_I1(x)<<1) | (GET_Q1(x))>>1)
+#define GET_3b_FIRST_VAL(x) ( (GET_I1(x)<<1) | (GET_Q1(x) & 0x2)>>1)
 #define GET_3b_SECOND_VAL(x) (( (GET_I2(x)<<1) | ((GET_Q2(x) & 0x2)>>1) ))
 
 int8_t gps_val_3bit_sign[] = {1, 3, 5, 7, -1, -3, -5, -7};
