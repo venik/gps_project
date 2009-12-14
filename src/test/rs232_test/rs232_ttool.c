@@ -29,6 +29,9 @@
 typedef struct rs232_data_s {
 	char	name[MAXLINE];
 	int	fd;
+	
+	int 	fd_flush;
+
 	uint8_t	cmd;
 
 	uint8_t recv_buf[BUF_SIZE];	
@@ -110,6 +113,20 @@ void rs232_destroy(rs232_data_t	*rs232data)
 	close(rs232data->fd);
 }
 
+int rs232_open_flush(rs232_data_t *rs232data)
+{
+	errno = 0;
+
+	rs232data->fd_flush = open("flush", O_RDWR|O_CREAT|O_EXCL, 0666);
+
+	if( rs232data->fd_flush < 0 ) {
+		printf("[err] during open the flush file. errno %s\n", strerror(errno));
+		exit(-1);
+	}
+
+	return 0;
+}
+
 int rs232_send_cmd_flush(rs232_data_t *rs232data)
 {
 	printf("flush sram\n");
@@ -121,11 +138,11 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	int 		res, fd;
 
 	char		str[10] = {};
-	
-	fd = open("flush", (O_WRONLY | O_CREAT), (S_IRUSR | S_IWUSR | S_IROTH | S_IRGRP) );
 	char	header_string[] = "i\tq\n";
 	char	str_i_q[255] = {};
-	write(fd, header_string, strlen(header_string));
+
+	rs232_open_flush(rs232data);
+	write(rs232data->fd_flush, header_string, strlen(header_string));
 
 	/* flush it */
 	comm_64 = (0x7ull) ;
@@ -146,7 +163,7 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 			gps_value[GET_Q2(buff[addr])]
 		);
 
-		write(fd, str_i_q, strlen(str_i_q));
+		write(rs232data->fd_flush, str_i_q, strlen(str_i_q));
 
 	}
 	
@@ -155,6 +172,49 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	return 0;
 }
 
+int rs232_send_cmd_flush_3bit(rs232_data_t *rs232data)
+{
+	printf("[%s]\n", __func__);
+
+	uint8_t		buff[1<<18] = {};
+	uint64_t	addr = 0;
+	uint32_t	max_addr = (1<<18) - 2;
+	
+	uint64_t	comm_64;
+	int 		res, fd;
+
+	char		str[10] = {};
+	char	header_string[] = "3 bit form MSB => [i1 i0 q1] <= LSB \n";
+	char	str_3bit[255] = {};
+
+
+	rs232_open_flush(rs232data);
+	write(fd, header_string, strlen(header_string));
+
+	/* flush it */
+	comm_64 = (0x7ull) ;
+	res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
+	
+	for(addr = 0; addr < max_addr; addr++ ) {
+
+		res = read(rs232data->fd, buff+addr, 1);
+
+		hex2str(str, buff[addr]);
+
+		printf("=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
+
+		sprintf(str_3bit, "%d\n%d\n", 
+			gps_val_3bit_sign[GET_3b_FIRST_VAL(buff[addr])],
+			gps_val_3bit_sign[GET_3b_SECOND_VAL(buff[addr])] );
+
+		write(rs232data->fd_flush, str_3bit, strlen(str_3bit));
+
+	}
+	
+	close(fd);
+
+	return 0;
+}
 
 int rs232_send_cmd(rs232_data_t *rs232data)
 {
@@ -367,7 +427,19 @@ int main(int argc, char **argv)
 {
 	rs232_data_t	rs232data = {};
 	int 		res;
-	
+/*
+	uint8_t		val = 0x2b;
+
+	printf("[%x] => %d\t[%x] => %d\n",
+		GET_3b_FIRST_VAL(val),
+		gps_val_3bit_usign[GET_3b_FIRST_VAL(val)],
+		GET_3b_SECOND_VAL(val),
+		gps_val_3bit_usign[GET_3b_SECOND_VAL(val)]
+	);
+
+	exit(-1);
+*/
+
 	while ( (res = getopt(argc,argv,"hp:tc:")) != -1){
 		switch (res) {
 		case 'h':

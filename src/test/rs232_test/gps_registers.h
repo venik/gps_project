@@ -1,6 +1,7 @@
 #ifndef __GPS_REGISTERS_
 #define __GPS_REGISTERS_
 
+/* 2 bits form */
 #define GET_I1(x) ( x & 0x3 )
 #define GET_Q1(x) ( (x & (0x3<<2)) >> 2)
 #define GET_I2(x) ( (x & (0x3<<4)) >> 4)
@@ -8,7 +9,14 @@
 
 /* table for tranfer byte i,q and i,q */
 //int8_t gps_value[] = {0, 1, -2, -1};
-int8_t gps_value[] = {0, 1, -1, -2};
+int8_t gps_value[] = {2, 6, -2, -6};
+
+/* 3 bits form */
+#define GET_3b_FIRST_VAL(x) ( (GET_I1(x)<<1) | (GET_Q1(x))>>1)
+#define GET_3b_SECOND_VAL(x) (( (GET_I2(x)<<1) | ((GET_Q2(x) & 0x2)>>1) ))
+
+int8_t gps_val_3bit_sign[] = {1, 3, 5, 7, -1, -3, -5, -7};
+int8_t gps_val_3bit_usign[] = {-7, -5, -3, -1, 1, 3, 5, 7};
 
 void hex2str(char *str, uint8_t src)
 {
