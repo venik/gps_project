@@ -432,12 +432,12 @@ int main(int argc, char **argv)
 	uint8_t		val = 0x2b;
 	
 
-for(val = 0; val < 16; val ++)
+for(val = 0; val < 16; val++ )
 	printf("%d [%x] => %d\t[%x] => %d\n", val,
-		GET_3b_FIRST_VAL(val),
-		gps_val_3bit_usign[GET_3b_FIRST_VAL(val)],
-		GET_3b_SECOND_VAL(val),
-		gps_val_3bit_usign[GET_3b_SECOND_VAL(val)]
+		GET_3b_FIRST_VAL(val<<4),
+		gps_val_3bit_usign[GET_3b_FIRST_VAL(val<<4)],
+		GET_3b_SECOND_VAL(val<<4),
+		gps_val_3bit_usign[GET_3b_SECOND_VAL(val<<4)]
 	);
 
 	exit(-1);
