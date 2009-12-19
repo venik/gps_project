@@ -83,9 +83,9 @@ end;
 endfunction  
 
 //Program
-Snr_dB=0;
 z=1;
 i=1;
+
 length_str=x_dialog('Enter a length string or 0 for exit',["32"]);
 length_str=evstr(length_str);
  if length_str~=0 then
@@ -104,22 +104,30 @@ length_str=evstr(length_str);
 end;
 
 output_str_re=sum(x_re,"c");
-output_str_im=sum(x_im,"c")
+output_str_im=sum(x_im,"c");
 nDumpSize = length(output_str_re); 
 
-m = mopen('/home/z-force/gps/src/software/ca_generator/test.txt','w+') ;
-mfprintf(m,'i\t q\n') ;
-for i=1:nDumpSize
-    mfprintf(m,'%d\t %d\n',round(output_str_re(i)),round(output_str_im(i)))
-end
-mclose(m) ;
+
 
 mem;
 q=0:length(output_str_re)-1;
 for i=1:length(output_str_re);
 cmplx(i)=output_str_re(i)+output_str_im(i)*%i;  //output A
 end;
-cmplx;
-Snr_dB;
-//save('test.dat',output_str_re,output_str_im,mem,length_str);
+
+//add noise
+Snr_dB = 20 ;
+num=length(cmplx);
+Es=cmplx'*cmplx/num;
+En = Es/10^(Snr_dB/10); 
+n = (mtlb_randn(mtlb_size(cmplx))+mtlb_randn(mtlb_size(cmplx))*j)*En/2;
+cmplx
+cmplxnoise = cmplx + n 
+
+m = mopen('/home/z-force/gps/src/software/ca_generator/test.txt','w+') ;
+mfprintf(m,'i\t q\n') ;
+for i=1:nDumpSize
+    mfprintf(m,'%d\t %d\n',round(real(cmplxnoise(i))),round(imag(cmplxnoise(i))))
+end
+mclose(m) ;
 
