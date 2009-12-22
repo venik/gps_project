@@ -22,7 +22,6 @@ entity gps_main is
 			-- sram
 			addr_m: out std_logic_vector(17 downto 0) ;
 			data_f2s_m: out std_logic_vector(7 downto 0) ;
-			--data_s2f_r_m, data_s2f_ur_m: in std_logic_vector(7 downto 0) ;
 			ready_m: in std_logic ;
 			rw_m: out std_logic ;
 			mem_m: out std_logic ;
@@ -37,6 +36,9 @@ architecture gps_main of gps_main is
 		
 	signal data_mem: std_logic_vector (7 downto 0) := (others => '0') ;
 	signal result: unsigned(17 downto 0) := (others => '0') ;
+	
+	-- test pattern
+	signal test_pattern: std_logic_vector (7 downto 0) := ( 0=>'1', others => '0') ;
 	
 	-- new signals
 	signal c_in: std_logic := '0' ;
@@ -73,10 +75,11 @@ if rising_edge(clk) then
 		
 		when idle =>
 			gps_done_m <= '0' ;
-			addr_m(17 downto 0) <= (others => '0');
-			data_mem(7 downto 0) <= (others => '0');
-			result(17 downto 0) <= (others => '0');
+			addr_m(17 downto 0) <= (others => '0') ;
+			data_mem(7 downto 0) <= (others => '0') ;
+			result(17 downto 0) <= (others => '0') ;
 			mem_m <= '0' ;
+			test_pattern <= ( 0=>'1', others => '0') ;
 			--test_spot_m <= '0' ;
 			
 			if( gps_start_m = '1' ) then
@@ -99,7 +102,7 @@ if rising_edge(clk) then
 				gps_next_state <= idle ;
 			elsif( gps_tick = '1' ) then
 					data_mem(3 downto 0) <= q_m & i_m ;
-					--data_mem(3 downto 0) <= b"0100" ;
+					--data_mem(3 downto 0) <= test_pattern(3 downto 0) ;
 					gps_next_state <= get_msb ;
 			end if;		
 			
@@ -108,7 +111,8 @@ if rising_edge(clk) then
 			
 			if( gps_tick = '1' ) then
 				data_mem(7 downto 4) <= q_m & i_m ;
-				--data_mem(7 downto 4) <= b"1110" ;
+				--data_mem(7 downto 4) <= test_pattern(7 downto 4) ;
+				test_pattern <= test_pattern(6 downto 0) & test_pattern(7) ; 
 				gps_next_state <= get_lsb ;
 								
 				-- try to write
