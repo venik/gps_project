@@ -7,16 +7,14 @@
 -----------------------------------------------------------
 
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.numeric_std.all;
 
 entity test_sram is
     	Port (
 			-- sram
 			addr_t: out std_logic_vector(17 downto 0) ;
 			data_f2s: out std_logic_vector(7 downto 0) ;
-			--data_s2f_r, data_s2f_ur: in std_logic_vector(7 downto 0) ;
 			data_s2f: in std_logic_vector(7 downto 0) ;
 			ready: in std_logic ;
 			rw: out std_logic ;
@@ -33,11 +31,14 @@ end test_sram;
 
 architecture Behavioral of test_sram is
 		
-	type 	 memtester_type is(idle, write_t_mem, middle_t_mem, read_t_mem) ;
+	type   memtester_type is(	idle,
+								write_t_mem, wait_for_write,
+								read_t_mem, wait_for_read) ;
 	signal memtester_state: memtester_type := idle ;
 	signal memtester_state_next: memtester_type := idle ;
 
-	signal data_mem: std_logic_vector (8 downto 0) := "000000001" ; 
+	signal data_mem: std_logic_vector (7 downto 0) := (0 => '1', others => '0') ;
+	signal result: unsigned(17 downto 0) := (others => '0') ;
 		
 begin
 
@@ -58,85 +59,97 @@ if rising_edge(clk) then
 		
 		when idle =>
 		
-			if memtester_state_next = idle then
-				mem <= '0' ;
-				test_result <= "00" ;
-				addr_t(17 downto 0) <= ( 0 => '1', others => '0' );
-				data_mem(7 downto 0) <= ( 0 => '0', 1 => '1', others => '0' ) ;
-				data_f2s(7 downto 0) <= ( 0 => '1', others => '0' ) ;
-			end if;
-		
-			if( test_mem = '1' ) then
-				memtester_state_next <= write_t_mem ;
-				mem <= '1';
-				rw <= '1' ;		  
-			end if; 
-					
+		if memtester_state_next = idle then
+			mem <= '0' ;
+			test_result <= "00" ;
+			addr_t(17 downto 0) <= ( others => '0' );
+			data_mem(7 downto 0) <= ( 0 => '1', others => '0' ) ;
+			data_f2s(7 downto 0) <= ( 0 => '1', others => '0' ) ;
+			result(17 downto 0) <= (others => '0') ;
+		end if;
+	
+		if( test_mem = '1' ) then
+			memtester_state_next <= write_t_mem ;
+			mem <= '1';
+			rw <= '1' ;		  
+		end if; 
+-------------------------------------------				
 		when write_t_mem =>  
 		
-			mem <= not data_mem(8) ;	 	
-			
-			if( ready = '1') then 	
-			   if( data_mem(8) = '1' ) then	
-				   	-- next state
-					addr_t(17 downto 0) <= (0 => '1', others => '0') ;
-					memtester_state_next <= middle_t_mem ;
-								
-				else
-					-- write into the memory test pattern
-					addr_t(17 downto 0) <= b"00" & x"00" & data_mem(7 downto 0) ;
-					data_f2s <= data_mem(7 downto 0) ;
-					rw <= '1' ;
-					mem <= '1' ;
-					data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;				
-				end if; -- if( data_mem < 256 ) 
-				
-			end if;
-			
-			if( memtester_state_next = middle_t_mem ) then
-				rw <= '0' ;
-				mem <= '0' ;
-			end if;
+		mem <= '1' ;
+		rw <= '1' ;
+		memtester_state_next <= wait_for_write ;
 		
-		when middle_t_mem =>
+		if( result(17 downto 0) = X"3FFFF" ) then
+			-- memory is full
+			rw <= '0' ;
 			mem <= '1' ;
-			addr_t(17 downto 0) <= ( 0 => '1', others => '0' ) ;
-			memtester_state_next <= read_t_mem ;
-			data_mem(8 downto 0) <= "000000001" ;
-									
+			memtester_state_next <= wait_for_read ;
+			
+			if( memtester_state_next = wait_for_read ) then
+				addr_t(17 downto 0) <= (others => '0') ;
+				result(17 downto 0) <= (0 => '1', others => '0') ;
+				data_mem(7 downto 0) <= ( 0 => '1', others => '0' ) ;
+			end if;
+			
+			
+		else
+			addr_t(17 downto 0) <= std_logic_vector(result) ;
+			data_f2s <= data_mem(7 downto 0) ;
+		end if;	
+-------------------------------------------
+		when wait_for_write =>
+		
+		mem <= '0' ;
+		
+		if( ready = '1') then
+			
+			memtester_state_next <= write_t_mem ;
+			
+			if( memtester_state_next = write_t_mem ) then
+				data_mem <= data_mem(6 downto 0) & data_mem(7) ;
+				result <= result + 1 ;
+			end if;
+			
+		end if;
+-------------------------------------------				
 		when read_t_mem =>
-			if( ready = '1') then
+		mem <= '1' ;
+		
+		if( result(17 downto 0) = X"3FFFF" ) then
+			-- game over
 			
-				if( data_mem(8) = '1' ) then
-					-- exit
-					memtester_state_next <= idle ;
-					test_result <= "10" ;
-					mem <= '0' ;
-					addr_t(17 downto 0) <=  ( others => '0' ) ;
-										
-				else
-					-- read from the memory test pattern
-					-- check data from memeory
-					if( data_s2f = data_mem(7 downto 0) ) then
-						-- all is oK - update values 
-						data_mem(8 downto 0) <= data_mem(7 downto 0) & data_mem(8) ;
-						rw <= '0' ;
-						mem <= '1' ;
-						addr_t(17 downto 0) <= b"0" & x"00" & data_mem(7 downto 0) & data_mem(8) ;
-					else
-						-- error occur
-						memtester_state_next <= idle ;
-						test_result <= "11" ;
-						mem <= '0' ;
-						u9_test <= data_s2f ;
-						u8_test <= data_mem(7 downto 0) ;
-						addr_t(17 downto 0) <= ( others => '0' );
-						--u9_test <= data_mem(7 downto 0);
-					end if ;
-					
-				end if; -- if( data_mem < 256 )
-			end if;	  -- if( ready = '1')
+			test_result <= "10" ;
+			rw <= '0' ;
+			mem <= '0' ; 
+			memtester_state_next <= idle ;
 			
+		elsif( data_s2f = data_mem(7 downto 0) ) then
+			-- correct					  
+			
+			memtester_state_next <= wait_for_read ;
+			
+			if( memtester_state_next = wait_for_read ) then
+				addr_t(17 downto 0) <= std_logic_vector(result) ;
+				data_mem <= data_mem(6 downto 0) & data_mem(7) ;
+				result <= result + 1 ;
+			end if;
+			
+		else
+			-- error
+			rw <= '0' ;
+			mem <= '0' ; 
+			memtester_state_next <= idle ;
+			test_result <= "11" ;
+			
+		end if;
+-------------------------------------------			
+		when wait_for_read =>
+		mem <= '0' ;
+		if( ready = '1') then
+			memtester_state_next <= read_t_mem ;
+		end if ;	
+	
 		end case; -- case memtester_state 
 end if;		
 end process;

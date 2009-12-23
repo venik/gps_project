@@ -112,7 +112,7 @@ if rising_edge(clk) then
 			if( gps_tick = '1' ) then
 				data_mem(7 downto 4) <= q_m & i_m ;
 				--data_mem(7 downto 4) <= test_pattern(7 downto 4) ;
-				test_pattern <= test_pattern(6 downto 0) & test_pattern(7) ; 
+				--test_pattern <= test_pattern(6 downto 0) & test_pattern(7) ; 
 				gps_next_state <= get_lsb ;
 								
 				-- try to write
