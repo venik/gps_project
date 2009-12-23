@@ -11,8 +11,11 @@ import javax.swing.event.ChangeListener;
 
 public class BaseFrame extends JPanel implements ChangeListener {
 
-	private JTabbedPane jtp = new JTabbedPane();
+	private JTabbedPane jtp = new JTabbedPane() ;
 	private	JFrame jfrm = new JFrame("test") ;
+
+	private	JPanel	jpnl1 = new JPanel() ;
+	private	JPanel	jpnl2 = new JPanel() ;
 
 	BaseFrame() {
 
@@ -20,13 +23,21 @@ public class BaseFrame extends JPanel implements ChangeListener {
 		jfrm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JLabel jlab = new JLabel("just label");
-
 		jfrm.getContentPane().add(jlab);
 
-		// добавляем закладки
-		jtp.addTab("Tab1", new JTextArea("Test String"));
-		jtp.addTab("Tab2", new JList(new String[] 
-			     { "itm1", "itm2", "itm3" }));
+		// panel for first tab 
+		JTextArea jtxt = new JTextArea("Test String");
+		jpnl1.setOpaque(true);
+		jpnl1.add(jtxt); 
+
+		// panel for first tab 
+		JTextArea jtxt1 = new JTextArea("Test String1111");
+		jpnl2.setOpaque(true);
+		jpnl2.add(jtxt1); 
+
+		// add tabs` 
+		jtp.addTab("Tab1", jpnl1);
+		jtp.addTab("Tab2", jpnl2); 
 
 		// добавляем обработчик выбора закладки
 		jtp.addChangeListener(this);
@@ -42,7 +53,7 @@ public class BaseFrame extends JPanel implements ChangeListener {
         // если на окне несколько закладочных контейнеров
         // можно сравнивать arg0.getSource() например
         // jtf.setText((arg0.getSource()==jtp)?"ok":"no ok");
-    }
+    	}
 
 	public static void main(String args[]) {
 		SwingUtilities.invokeLater(new Runnable() {
