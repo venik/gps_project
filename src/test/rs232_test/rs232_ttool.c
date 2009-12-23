@@ -456,7 +456,7 @@ for(val = 0; val < 16; val++ )
 	exit(-1);
 #endif 
 
-	while ( (res = getopt(argc,argv,"hp:tc:")) != -1){
+	while ( (res = getopt(argc,argv,"hp:c:")) != -1){
 		switch (res) {
 		case 'h':
 			rs232_banner();
@@ -470,12 +470,6 @@ for(val = 0; val < 16; val++ )
 			//snprintf(buf, MAXLINE, "%d", optarg);
 			sscanf(optarg, "%hx", (short unsigned int *)&rs232data.cmd);
 			printf("rs232 command [0x%02x]\n", rs232data.cmd);
-			break;
-		case 't':
-			printf("test mode\n");
-			//rs232data.cb = &rs232_test_mode;
-			//rs232_test_mode(&rs232data);
-			return -1;
 			break;
 		default:
 			return -1;
