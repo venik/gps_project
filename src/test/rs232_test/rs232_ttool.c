@@ -18,6 +18,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
+#include <sys/uio.h>
 
 #include <errno.h>
 
@@ -108,8 +110,9 @@ int rs232_open_device(char *dev_name)
 	return fd;
 }
 
-void rs232_destroy(rs232_data_t	*rs232data)
+static void rs232_destroy(rs232_data_t	*rs232data)
 {
+	close(rs232data->fd_flush);
 	close(rs232data->fd);
 }
 
@@ -124,6 +127,20 @@ int rs232_open_flush(rs232_data_t *rs232data)
 		exit(-1);
 	}
 
+	/* get current time */
+	time_t	cur_time;
+	char	str[] = "# ";
+	struct iovec iov[2];
+
+	time(&cur_time);
+
+	iov[0].iov_len = sizeof(str);
+	iov[0].iov_base = str;
+	iov[1].iov_base = ctime(&cur_time);
+	iov[1].iov_len = 26; 			// len of the date string (example Wed Dec 23 19:50:13 2009)
+
+	writev(rs232data->fd_flush, iov, 2);
+
 	return 0;
 }
 
@@ -135,11 +152,11 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 	uint32_t	max_addr = (1<<18) - 2;
 	
 	uint64_t	comm_64;
-	int 		res, fd;
+	int 		res;
 
 	char		str[10] = {};
-	char	header_string[] = "i\tq\n";
-	char	str_i_q[255] = {};
+	char		header_string[] = "# Mode: 2bit, sign/magnitude\n# format [q2 i2 q1 i1]\n# i\tq\n";
+	char		str_i_q[255] = {};
 
 	rs232_open_flush(rs232data);
 	write(rs232data->fd_flush, header_string, strlen(header_string));
@@ -167,8 +184,6 @@ int rs232_send_cmd_flush(rs232_data_t *rs232data)
 
 	}
 	
-	close(fd);
-
 	return 0;
 }
 
@@ -181,15 +196,15 @@ int rs232_send_cmd_flush_3bit(rs232_data_t *rs232data)
 	uint32_t	max_addr = (1<<18) - 2;
 	
 	uint64_t	comm_64;
-	int 		res, fd;
+	int 		res;
 
 	char		str[10] = {};
-	char	header_string[] = "3 bit form MSB => [i1 i0 q1] <= LSB \n";
-	char	str_3bit[255] = {};
+	char		header_string[] = "# 3 bit form MSB => [i1 i0 q1] <= LSB\n";
+	char		str_3bit[255] = {};
 
 
 	rs232_open_flush(rs232data);
-	write(fd, header_string, strlen(header_string));
+	write(rs232data->fd_flush, header_string, strlen(header_string));
 
 	/* flush it */
 	comm_64 = (0x7ull) ;
@@ -210,8 +225,6 @@ int rs232_send_cmd_flush_3bit(rs232_data_t *rs232data)
 		write(rs232data->fd_flush, str_3bit, strlen(str_3bit));
 
 	}
-	
-	close(fd);
 
 	return 0;
 }
@@ -482,8 +495,8 @@ for(val = 0; val < 16; val++ )
 	} else if(rs232data.cmd == 0xb) {
 		rs232_zero_mem(&rs232data);
 	} else if(rs232data.cmd == 0xff) {
-		//rs232_send_cmd_flush(&rs232data);
-		rs232_send_cmd_flush_3bit(&rs232data);
+		rs232_send_cmd_flush(&rs232data);
+		//rs232_send_cmd_flush_3bit(&rs232data);
 	} else {
 		 rs232_send_cmd(&rs232data);
 	}

@@ -7,8 +7,7 @@
 #define GET_I2(x) ( (x & (0x3<<4)) >> 4)
 #define GET_Q2(x) ( (x & (0x3<<6)) >> 6)
 
-/* table for tranfer byte i,q and i,q */
-//int8_t gps_value[] = {0, 1, -2, -1};
+/* table for tranfer byte i,q. sign/magnidute mode */
 int8_t gps_value[] = {2, 6, -2, -6};
 
 /* 3 bits form */
