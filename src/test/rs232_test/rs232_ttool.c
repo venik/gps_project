@@ -311,8 +311,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0001 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x01<<8);			// address
-	//comm_64 |= (0x0855048Cull<<12);		// data
-	comm_64 |= (0x0855028Cull<<12);		// data
+	//comm_64 |= (0x0855028Cull<<12);		// data
+	comm_64 |= (0x8550c8cull<<12);		// data
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
@@ -321,8 +321,8 @@ int rs232_send(rs232_data_t *rs232data)
 	/* 0010 */
 	comm_64 = rs232data->cmd;
 	comm_64 |= (0x02<<8);			// address
-	//comm_64 |= (0xeafe1dcull<<12);		// data
-	comm_64 |= (0xeaff1dcull<<12);		// data				// FIXME
+	//comm_64 |= (0xeaff1dcull<<12);		// data				// FIXME
+	comm_64 |= (0x6aff1dcull<<12);		// data				// FIXME
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
@@ -482,8 +482,8 @@ for(val = 0; val < 16; val++ )
 	} else if(rs232data.cmd == 0xb) {
 		rs232_zero_mem(&rs232data);
 	} else if(rs232data.cmd == 0xff) {
-		//rs232_send_cmd_flush(&rs232data);
-		rs232_send_cmd_flush_3bit(&rs232data);
+		rs232_send_cmd_flush(&rs232data);
+		//rs232_send_cmd_flush_3bit(&rs232data);
 	} else {
 		 rs232_send_cmd(&rs232data);
 	}
