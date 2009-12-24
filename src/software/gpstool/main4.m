@@ -3,7 +3,7 @@
 clc, clear all, close all ;
 plot_mode = 1 ;
 nDumpSize = 16368*5 ; 
-x = readdump('./data/flush',nDumpSize) ;
+x = readdump('./data/flush.txt',nDumpSize) ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
 FR = 4092-5:0.5:4092+5 ; % frequency range
 N = 16368 ;   % /* correlation length */
@@ -13,10 +13,10 @@ for PRN=1:32
     for f0 = FR
         acxm = zeros(N,1) ;
         t_offs = 1 ;
-        for n_offs = 1:5
+        for n_offs = 1:3
             acx = gpsacqb(x(t_offs:end),N,PRN,f0, 0,t_offs-1) ;
             acxm = acxm + acx ;
-            t_offs = t_offs + 5000 ;
+            t_offs = t_offs + 10000 ;
         end
         acxm = acxm/n_offs ;
         if max(acxm)>max_acx

@@ -13,6 +13,11 @@ for n=1:nDumpSize
         break ;
     end
     str = fgets(f) ;
+    str_tr = strtrim(str) ;
+    if str_tr(1)=='#'
+        fprintf(str) ;
+        continue ;
+    end
     [v,k] = sscanf(str,'%d  %d') ;
     if k==2
         x(n) = v(1) + j*v(2) ;
