@@ -15,6 +15,11 @@ public class NetGPSBoard {
 		this.port = i_port ;
 	}
 
+	NetGPSBoard() {
+		this.hostname = "127.0.0.1" ;
+		this.port = 1234 ;
+	}
+
 	public int ConnToBoard() {
 		
 		try {
@@ -51,7 +56,7 @@ public class NetGPSBoard {
 	public static void main(String args[]) {
 		System.out.println("NetGPSBoard class\n");
 
-		NetGPSBoard ngb = new NetGPSBoard("127.0.0.1", 1234);
+		NetGPSBoard ngb = new NetGPSBoard();
 
 		ngb.ConnToBoard();
 	}
