@@ -129,17 +129,15 @@ int rs232_open_flush(rs232_data_t *rs232data)
 
 	/* get current time */
 	time_t	cur_time;
-	char	str[] = "# ";
-	struct iovec iov[2];
+	char	p_time[30] = {};
+
+	p_time[0] = '#' ;
+	p_time[1] = ' ' ;
 
 	time(&cur_time);
+	ctime_r(&cur_time, p_time + 2);
 
-	iov[0].iov_len = sizeof(str);
-	iov[0].iov_base = str;
-	iov[1].iov_base = ctime(&cur_time);
-	iov[1].iov_len = 26; 			// len of the date string (example Wed Dec 23 19:50:13 2009)
-
-	writev(rs232data->fd_flush, iov, 2);
+	write(rs232data->fd_flush, p_time, strlen(p_time));
 
 	return 0;
 }
