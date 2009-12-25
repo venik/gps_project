@@ -33,7 +33,6 @@ entity sram_ctrl is
 		addr: in std_logic_vector(17 downto 0) ;
 		ready: out std_logic ;
 		data_f2s: in std_logic_vector(7 downto 0) ;
-		--data_s2f_r, data_s2f_ur: out std_logic_vector(7 downto 0) ;
 		data_s2f: out std_logic_vector(7 downto 0) ;
 
 		-- sram chip
@@ -48,7 +47,9 @@ architecture arch of sram_ctrl is
 	type 	sram_ctrl_type is (idle, wr, rd);	
 	signal	sram_ctrl_state, sram_ctrl_next_state: sram_ctrl_type := idle;
 	signal	tri_reg: std_logic;	
-	signal	cycle_counter_s: integer range 0 to 6;
+	signal	cycle_counter_s: integer range 0 to 6;	 
+	
+	signal data_f2s_local: std_logic_vector(7 downto 0) ;
 begin
 
 process(clk)	
@@ -58,7 +59,7 @@ begin
 	end if;
 end process;
 
-dio_a <= data_f2s when tri_reg = '0' else (others => 'Z') ;
+dio_a <= data_f2s_local when tri_reg = '0' else (others => 'Z') ;
 s2 <= '1' ;
 address <= addr;
 	
@@ -91,6 +92,7 @@ if rising_edge(clk) then
 			WE <= '0' ;
 			tri_reg <= '0' ;
 			s1 <= '0' ;
+			data_f2s_local <= data_f2s ;
 		else 
 			-- read
 			sram_ctrl_next_state <= rd ;
