@@ -4,7 +4,6 @@
 ---
 --  --------------
 --  |            | <--	clk - clock
---  |            | <--	soft_reset - reset
 --  |            | <--	mem - memory operation
 --  |            | <--	rw - w = 1 / r = 0
 --  |   SRAM     | <--	addr - address
@@ -25,24 +24,23 @@ use ieee.std_logic_1164.all;
 
 entity sram_ctrl is
   port(
-    clk: in std_logic;				
-	reset: in std_logic;
-	u9_sram: out std_logic_vector(7 downto 0) ;
-	 
-    -- to/from main system
-    mem_s: in std_logic ;
-    rw: in std_logic ;
-    addr: in std_logic_vector(17 downto 0) ;
-	ready: out std_logic ;
-    data_f2s: in std_logic_vector(7 downto 0) ;
-    --data_s2f_r, data_s2f_ur: out std_logic_vector(7 downto 0) ;
-	data_s2f: out std_logic_vector(7 downto 0) ;
- 
-    -- sram chip
-	address: out std_logic_vector(17 downto 0) ;
-    dio_a: inout std_logic_vector(7 downto 0) ;
-    s1, s2: out std_logic ;
-    WE, OE: out std_logic
+		clk: in std_logic;				
+		u9_sram: out std_logic_vector(7 downto 0) ;
+
+		-- to/from main system
+		mem_s: in std_logic ;
+		rw: in std_logic ;
+		addr: in std_logic_vector(17 downto 0) ;
+		ready: out std_logic ;
+		data_f2s: in std_logic_vector(7 downto 0) ;
+		--data_s2f_r, data_s2f_ur: out std_logic_vector(7 downto 0) ;
+		data_s2f: out std_logic_vector(7 downto 0) ;
+
+		-- sram chip
+		address: out std_logic_vector(17 downto 0) ;
+		dio_a: inout std_logic_vector(7 downto 0) ;
+		s1, s2: out std_logic ;
+		WE, OE: out std_logic
   ) ;
 end sram_ctrl;
 

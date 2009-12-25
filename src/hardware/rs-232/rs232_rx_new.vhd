@@ -4,8 +4,7 @@
 --  --------------
 --  |            | <--	rs232_in - hardware port
 --  |            | -->	
---  |   rs232    | -->	rx_done_tick - receive done
---  |    rx      | <--	reset - you know what is it
+--  |   rs232rx  | -->	rx_done_tick - receive done
 --  |            | <--	clk - tick-tack
 --  |            | <--	
 --  --------------

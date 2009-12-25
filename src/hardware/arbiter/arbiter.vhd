@@ -29,7 +29,6 @@ entity arbiter is
 			u10 : out  std_logic_vector (6 downto 0) ;
 			u9 : out  std_logic_vector (6 downto 0) ;
 			u8 : out  std_logic_vector (6 downto 0) ;
-			reset : in std_logic ;
 			mode: out std_logic_vector(1 downto 0) ;
 
 			-- GPS
@@ -108,7 +107,7 @@ gps_serial_unit: entity work.gps_serial(gps_serial)
 		) ;
 
 
-process(clk, reset)
+process(clk)
 begin
 
 	if rising_edge(clk) then

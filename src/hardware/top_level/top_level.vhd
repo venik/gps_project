@@ -34,8 +34,7 @@ entity top_level is
 			clk : in std_logic ;
 			u10 : out  std_logic_vector (7 downto 0) ;
 			u9 : out  std_logic_vector (7 downto 0) ;
-			u8 : out  std_logic_vector (7 downto 0) ;
-			reset : in std_logic
+			u8 : out  std_logic_vector (7 downto 0)
 	     );
 end top_level;
 
@@ -112,8 +111,7 @@ arbiter: entity work.arbiter(Behavioral)
 			u8 => u8(6 downto 0),
 			mode => mode,
 			test_result => test_result,
-			test_mem => test_mem,
-			reset => reset
+			test_mem => test_mem
 			);
 			
 test_sram: entity work.test_sram(Behavioral)
@@ -134,7 +132,6 @@ test_sram: entity work.test_sram(Behavioral)
 sram_controller: entity work.sram_ctrl(arch)
 	port map( 
 			clk => clk,
-			reset => reset,
 			u9_sram => u9_tops,
 			mem_s => mem,
 			rw => rw,

@@ -4,9 +4,8 @@
 --  --------------
 --  |            | -->	rs232_out - out in hardware port
 --  |            | <--	din - input byte
---  |   rs232    | <--	tx_start - signal to start transfer
---  |    tx      | -->	tx_done_tick - transfer done
---  |            | <--	reset - you know what is it
+--  |   rs232tx  | <--	tx_start - signal to start transfer
+--  |            | -->	tx_done_tick - transfer done
 --  |            | <--	clk - tick-tack
 --  |            | <--	rs232_clk - clk at 115200 bits/sec speed 
 --  --------------
