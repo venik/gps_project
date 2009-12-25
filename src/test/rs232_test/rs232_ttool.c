@@ -119,6 +119,9 @@ static void rs232_destroy(rs232_data_t	*rs232data)
 int rs232_open_flush(rs232_data_t *rs232data)
 {
 	errno = 0;
+	int		iov_length = 13;
+	int		i;
+	struct 		iovec iov[iov_length];
 
 	rs232data->fd_flush = open("flush", O_RDWR|O_CREAT|O_TRUNC, 0666);
 
@@ -129,7 +132,7 @@ int rs232_open_flush(rs232_data_t *rs232data)
 
 	/* get current time */
 	time_t	cur_time;
-	char	p_time[30] = {};
+	char	p_time[40] = {};
 
 	p_time[0] = '#' ;
 	p_time[1] = ' ' ;
@@ -137,7 +140,30 @@ int rs232_open_flush(rs232_data_t *rs232data)
 	time(&cur_time);
 	ctime_r(&cur_time, p_time + 2);
 
-	write(rs232data->fd_flush, p_time, strlen(p_time));
+	iov[0].iov_base = p_time;
+	iov[0].iov_len = strlen(p_time);
+
+	/* fill with gps registers */
+	for( i = 2; i < iov_length - 1; i++ ) {
+		iov[i].iov_base = gps_regs[i-2].str;
+		iov[i].iov_len = strlen(gps_regs[i-2].str);
+	}
+	
+	char	blank_str[10];
+	sprintf(blank_str, "#\n");
+
+	iov[1].iov_base = blank_str;
+	iov[1].iov_len = strlen(blank_str);
+
+	iov[iov_length - 1].iov_base = blank_str;
+	iov[iov_length - 1].iov_len = strlen(blank_str);
+
+	i = writev(rs232data->fd_flush, iov, iov_length);
+
+	if( i < 0) {
+		printf("[%s] err. errno [%s]\n", __func__, strerror(errno));
+		exit(-1);
+	}
 
 	return 0;
 }
@@ -290,6 +316,56 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 	return res;
 }
 
+static void rs232_fill_gps_regs()
+{
+	int i;
+
+	/* init regs */
+	gps_regs[0].reg = 0xa2939a3ull ;
+	gps_regs[1].reg = 0x8550c8cull ;
+	//gps_regs[1].reg = 0x0855028cull ;
+	gps_regs[2].reg = 0x6aff1dcull ;
+	gps_regs[3].reg = 0x9ec0008ull ;
+	gps_regs[4].reg = 0x0c00080ull ;
+	gps_regs[5].reg = 0x8000070ull ;
+	gps_regs[6].reg = 0x8000000ull ;
+	gps_regs[7].reg = 0x10061b2ull ;
+	gps_regs[8].reg = 0x1e0f401ull ;
+	gps_regs[9].reg = 0x14c0402ull ;
+
+	for( i = 0; i < 10; i++ ) {
+		gps_reg_str_t *tmp_reg = &gps_regs[i];
+
+		GPS_FILL( tmp_reg, i);
+		//printf("[%s] [%d]\n", __func__, strlen(gps_regs[i].str));
+	}
+
+}
+
+/* program the gps via serial interface */
+int rs232_program_gps(rs232_data_t *rs232data)
+{
+	int 		res;
+	uint8_t		i;
+	uint64_t	comm_64;
+	uint8_t		buff = 0;
+
+
+	for( i = 0; i < 11; i++ ) {
+		comm_64 = 1ull;		
+
+		comm_64 |= (i<<8);					// address
+		comm_64 |= (gps_regs[i].reg<<12);			// data
+		
+		res = write(rs232data->fd, &comm_64, sizeof(comm_64));
+		printf("write 0x%016llx, res [%d]\n", comm_64, res);
+		res = read(rs232data->fd, &buff, sizeof(buff));
+		printf("=replay= [0x%02x] \n", buff);
+	}
+	
+	return 0;
+}
+
 int rs232_send(rs232_data_t *rs232data)
 {
 	rs232data->cmd = 1;
@@ -297,111 +373,12 @@ int rs232_send(rs232_data_t *rs232data)
 	uint64_t	comm_64 = rs232data->cmd;
 	int 		res, todo = sizeof(comm_64);		// FIXME - fix todo
 
-	printf("[%s] block while sending\n", __FUNCTION__);
+	printf("[%s] block while sending\n", __func__);
 
-#if 0
-	comm_64 |= (0x11<<8);
-	comm_64 |= (0x22<<16);
-	comm_64 |= (0x33<<24);
-	comm_64 |= (0x44ull<<32);
-	comm_64 |= (0x55ull<<40);
-	comm_64 |= (0x66ull<<48);
-	comm_64 |= (0x77ull<<56);
-	
-	comm_64 |= (0x00ull<<26);
-#endif
-
-	/* 0000 */
-	comm_64 |= (0x00<<8);			// address
-	comm_64 |= (0xa2939a3ull<<12);
 	res = write(rs232data->fd, &comm_64, todo);
 	printf("write 0x%016llx, res [%d]\n", comm_64, res);
 	res = read(rs232data->fd, &buff, 1);
 	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0001 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x01<<8);			// address
-	//comm_64 |= (0x0855028Cull<<12);		// data
-	comm_64 |= (0x8550c8cull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0010 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x02<<8);			// address
-	//comm_64 |= (0xeaff1dcull<<12);		// data				// FIXME
-	comm_64 |= (0x6aff1dcull<<12);		// data				// FIXME
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-	
-	/* 0011 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x03<<8);			// address
-	comm_64 |= (0x9ec0008ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0100 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x04<<8);			// address
-	comm_64 |= (0x0c00080ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0101 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x05<<8);			// address
-	comm_64 |= (0x8000070ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0110 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x06<<8);			// address
-	comm_64 |= (0x8000000ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 0111 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x07<<8);			// address
-	comm_64 |= (0x10061b2ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 1000 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x08<<8);			// address
-	comm_64 |= (0x1e0f401ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
-	/* 1001 */
-	comm_64 = rs232data->cmd;
-	comm_64 |= (0x09<<8);			// address
-	comm_64 |= (0x14c0402ull<<12);		// data
-	res = write(rs232data->fd, &comm_64, todo);
-	printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	res = read(rs232data->fd, &buff, 1);
-	printf("=replay= [0x%02x] \n", buff);
-
 	return res;
 }
 
@@ -481,9 +458,13 @@ for(val = 0; val < 16; val++ )
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
 
+	/* init gps-regs */
+	rs232_fill_gps_regs();
+
 	/* send command */
 	if(rs232data.cmd == 0xa) {
-		 rs232_send(&rs232data);
+		/* reset GPS */
+		rs232_program_gps(&rs232data);
 	} else if(rs232data.cmd == 0xb) {
 		rs232_zero_mem(&rs232data);
 	} else if(rs232data.cmd == 0xff) {

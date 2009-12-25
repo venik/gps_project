@@ -34,6 +34,22 @@ void hex2str(char *str, uint8_t src)
 	str[j] = '\0' ;
 }
 
+typedef struct gps_reg_str_s {
+	uint8_t		addr;
+	uint32_t	reg;
+	char		str[30];
+} gps_reg_str_t;
+
+static gps_reg_str_t gps_regs[10];
+
+#define GPS_FILL(GPS_REG, ADDR) 				\
+{								\
+	char	tmp_str[10] = {};				\
+								\
+	hex2str(tmp_str, ADDR);					\
+	sprintf(GPS_REG->str, "# %sb 0x%08x\n", tmp_str, GPS_REG->reg);\
+	GPS_REG->addr = ADDR;					\
+};
 
 /* GPS - registers */ 
 typedef enum {
