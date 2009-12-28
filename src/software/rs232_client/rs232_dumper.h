@@ -23,7 +23,7 @@ FILE 		*I;
 /* initial connection */
 char	stage1_in[][255] = 
 {
-	{"HELLO_GPS_BOARD v0.1\r\n"},
+	{"HELLO_GPS_BOARD v0.1\n"},
 	{""}
 };
 

@@ -110,7 +110,7 @@ int rs232_open_device(rs232_data_t *rs232data)
 	return fd;
 }
 
-void rs232_destroy(rs232_data_t	*rs232data)
+static void rs232_destroy(rs232_data_t	*rs232data)
 {
 	close(rs232data->client[0].fd);
 	close(rs232data->client[2].fd);
@@ -165,18 +165,18 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	if( pfd->revents & POLLIN ) {
 		
 		res = read(pfd->fd, rs232data->recv_buf, todo);
-		fprintf(I, "[%s] need [%d] received [%d] \n", __FUNCTION__, todo, res);
+		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
 		
-		dump_hex(rs232data->recv_buf, res);
-
 		if( res <= 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
 			return -1;
 		}
+		
+		dump_hex(rs232data->recv_buf, res);
 
 		fprintf(I, "[%s] fd = [%d] read = [%d]\n",
-			__FUNCTION__,
+			__func__,
 			pfd->fd,
 			res
 			);
@@ -193,7 +193,7 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
-	fprintf(I, "[%s]\n", __FUNCTION__);
+	fprintf(I, "[%s]\n", __func__);
 
 	pfd->events = POLLOUT;
 
@@ -218,7 +218,7 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 
 		} else if( res != todo ) {
 			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
-				__FUNCTION__,
+				__func__,
 				pfd->fd,
 				res,
 				todo
@@ -259,7 +259,8 @@ int rs232_fsm_say_ack(rs232_data_t *rs232data)
 
 static void rs232_fsm_say_err(rs232_data_t *rs232data) 
 {
-	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: [%s]", rs232data->recv_buf);
+	//snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: [%s]", rs232data->recv_buf);
+	snprintf((char *)rs232data->send_buf, MAXLINE, "ERR: unknown command");
 	size_t 	real_todo = strlen((char *)rs232data->send_buf);
 
 	rs232_poll_write(rs232data, 1, real_todo);
@@ -284,10 +285,11 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 		strcpy((char *)rs232data->send_buf, strerror(errno));
 		goto out_with_err;
 	}
-	
-	res = strcmp((const char *)rs232data->recv_buf, stage1_in[0]);
 
-	if( res == 0 ) {
+	
+	real_todo = strncmp((const char *)rs232data->recv_buf, stage1_in[0], res);
+
+	if( real_todo == 0 ) {
 		fprintf(I, "[%s] GUI successfully identified =] \n", __FUNCTION__);
 		if( rs232_fsm_say_ack(rs232data) < 0 )
 			return BREAK;
@@ -296,16 +298,20 @@ int rs232_fsm_hello(rs232_data_t *rs232data)
 
 	} 
 
-	rs232data->recv_buf[res] = '\0';
-	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
-			stage1_in[0],
-			rs232data->recv_buf
+	//rs232data->recv_buf[res] = '\0';
+	fprintf(I, "[err]: result [%d] unknown command, we expect %s, but receive %s \n", 	\
+			res,									\
+			stage1_in[0],								\
+			rs232data->recv_buf							\
 		);
+	
+	dump_hex((uint8_t *)stage1_in, sizeof(stage1_in[0]));
 
 out_with_err:
 
 	rs232_fsm_say_err(rs232data);
 	close(rs232data->client[1].fd);
+
 
 	return CONNECTION; 
 }
@@ -519,6 +525,7 @@ int rs232_idle(rs232_data_t *rs232data)
 		case WAIT_FOR_HELLO:
 			fprintf(I, "[%s] WAIT_FOR_HELLO\n", __FUNCTION__);
 			state = rs232_fsm_hello(rs232data);
+			//exit(-1);
 			break;
 
 		case SET_PORT:

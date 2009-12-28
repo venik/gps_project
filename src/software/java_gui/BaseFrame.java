@@ -38,6 +38,7 @@ public class BaseFrame extends JPanel implements ChangeListener {
 		// add tabs` 
 		jtp.addTab("Tab1", jpnl1);
 		jtp.addTab("Tab2", jpnl2); 
+		//jtp.addTab("Log", jpnl2); 
 
 		// добавляем обработчик выбора закладки
 		jtp.addChangeListener(this);

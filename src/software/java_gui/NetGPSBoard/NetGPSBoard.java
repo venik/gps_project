@@ -7,50 +7,75 @@ public class NetGPSBoard {
 	private BufferedReader	i_stream;	
 	private PrintWriter	o_stream;	
 
-	private String	hostname;
-	private int 	port;
+	private String		hostname;
+	private int 		port;
 
-	NetGPSBoard(String i_hostname, int i_port) {
+	public NetGPSBoard(String i_hostname, int i_port) {
+
 		this.hostname = i_hostname ;
 		this.port = i_port ;
+
+		this.ConnToBoard() ;
 	}
 
-	NetGPSBoard() {
-		this.hostname = "127.0.0.1" ;
-		this.port = 1234 ;
+	public NetGPSBoard() {
+		this("localhost", 1234);
 	}
 
-	public int ConnToBoard() {
+	private int ConnToBoard() {
 		
 		try {
 			theSocket = new Socket(hostname, port);
 
 			// activate streams
 			i_stream = new BufferedReader(new InputStreamReader(theSocket.getInputStream()));
-			
-			o_stream = new PrintWriter(
-						new BufferedWriter(
-							new OutputStreamWriter(theSocket.getOutputStream())), true);
+			o_stream = new PrintWriter(theSocket.getOutputStream(), true);
 
-			String hello = "Hello world\n";
-			o_stream.println(hello);
-			String theTime = i_stream.readLine();
-
-			System.out.println("[" + theTime + "]");
+			//o_stream = new PrintWriter( 
+			//			new BufferedWriter( \
+			//				new OutputStreamWriter(theSocket.getOutputStream())), true);
 
 		} catch (UnknownHostException e) {
 			System.err.println(e);
+			System.exit(1);
 		} catch (IOException e) {
 			System.err.println(e);
+			System.exit(1);
 		}
 
 		return 0;
 	}
 
-	public void SomeMethod() {
+	public void SendComm() {
 
+		System.out.println("SendComm()");
 
+		String hello = "HELLO_GPS_BOARD v0.1";
+		
+		try {
+			//o_stream.write(hello, 0, hello.length());
+			o_stream.println(hello);
+			o_stream.flush();
+
+			String str = i_stream.readLine();
+
+			System.out.println("[" + str + "]");
+
+		} catch (java.io.IOException exp) {
+			exp.printStackTrace();
+		}
 	}
+
+	public void CloseAll() {
+		try {
+			i_stream.close();
+			o_stream.close();
+			theSocket.close();
+		} catch (java.io.IOException exp) {
+			exp.printStackTrace();
+		}
+	}
+
 	
 // Just main()	
 	public static void main(String args[]) {
@@ -59,6 +84,8 @@ public class NetGPSBoard {
 		NetGPSBoard ngb = new NetGPSBoard();
 
 		ngb.ConnToBoard();
+
+		ngb.SendComm();
 	}
 
 }
