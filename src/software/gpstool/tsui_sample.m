@@ -1,10 +1,11 @@
+function tsui_sample()
 % p7 1.m performs acquisition on collected data
 clear
 % ******* initial condition *******
 svnum=input('enter satellite number = ');
-intodat=10001; %input('enter initial pt into data (multiple
-of n) = ');
-fs=5e6; % *** sampling freq
+intodat=10001; %input('enter initial pt into data (multiple of n) = ');
+%fs=5e6; % *** sampling freq
+fs=16368000; % *** sampling freq
 ts=1/fs; % *** sampling time
 n=fs/1000; % *** data pt in 1 ms
 nn=[0:n-1]; % *** total no. of pts
@@ -12,9 +13,11 @@ fc=1.25e6; % *** center freq without Doppler
 nsat=length(svnum); % *** total number of satellites to be processed
 
 % ******* input data file *********
-fid=fopen('d:\gps\Big data\srvy1sf1.dat','r');
-fseek(fid,intodat-1,'bof');
-x2=fread(fid,6*n,'schar');
+% fid=fopen('d:\gps\Big data\srvy1sf1.dat','r');
+% fseek(fid,intodat-1,'bof');
+% x2=fread(fid,6*n,'schar');
+x2 = readdump('./data/flush',6*n) ;
+
 yy = zeros(21,n);
 
 % ******* start acquisition *******
@@ -28,12 +31,17 @@ yy(i,:)=ifft(xf .* conj(lcf)); % circular correlation
 end
 [amp crw]=max(max(abs(yy'))); % find highest peak
 [amp ccn]=max(max(abs(yy)));
-pt init=ccn; % initial point
+pt_init=ccn; % initial point
 cfrq=fc+1000*(crw-11); % coarse freq
 
+for kk1=1:21
+    plot(abs(yy(kk1,:))), ylim([0 5000]), pause ;
+end
+amp
+return ;
+
 % ******* gerenate 5 ms data by stripping C/A code *******
-z5=x2(pt init:pt init+5*n-1); % take 5 ms data starting with
-C/A code
+z5=x2(pt_init:pt_init+5*n-1); % take 5 ms data starting with C/A code
 za5=z5' .* [code code code code code];% create cw from 5 sets of data
 
 % ******* find medium freq resolution 400 kHz apart *******
@@ -53,8 +61,7 @@ zc5=diff(-angle(sum(reshape(zb5,n,5)))); % find difference
 angle
 zc5fix=zc5;
 
-%******* Adjust phase and take out possible phase shift
-*******
+%******* Adjust phase and take out possible phase shift*******
 threshold=2.3*pi\5;
 for i=1:4;
 if abs(zc5(i))>threshold;% for angle adjustment
@@ -78,13 +85,13 @@ dfrq=mean(zc5)*1000/(2*pi);
 frr=fr+dfrq;% fine freq
 plot(abs(yy(crw,1:n)))
 title(['GPS = ' num2str(svnum) ' max at '
-num2str(pt init)])
+num2str(pt_init)])
 figure
 plot(abs(yy(:,ccn)),'*')
 
 % title(['GPS = ' num2str(svnum) ' Freq = ' num2str(frr)])
 format
-pt init
+pt_init
 format long e
 frr
 
@@ -95,20 +102,20 @@ function code2 = digitizg(n,fs,offset,svnum);
 % fs - sample frequency in Hz;
 % offset - delay time in second must be less than 1/fs can not shift left
 % svnum - satellite number;
-gold rate = 1.023e6; %gold code clock rate in Hz.
+gold_rate = 1.023e6; %gold code clock rate in Hz.
 ts=1/fs;
-tc=1/gold rate;
+tc=1/gold_rate;
 cmd1 = codegen(svnum); % generate C/A code
-code in=cmd1;
+code_in=cmd1;
 
 % ******* creating 16 C/A code for digitizing *******
-code a = [code in code in code in code in];
-code a=[code a code a];
-code a=[code a code a];
+code_a = [code_in code_in code_in code_in];
+code_a=[code_a code_a];
+code_a=[code_a code_a];
 % ******* digitizing *******
 b = [1:n];
 c = ceil((ts*b+offset)/tc);
-code = code a(c);
+code = code_a(c) ;
 % ******* adjusting first data point *******
 if offset>=0;
 code2=[code(1) code(1:n-1)];
@@ -117,12 +124,10 @@ code2=[code(n) code(1:n-1)];
 end
 
 % codegen.m generate one of the 32 C/A codes written by D.Akos modified by J. Tsui
-function [ca used]=codegen(svnum);
+function [ca_used]=codegen(svnum);
 % ca used : a vector containing the desired output sequence
-% the g2s vector holds the appropriate shift of the g2 code
-to generate
-% the C/A code (ex. for SV#19 - use a G2 shift of
-g2s(19)=471)
+% the g2s vector holds the appropriate shift of the g2 code to generate
+% the C/A code (ex. for SV#19 - use a G2 shift of g2s(19)=471)
 % svnum: Satellite number
 g2s = [5;6;7;8;17;18;139;140;141;251;252;254;255;256;257; 258;469;470;471;472;473;474;509;512;513;514;515;516;859;860;861;862];
 g2shift=g2s(svnum,1);
@@ -149,5 +154,5 @@ g2tmp(1,1:g2shift)=g2(1,1023-g2shift+1:1023);
 g2tmp(1,g2shift+1:1023)=g2(1,1:1023-g2shift);
 g2 = g2tmp;
 % ******* Form single sample C/A code by multiplying G1 and G2
-ss ca = g1.*g2;
-ca used=-ss ca;
+ss_ca = g1.*g2 ;
+ca_used=-ss_ca ;
