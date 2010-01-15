@@ -16,7 +16,7 @@ err = tsui_ca - our_ca ;
 plot(err) ;
 ca_err = err'*err ;
 fprintf('CA 16.368 generator errors: %f\n',ca_err) ;
-return ;
+return ; % end of checking
 
 % p7 1.m performs acquisition on collected data
 clear
