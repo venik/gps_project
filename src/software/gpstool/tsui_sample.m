@@ -1,4 +1,23 @@
 function tsui_sample()
+
+% check our function
+% (comparing with Tsui)
+% 1. Check ca code generator
+tsui_ca = codegen(1).' ;
+our_ca = get_ca_code(1023,1) ;
+err = tsui_ca - our_ca ; 
+plot(err) ;
+ca_err = err'*err ;
+clc ;
+fprintf('CA  generator errors: %f\n',ca_err) ;
+tsui_ca = digitizg(1023*16,16368000,0,1).' ;
+our_ca = get_ca_code16(1023,1) ;
+err = tsui_ca - our_ca ; 
+plot(err) ;
+ca_err = err'*err ;
+fprintf('CA 16.368 generator errors: %f\n',ca_err) ;
+return ;
+
 % p7 1.m performs acquisition on collected data
 clear
 % ******* initial condition *******
