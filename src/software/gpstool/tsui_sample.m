@@ -13,7 +13,7 @@ fprintf('CA  generator errors: %f\n',ca_err) ;
 tsui_ca = digitizg(1023*16,16368000,0,1).' ;
 our_ca = get_ca_code16(1023,1) ;
 err = tsui_ca - our_ca ; 
-plot(err) ;
+hold off, plot(tsui_ca(1:35),'b-+'), hold on, plot(our_ca(1:35),'r-+'), grid on ;
 ca_err = err'*err ;
 fprintf('CA 16.368 generator errors: %f\n',ca_err) ;
 return ; % end of checking

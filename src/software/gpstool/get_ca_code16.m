@@ -5,8 +5,16 @@
 % /* PRN  - sattelite code */
 % /* Status: is not tested */
 function ca16 = get_ca_code16(N,PRN)
-ca = get_ca_code(N,PRN) ;
+ca = get_ca_code(N+1,PRN) ; 
+chip_width = 1/1.023e6 ; % /* CA chip duration, sec */
+ts = 1/16.368e6 ; % /* discretization period, sec */
 ca16 = zeros(N*16,1) ;
-for k=1:N
-    ca16((k-1)*16+1:(k-1)*16+16) = ca(k) ;
+for k=1:N*16
+    ca16(k) = ca(round(ts*(k-1)/chip_width)+1) ;
 end
+
+% ca = get_ca_code(N,PRN) ;
+% ca16 = zeros(N*16,1) ;
+% for k=1:N
+%     ca16((k-1)*16+1:(k-1)*16+16) = ca(k) ;
+% end

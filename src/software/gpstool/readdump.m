@@ -6,7 +6,7 @@ function x = readdump(fname,nDumpSize)
 x = zeros(nDumpSize,1) ;
 f = fopen(fname,'r+t') ;
 % /* read header */
-str = fgets(f) ;
+%str = fgets(f) ;
 for n=1:nDumpSize
     if feof(f)
         fprintf('[readdump], Warning: End of file detected at sample %d\n',n) ;
@@ -18,9 +18,16 @@ for n=1:nDumpSize
         fprintf(str) ;
         continue ;
     end
-    [v,k] = sscanf(str,'%d  %d') ;
-    if k==2
-        x(n) = v(1) + j*v(2) ;
+    %[v,k] = sscanf(str,'%d  %d') ;
+    %if k==2
+    %    x(n) = v(1) + j*v(2) ;
+    %else
+    %    fprintf('[readdump], Error: unknown format\n') ;
+    %    break ;
+    %end
+    [v,k] = sscanf(str,'%d') ;
+    if k==1
+        x(n) = v(1) ;
     else
         fprintf('[readdump], Error: unknown format\n') ;
         break ;
