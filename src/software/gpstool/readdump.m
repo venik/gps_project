@@ -3,6 +3,7 @@
 % /* nDumpSize - number of samples to read */
 % /* Status: almost tested */
 function x = readdump(fname,nDumpSize)
+bComplexData = 1 ;
 x = zeros(nDumpSize,1) ;
 f = fopen(fname,'r+t') ;
 % /* read header */
@@ -18,19 +19,22 @@ for n=1:nDumpSize
         fprintf(str) ;
         continue ;
     end
-    %[v,k] = sscanf(str,'%d  %d') ;
-    %if k==2
-    %    x(n) = v(1) + j*v(2) ;
-    %else
-    %    fprintf('[readdump], Error: unknown format\n') ;
-    %    break ;
-    %end
-    [v,k] = sscanf(str,'%d') ;
-    if k==1
-        x(n) = v(1) ;
+    if bComplexData
+        [v,k] = sscanf(str,'%d  %d') ;
+        if k==2
+           x(n) = v(1) + j*v(2) ;
+        else
+           fprintf('[readdump], Error: unknown format\n') ;
+           break ;
+        end
     else
-        fprintf('[readdump], Error: unknown format\n') ;
-        break ;
+        [v,k] = sscanf(str,'%d') ;
+        if k==1
+            x(n) = v(1) ;
+        else
+            fprintf('[readdump], Error: unknown format\n') ;
+            break ;
+        end
     end
 end
 fclose(f) ;

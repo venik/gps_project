@@ -10,8 +10,9 @@ chip_width = 1/1.023e6 ; % /* CA chip duration, sec */
 ts = 1/16.368e6 ; % /* discretization period, sec */
 ca16 = zeros(N*16,1) ;
 for k=1:N*16
-    ca16(k) = ca(round(ts*(k-1)/chip_width)+1) ;
+    ca16(k) = ca(ceil(ts*k/chip_width)) ;
 end
+ca16 = [ca16(1); ca16(1:end-1)] ;
 
 % ca = get_ca_code(N,PRN) ;
 % ca16 = zeros(N*16,1) ;
