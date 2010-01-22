@@ -30,6 +30,7 @@
 
 typedef struct rs232_data_s {
 	char	name[MAXLINE];
+	char	cfg_name[MAXLINE];
 	int	fd;
 	
 	int 	fd_flush;
@@ -50,8 +51,93 @@ void rs232_banner()
 	printf("Usage: rs232_ttool [options]\n");
 	printf("Options:\n");
 	printf("  -p:	give the rs232 port name, something like this /dev/ttyS0\n");
+	printf("  -p:	give the cfg-file name\n");
 	printf("  -c:	command in hex\n");
 	printf("  -h:	display this information\n");
+}
+
+/* maybe it'll read some cfg-files */
+int rs232_read_cfg(rs232_data_t *rs232data)
+{
+	int		res, fd, iov_length, size_of_cfg;
+	uint8_t		on = 1;
+	size_t		cfg_size = 65536;
+	char		cfg_data[cfg_size];
+	char		*p_str, *p_start;
+	int		addr;
+	uint64_t	reg ;
+	char		tmp_str[10] = {} ;
+	char		pre_reg[2]; 
+	
+	struct 	iovec iov[2];
+
+	sprintf(pre_reg, "# ");
+
+	fd = open(rs232data->cfg_name, O_RDONLY, 0666);
+	if( fd < 0 ) {
+		printf("[err] [%s] during open the cfg file. errno %s\n", __func__, strerror(errno));
+		exit(-1);
+	}
+
+	size_of_cfg = read(fd, cfg_data, cfg_size);
+	if( size_of_cfg < 0 ) {
+		printf("[err] [%s] during read the cfg file. errno %s\n", __func__, strerror(errno));
+		exit(-1);
+	}
+
+	/* the main parsing loop */
+	p_str = cfg_data;
+	while(on) {
+
+		if( *p_str == '\0' )
+			break;
+
+		p_start = p_str;
+		do {
+			//printf("[%c][%d]\n", *p_str, *p_str) ;
+			p_str++;
+		} while( (*p_str != '\n') && (*p_str != '\0') );
+
+		printf("[%s]\n", __func__) ;
+
+		if( *p_start != '#' ) {
+			/* maybe it's data, algo not so robust as i wish */
+			/* our format is =>addr[tab]value<= */
+			/* sample 0	0x8ec0000 */
+
+			iov_length = 2;
+
+			iov[0].iov_base = pre_reg;
+			iov[0].iov_len = sizeof(pre_reg);
+
+			res = sscanf(p_start, "%04d\t%llx\n", &addr, &reg);
+			if(res < 2) {
+				printf("[err] cannot parse the string [%s]\n", p_start);
+			} else {
+				printf("[%s] detected addr[%d] reg[0x%llx]\n", __func__, addr, reg) ;
+			}
+
+			/* store the reg */
+			gps_regs[addr].addr = (uint8_t)addr;
+			gps_regs[addr].reg = reg;
+										
+			hex2str(tmp_str, addr);					
+			snprintf(gps_regs[addr].str, 30, "# %sb 0x%08llx\n", tmp_str, reg);
+		} else {
+			iov_length = 1;
+		}
+		
+		iov[iov_length - 1].iov_base = p_start;
+		iov[iov_length - 1].iov_len = p_str - p_start + 1;		// + 1 = + '\n'
+
+		writev(rs232data->fd_flush, iov, iov_length); 
+		
+		p_str++;
+	}
+
+	printf("[%s] we've parsed the cfg-file\n", __func__) ;
+
+	return 0;
 }
 
 /*
@@ -130,7 +216,7 @@ int rs232_open_flush(rs232_data_t *rs232data)
 		exit(-1);
 	}
 
-	/* get current time */
+	/* get and write current time */
 	time_t	cur_time;
 	char	p_time[40] = {};
 
@@ -143,17 +229,30 @@ int rs232_open_flush(rs232_data_t *rs232data)
 	iov[0].iov_base = p_time;
 	iov[0].iov_len = strlen(p_time);
 
-	/* fill with gps registers */
-	for( i = 2; i < iov_length - 1; i++ ) {
-		iov[i].iov_base = gps_regs[i-2].str;
-		iov[i].iov_len = strlen(gps_regs[i-2].str);
-	}
-	
 	char	blank_str[10];
 	sprintf(blank_str, "#\n");
 
 	iov[1].iov_base = blank_str;
 	iov[1].iov_len = strlen(blank_str);
+
+	i = writev(rs232data->fd_flush, iov, 2);
+
+	if( i < 0) {
+		printf("[%s] err. errno [%s]\n", __func__, strerror(errno));
+		exit(-1);
+	}
+
+	/* write comments from the cfg */
+	rs232_read_cfg(rs232data) ;
+
+	/* write summary registers */
+	iov_length = 11;
+	iov[0].iov_base = blank_str;
+	iov[0].iov_len = strlen(blank_str);
+	for( i = 1; i < 10; i++ ) {
+		iov[i].iov_base = gps_regs[i-2].str;
+		iov[i].iov_len = strlen(gps_regs[i-2].str);
+	}
 
 	iov[iov_length - 1].iov_base = blank_str;
 	iov[iov_length - 1].iov_len = strlen(blank_str);
@@ -230,6 +329,8 @@ int rs232_send_cmd_flush_3bit(rs232_data_t *rs232data)
 	rs232_open_flush(rs232data);
 	write(rs232data->fd_flush, header_string, strlen(header_string));
 
+	printf("[%s] try to read the data\n", __func__) ;
+
 	/* flush it */
 	comm_64 = (0x7ull) ;
 	res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
@@ -258,51 +359,11 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 	uint8_t		buff = 0;
 	uint64_t	comm_64 = (uint64_t)rs232data->cmd;
 	int 		res;
-	uint64_t	reg = 0;
 
-	/* users */
-	//comm_64 |= (0x01<<8);			// address
-	//comm_64 |= (0x855028cull<<12);		// data
-	//comm_64 |= (0x7<<8);			// address
-	//comm_64 |= (0x3fff1d9ull<<12);		// data
-
-	comm_64 |= (0x01<<0x08);		// address
-	//reg |= (VCOEN|IVCO_n|REFOUTEN|REFDIV_x1|IXTAL_bnc|ICP_05ma|PFDEN_en|INT_PLL_frac|PWSAV_off|REG_23);
-	//reg = 0x8ec0000;
-	//reg = 0xeaff1dc;
-	//reg = 0x855048c;
-	//reg = 0xa2939a3;
-	comm_64 |= (reg<<12);	// data
-
-	//comm_64 = (comm_64 | 0x56ull<<8 | 0xabull<<26);
-
-	//res = write(rs232data->fd, &comm_64, sizeof(uint64_t));
-	//res = write(rs232data->fd, &byte, sizeof(uint8_t));
-	//printf("write 0x%016llx, res [%d]\n", comm_64, res);
-	//printf("write 0x%02x, res [%d]\n", byte, res);
-
-	//res = read(rs232data->fd, &buff, 1);
-	//printf("=replay= [0x%02x]\t\n", buff);
-
-#if 1
-	int i;
-	//for(i=0; i<8; i++) {
-	for(i=0; i<1; i++) {
-		comm_64 = rs232data->cmd;
-		comm_64 |= ((0x01ull<<i)<<8);		// address
-		//comm_64 |= (0x55ull<<26);		// data
-		comm_64 |= (0x00ull<<26);		// data
-
-		//printf("data for mem [%x]\n", (uint8_t)(comm_64>>26));
-		
-		//res = write(rs232data->fd, &comm_64, todo);
-		res = write(rs232data->fd, &comm_64, sizeof(comm_64));
-		printf("write 0x%016llx, res [%d]\n", comm_64, res);
-		res = read(rs232data->fd, &buff, 1);
-		printf("=replay= [0x%02x] \n", buff);
-	}
-#endif
-
+	res = write(rs232data->fd, &comm_64, sizeof(comm_64));
+	printf("write 0x%016llx, res [%d]\n", comm_64, res);
+	res = read(rs232data->fd, &buff, 1);
+	printf("=replay= [0x%02x] \n", buff);
 
 	if( res < 0 ) {
 		if( errno != EAGAIN ) {
@@ -314,32 +375,6 @@ int rs232_send_cmd(rs232_data_t *rs232data)
 	}
 
 	return res;
-}
-
-static void rs232_fill_gps_regs()
-{
-	int i;
-
-	/* init regs */
-	gps_regs[0].reg = 0xa2939a3ull ;
-	gps_regs[1].reg = 0x8550c8cull ;
-	//gps_regs[1].reg = 0x0855028cull ;
-	gps_regs[2].reg = 0x6aff1dcull ;
-	gps_regs[3].reg = 0x9ec0008ull ;
-	gps_regs[4].reg = 0x0c00080ull ;
-	gps_regs[5].reg = 0x8000070ull ;
-	gps_regs[6].reg = 0x8000000ull ;
-	gps_regs[7].reg = 0x10061b2ull ;
-	gps_regs[8].reg = 0x1e0f401ull ;
-	gps_regs[9].reg = 0x14c0402ull ;
-
-	for( i = 0; i < 10; i++ ) {
-		gps_reg_str_t *tmp_reg = &gps_regs[i];
-
-		GPS_FILL( tmp_reg, i);
-		//printf("[%s] [%d]\n", __func__, strlen(gps_regs[i].str));
-	}
-
 }
 
 /* program the gps via serial interface */
@@ -354,8 +389,8 @@ int rs232_program_gps(rs232_data_t *rs232data)
 	for( i = 0; i < 11; i++ ) {
 		comm_64 = 1ull;		
 
-		comm_64 |= (i<<8);					// address
 		comm_64 |= (gps_regs[i].reg<<12);			// data
+		comm_64 |= (i<<8);					// address
 		
 		res = write(rs232data->fd, &comm_64, sizeof(comm_64));
 		printf("write 0x%016llx, res [%d]\n", comm_64, res);
@@ -431,7 +466,7 @@ for(val = 0; val < 16; val++ )
 	exit(-1);
 #endif 
 
-	while ( (res = getopt(argc,argv,"hp:c:")) != -1){
+	while ( (res = getopt(argc,argv,"hp:c:f:")) != -1){
 		switch (res) {
 		case 'h':
 			rs232_banner();
@@ -439,6 +474,10 @@ for(val = 0; val < 16; val++ )
 		case 'p':
 			printf("rs232 port set to [%s]\n", optarg);
 			snprintf(rs232data.name, MAXLINE, "%s", optarg);
+			break;
+		case 'f':
+			printf("cfg-name set to [%s]\n", optarg);
+			snprintf(rs232data.cfg_name, MAXLINE, "%s", optarg);
 			break;
 		case 'c':
 			//rs232data.cmd = atoi(optarg);
@@ -457,9 +496,6 @@ for(val = 0; val < 16; val++ )
 		return -1;
 
 	printf("\nHello, this is rs232 dumper for GPS-project \n");
-
-	/* init gps-regs */
-	rs232_fill_gps_regs();
 
 	/* send command */
 	if(rs232data.cmd == 0xa) {

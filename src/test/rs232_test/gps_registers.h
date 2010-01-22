@@ -36,7 +36,7 @@ void hex2str(char *str, uint8_t src)
 
 typedef struct gps_reg_str_s {
 	uint8_t		addr;
-	uint32_t	reg;
+	uint64_t	reg;
 	char		str[30];
 } gps_reg_str_t;
 
@@ -47,7 +47,7 @@ static gps_reg_str_t gps_regs[10];
 	char	tmp_str[10] = {};				\
 								\
 	hex2str(tmp_str, ADDR);					\
-	sprintf(GPS_REG->str, "# %sb 0x%08x\n", tmp_str, GPS_REG->reg);\
+	sprintf(GPS_REG->str, "# %sb 0x%08llx\n", tmp_str, GPS_REG->reg);\
 	GPS_REG->addr = ADDR;					\
 };
 
