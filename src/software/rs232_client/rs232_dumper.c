@@ -1,10 +1,4 @@
-/*
- *
- * Description: rs232 dumper - dump realtime gps-data from rs232 to a output file.
- *
- * Developer: Alex Nikiforov nikiforov.al [at] gmail.com
- *
- */
+/* Developer: Alex Nikiforov nikiforov.al [at] gmail.com */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,14 +20,6 @@
 
 #include "rs232_dumper.h"
 
-uint8_t		need_exit;
-
-/* signal handlers */
-static void rs232_sig_INT(int sig)
-{
-        need_exit = 0;
-        signal(15, SIG_IGN);
-}
 
 /*
  * Description: print banner 
@@ -116,38 +102,12 @@ static void rs232_destroy(rs232_data_t	*rs232data)
 	close(rs232data->client[2].fd);
 }
 
-#if 0
-void rs232_set_reg(rs232_data_t *rs232data)
-{
-	printf("[%s] set register mode", __FUNCTION__);
-
-	if( rs232data->addr > 7 ) {
-		printf("Address must be between 0 and 7\n");
-		return;
-	}
-
-	if( rs232data->reg > 268435455 ) {		// 268435455 = (2^28 - 1)
-		printf("Register value must be between 0 and 268435455\n");
-		return;
-	}
-
-	/* create payload for request */ 
-	//printf("before [0x%llx] \n", rs232data.comm_req);
-	rs232data->comm_req |= ( (rs232data->addr << 1) | (rs232data->reg << 5) );
-	printf("command for sending  [0x%016llx] \n", rs232data->comm_req);
-
-	/* FIXME - add network part */
-
-	return;
-}
-#endif
-
 int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 {
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
-	fprintf(I, "[%s]\n", __FUNCTION__);
+	//fprintf(I, "[%s]\n", __FUNCTION__);
 
 	pfd->events = POLLIN;
 
@@ -155,10 +115,7 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 
 	if( nready < 1 ) {
 		/* client not ready */
-		strcpy((char *)rs232data->recv_buf, "[err] there is no data in the client socket, disconnect...");
-		rs232_fsm_say_err(rs232data);
-
-		fprintf(I, "[err] there is no data in the client socket, disconnect...\n");
+		fprintf(I, "[%s] no data in the client socket\n", __func__);
 		return -1;
 	}
 
@@ -236,11 +193,12 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	return -1;
 }
 
-int rs232_fsm_connection(rs232_data_t *rs232data)
+int rs232_connection(rs232_data_t *rs232data)
 {
+	fprintf(I, "[%s]\n", __func__);
 	rs232data->client[1].fd = accept(rs232data->client[0].fd, NULL, NULL);
 
-	return WAIT_FOR_HELLO;
+	return 0;
 }
 
 int rs232_fsm_say_ack(rs232_data_t *rs232data) 
@@ -274,46 +232,33 @@ static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str)
 	rs232_poll_write(rs232data, 1, real_todo);
 }
 
-int rs232_fsm_hello(rs232_data_t *rs232data)
-{
+int rs232_get_command(rs232_data_t *rs232data) {
+
 	size_t	res;
 	size_t 	real_todo = 255;
+	int	i;
 	
+	fprintf(I, "[%s]\n", __func__);
+
 	if( (res = rs232_poll_read(rs232data, 1, real_todo)) < 0 ) {
 		/* error occur */
 		fprintf(I, " close connection or error. errno %s\n", strerror(errno));
 		strcpy((char *)rs232data->send_buf, strerror(errno));
-		goto out_with_err;
+		// FIXME
+		return(-1);
 	}
 
-	
-	real_todo = strncmp((const char *)rs232data->recv_buf, stage1_in[0], res);
+	do {
+		res = 	strlen(rs232_commands[i]);
+		real_todo = strncmp((const char *)rs232data->recv_buf, rs232_commands[i], res);
 
-	if( real_todo == 0 ) {
-		fprintf(I, "[%s] GUI successfully identified =] \n", __FUNCTION__);
-		if( rs232_fsm_say_ack(rs232data) < 0 )
-			return BREAK;
+		if(real_todo == res ) {
+			fprintf(I, "Yahooo\n");	
+		}
 
-		return SET_PORT; 
+	} while(res != 0);
 
-	} 
-
-	//rs232data->recv_buf[res] = '\0';
-	fprintf(I, "[err]: result [%d] unknown command, we expect %s, but receive %s \n", 	\
-			res,									\
-			stage1_in[0],								\
-			rs232data->recv_buf							\
-		);
-	
-	dump_hex((uint8_t *)stage1_in, sizeof(stage1_in[0]));
-
-out_with_err:
-
-	rs232_fsm_say_err(rs232data);
-	close(rs232data->client[1].fd);
-
-
-	return CONNECTION; 
+	return 0;
 }
 
 int rs232_fsm_test_sram(rs232_data_t *rs232data)
@@ -512,20 +457,23 @@ int rs232_fsm_set_port(rs232_data_t *rs232data)
 
 int rs232_idle(rs232_data_t *rs232data)
 {
-	uint8_t		state = CONNECTION;
+	int	res;
+
 	need_exit = 1;
-	
+
+	while(need_exit) {
+		res = rs232_poll_read(rs232data, 2, 255);
+		if( res != -1 ) {
+			/* data in the client socket - need parse it */
+			rs232_get_command(rs232data);
+		}
+	}
+#if 0	
 	while(need_exit) {
 		switch(state) {
 		case CONNECTION:
 			fprintf(I, "[%s] CONNECTION\n", __FUNCTION__);
 			state = rs232_fsm_connection(rs232data);
-			break;
-
-		case WAIT_FOR_HELLO:
-			fprintf(I, "[%s] WAIT_FOR_HELLO\n", __FUNCTION__);
-			state = rs232_fsm_hello(rs232data);
-			//exit(-1);
 			break;
 
 		case SET_PORT:
@@ -537,79 +485,10 @@ int rs232_idle(rs232_data_t *rs232data)
 		};
 
 	}; // while(need_exit)
-
-	return 0;
-}
-
-int rs232_fsm(rs232_data_t *rs232data)
-{
-	uint8_t		state = CONNECTION;
-	need_exit = 1;
-	
-	while(need_exit) {
-		switch(state) {
-
-#if 0
-		case CONNECTION:
-			fprintf(I, "[%s] CONNECTION\n", __FUNCTION__);
-			state = rs232_fsm_connection(rs232data);
-			break;
-
-		case WAIT_FOR_HELLO:
-			fprintf(I, "[%s] WAIT_FOR_HELLO\n", __FUNCTION__);
-			state = rs232_fsm_hello(rs232data);
-			break;
-
-		case SET_PORT:
-			fprintf(I, "[%s] SET_PORT\n", __FUNCTION__);
-			state = rs232_fsm_set_port(rs232data);
-			break;
-
 #endif
-		case TEST_RS232:
-			fprintf(I, "[%s] TEST_RS232\n", __FUNCTION__);
-			state = rs232_fsm_test_rs232(rs232data);
-			break;
-			
-		case TEST_SRAM:
-			fprintf(I, "[%s] TEST_SRAM\n", __func__);
-			state = rs232_fsm_test_sram(rs232data);
-			break;
-
-		case BREAK:
-			/* close the clinet socket */
-			fprintf(I, "[%s] BREAK\n", __FUNCTION__);
-			close(rs232data->client[1].fd);
-			return -1;
-
-		default:
-			fprintf(I, "[%s] unknown state [%d]n", __func__, state);
-			return -1;
-
-		} // switch(state)
-	} // while(1)
-
 	return 0;
 }
 
-int rs232_make_signals(rs232_data_t* rs232data)
-{
-	/* registering signals */
-	struct sigaction int_sig;
-        
-	int_sig.sa_handler = &rs232_sig_INT;
-        sigemptyset(&int_sig.sa_mask);
-        int_sig.sa_flags = SA_NOMASK;
-
-        if( ( (sigaction(SIGINT,  &int_sig, NULL)) == -1 ) ||
-            ( (sigaction(SIGTERM, &int_sig, NULL)) == -1 )
-          ){
-                fprintf(I, "[err] cannot set handler. error: %s", strerror(errno));
-                return -1;
-        }
-
-	return 0;
-}
 
 int rs232_make_net(rs232_data_t* rs232data)
 {
@@ -690,6 +569,7 @@ int main(int argc, char **argv)
 		return -1;
 	
 	/* protocol handler */
+	rs232_connection(&rs232data);
 	rs232_idle(&rs232data);
 	//rs232_fsm(&rs232data);
 

@@ -31,10 +31,6 @@ public class NetGPSBoard {
 			i_stream = new BufferedReader(new InputStreamReader(theSocket.getInputStream()));
 			o_stream = new PrintWriter(theSocket.getOutputStream(), true);
 
-			//o_stream = new PrintWriter( 
-			//			new BufferedWriter( \
-			//				new OutputStreamWriter(theSocket.getOutputStream())), true);
-
 		} catch (UnknownHostException e) {
 			System.err.println(e);
 			System.exit(1);
@@ -45,13 +41,11 @@ public class NetGPSBoard {
 
 		return 0;
 	}
-
-	public void SendComm() {
+	
+	private	void SendComm(String comm) {
 
 		System.out.println("SendComm()");
 
-		String hello = "HELLO_GPS_BOARD v0.1";
-		
 		try {
 			//o_stream.write(hello, 0, hello.length());
 			o_stream.println(hello);
@@ -64,6 +58,13 @@ public class NetGPSBoard {
 		} catch (java.io.IOException exp) {
 			exp.printStackTrace();
 		}
+	}
+
+	public void InitBoard(String port_name) {
+
+		SendComm("HELLO_GPS_BOARD v0.1");
+		SendComm("")
+		
 	}
 
 	public void CloseAll() {
@@ -85,7 +86,7 @@ public class NetGPSBoard {
 
 		ngb.ConnToBoard();
 
-		ngb.SendComm();
+		ngb.InitBoard();
 	}
 
 }

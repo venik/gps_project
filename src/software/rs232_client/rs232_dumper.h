@@ -15,38 +15,24 @@
 #define ERR 		"ERR: UNKNOWN COMMAND\r\n"
 
 FILE 		*I;
+uint8_t		need_exit;
 
 /*****************************************
  *	Text protocol GUI <=> Dumper
  *****************************************/
 
-/* initial connection */
-char	stage1_in[][255] = 
-{
-	{"HELLO_GPS_BOARD v0.1\n"},
-	{""}
-};
-
-/* setup the work-settings */
-char	stage2_in[][255] = 
+/* avalible commands */
+char	rs232_commands[][255] = 
 {
 	{"RS232_PORT:"},
+	{"TEST_RS232"},
+	{"TEST_SRAM"},
 	{""}
 };
-
-/* conversation with GPS-board */
-char	stage3_in[][255] = 
-{
-	{"TEST_RS232\r\n"},
-	{"TEST_SRAM\r\n"},
-	{""}
-};
-
 
 enum rs232_fsm_state {
 	BREAK,			/* exit from cycle */
 	CONNECTION,
-	WAIT_FOR_HELLO,
 	SET_PORT,
 	TEST_RS232,
 	TEST_SRAM	
@@ -83,6 +69,32 @@ typedef struct rs232_data_s {
 
 static void rs232_fsm_say_err(rs232_data_t *rs232data);
 static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str);
+
+/* signal handlers */
+static void rs232_sig_INT(int sig)
+{
+        need_exit = 0;
+        signal(15, SIG_IGN);
+}
+
+int rs232_make_signals(rs232_data_t* rs232data)
+{
+	/* registering signals */
+	struct sigaction int_sig;
+        
+	int_sig.sa_handler = &rs232_sig_INT;
+        sigemptyset(&int_sig.sa_mask);
+        int_sig.sa_flags = SA_NOMASK;
+
+        if( ( (sigaction(SIGINT,  &int_sig, NULL)) == -1 ) ||
+            ( (sigaction(SIGTERM, &int_sig, NULL)) == -1 )
+          ){
+                fprintf(I, "[err] cannot set handler. error: %s", strerror(errno));
+                return -1;
+        }
+
+	return 0;
+}
 
 /* help functions */
 void dump_asci(volatile uint8_t *data, size_t size)
