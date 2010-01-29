@@ -186,7 +186,7 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
-	//fprintf(I, "[%s]\n", __func__);
+	fprintf(I, "[%s] todo [%d]\n", __func__, todo);
 
 	pfd->events = POLLOUT;
 

@@ -124,7 +124,7 @@ int rs232_get_command(rs232_data_t *rs232data) {
 		res = strlen(rs232_commands[i]);
 		real_todo = strncmp((const char *)rs232data->recv_buf, rs232_commands[i], res);
 
-		if( real_todo == 0 ) {
+		if( (real_todo == 0) && (res != 0) ) {
 			fprintf(I, "Catch res = [%d], command [%s]\n", real_todo, rs232_commands[i]);	
 			goto parse_finish;	
 		}
@@ -138,7 +138,9 @@ int rs232_get_command(rs232_data_t *rs232data) {
 		i++;
 	} while(res != 0);
 
-	fprintf(I, "[%s] unknown command\n", __func__);	
+	snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] unknown command", __func__);
+	fprintf(I, "%s\n", (char *)rs232data->recv_buf);	
+
 	return -1;
 
 parse_finish:
@@ -215,6 +217,8 @@ int rs232_idle(rs232_data_t *rs232data)
 			res = rs232_get_command(rs232data);
 
 			if( res < 0 ) {
+				res = strlen((char *)rs232data->send_buf);
+				rs232_poll_write(rs232data, GUI_FD, res);
 				continue;
 			}
 			

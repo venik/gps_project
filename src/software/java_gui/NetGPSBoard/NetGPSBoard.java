@@ -46,24 +46,26 @@ public class NetGPSBoard {
 
 		System.out.println("SendComm()");
 
-		//try {
+		try {
 			//o_stream.write(hello, 0, hello.length());
 			o_stream.print(comm);
 			o_stream.flush();
 
 		//	String ans = i_stream.readLine();
+			char ans[] = new char[255];
+			i_stream.read(ans, 0, 255);
 
 			//System.out.println("System answer [" + ans + "]");
 
-		//} catch (java.io.IOException exp) {
+		} catch (java.io.IOException exp) {
 			this.CloseAll();
-			//exp.printStackTrace();
-		//}
+			exp.printStackTrace();
+		}
 	}
 
 	public void InitBoard(String port_name) {
 
-		SendComm("RS232_PORT:/dev/ttyUSB0");
+		SendComm("1RS232_PORT:/dev/ttyUSB0");
 		//SendComm("Second");
 		
 	}
