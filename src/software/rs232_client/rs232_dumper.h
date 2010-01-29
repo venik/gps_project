@@ -36,14 +36,6 @@ char	rs232_commands[][255] =
 	{""}
 };
 
-enum rs232_fsm_state {
-	BREAK,			/* exit from cycle */
-	CONNECTION,
-	SET_PORT,
-	TEST_RS232,
-	TEST_SRAM	
-};
-
 /********************************************
  *	Binary protocol Dumper <=> GPS-Board 
  ********************************************/
@@ -63,7 +55,7 @@ enum rs232_comm_request {
  ********************************************/
 typedef struct rs232_data_s {
 
-	char		name[MAXLINE];
+	char		name[MAXLINE];			/* rs232 dev-name */
 	uint8_t 	recv_buf[BUF_SIZE];
 	uint8_t 	send_buf[BUF_SIZE];
 
@@ -72,9 +64,6 @@ typedef struct rs232_data_s {
 	uint16_t	port;
 
 } rs232_data_t;
-
-static void rs232_fsm_say_err(rs232_data_t *rs232data);
-static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str);
 
 /* signal handlers */
 static void rs232_sig_INT(int sig)
@@ -169,9 +158,11 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 		if( res < 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
+			close(pfd->fd);
 			return -1;
 		} else if( res == 0 ) {
 			fprintf(I, "closed socket\n");
+			close(pfd->fd);
 			return -1;
 		}
 	
@@ -208,31 +199,34 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	}
 
 	if( pfd->revents & POLLOUT ) {
-		
-		res = write(pfd->fd, rs232data->send_buf, todo);
 	
 		dump_hex(rs232data->send_buf, todo);
-		
-		if( res <= 0 ) {
-			/* error occur */
-			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
-			return -1;
+	
+		do {
+			errno = 0;
+			res = write(pfd->fd, rs232data->send_buf, todo);
 
-		} else if( res != todo ) {
-			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
-				__func__,
-				pfd->fd,
-				res,
-				todo
-				);
+			if( res < 0 ) {
+				/* error occur */
+				fprintf(I, "[%s] [err] while writing. errno [%s]\n", __func__, strerror(errno));
+				close(pfd->fd);
+				return -1;
+			} else if( res == 0 ) {
+				fprintf(I, "[%s] [err] GUI closed the socket\n", __func__);
+				close(pfd->fd);
+				return -1;
+			}
 
-			return -1;
-		}
+			if( res != todo ) {
+				fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
+					__func__, pfd->fd, res, todo );
+			}
+			
+			todo -= res;
 
-		fprintf(I, "[%s] wrote [%d] bytes\n", __func__, res);
+		} while(todo != 0);
 
 		return 0;
-
 	}
 			
 	return -1;
