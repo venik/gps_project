@@ -46,24 +46,24 @@ public class NetGPSBoard {
 
 		System.out.println("SendComm()");
 
-		try {
+		//try {
 			//o_stream.write(hello, 0, hello.length());
-			o_stream.println(hello);
-			o_stream.flush();
+			o_stream.println(comm);
+			//o_stream.flush();
 
-			String str = i_stream.readLine();
+			//String str = i_stream.readLine();
 
-			System.out.println("[" + str + "]");
+			//System.out.println("[" + str + "]");
 
-		} catch (java.io.IOException exp) {
-			exp.printStackTrace();
-		}
+		//} catch (java.io.IOException exp) {
+		//	exp.printStackTrace();
+		//}
 	}
 
 	public void InitBoard(String port_name) {
 
 		SendComm("HELLO_GPS_BOARD v0.1");
-		SendComm("")
+		//SendComm("")
 		
 	}
 
@@ -86,7 +86,7 @@ public class NetGPSBoard {
 
 		ngb.ConnToBoard();
 
-		ngb.InitBoard();
+		ngb.InitBoard("some");
 	}
 
 }

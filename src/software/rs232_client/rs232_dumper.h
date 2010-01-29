@@ -17,6 +17,12 @@
 FILE 		*I;
 uint8_t		need_exit;
 
+enum rs232_fd_list {
+	LISTEN_FD	= 0,
+	GUI_FD		= 1,
+	BOARD_FD	= 2
+};
+
 /*****************************************
  *	Text protocol GUI <=> Dumper
  *****************************************/
@@ -132,6 +138,104 @@ void dump_hex(volatile uint8_t *data, size_t size)
                 data++; 
         } 
         fprintf(I, "\n");
+}
+
+/* network helpers */
+int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
+{
+	int nready, res;
+	struct pollfd	*pfd = &rs232data->client[num];
+
+	//fprintf(I, "[%s]\n", __FUNCTION__);
+
+	pfd->events = POLLIN;
+
+	nready = poll(pfd, 1, -1);
+	//nready = poll(rs232data->client, 3, -1);
+
+	if( nready < 1 ) {
+		/* client not ready */
+		fprintf(I, "[%s] no data in the client socket\n", __func__);
+		return -1;
+	}
+
+	fprintf(I, "[%s] data here\n", __func__);
+
+	if( pfd->revents & POLLIN ) {
+		
+		res = read(pfd->fd, rs232data->recv_buf, todo);
+		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
+		
+		if( res < 0 ) {
+			/* error occur */
+			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
+			return -1;
+		} else if( res == 0 ) {
+			fprintf(I, "closed socket\n");
+			return -1;
+		}
+	
+		dump_hex(rs232data->recv_buf, res);
+
+		fprintf(I, "[%s] fd = [%d] read = [%d]\n",
+			__func__,
+			pfd->fd,
+			res
+			);
+
+		return res;
+
+	}
+			
+	return -1;
+}
+
+int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
+{
+	int nready, res;
+	struct pollfd	*pfd = &rs232data->client[num];
+
+	//fprintf(I, "[%s]\n", __func__);
+
+	pfd->events = POLLOUT;
+
+	nready = poll(pfd, 1, TIMEOUT);
+
+	if( nready < 1 ) {
+		fprintf(I, "[err] the GUI not ready, disconnect...\n");
+		/* client not ready */
+		return -1;
+	}
+
+	if( pfd->revents & POLLOUT ) {
+		
+		res = write(pfd->fd, rs232data->send_buf, todo);
+	
+		dump_hex(rs232data->send_buf, todo);
+		
+		if( res <= 0 ) {
+			/* error occur */
+			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
+			return -1;
+
+		} else if( res != todo ) {
+			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
+				__func__,
+				pfd->fd,
+				res,
+				todo
+				);
+
+			return -1;
+		}
+
+		fprintf(I, "[%s] wrote [%d] bytes\n", __func__, res);
+
+		return 0;
+
+	}
+			
+	return -1;
 }
 
 #endif /* _RS232_DUMPER_H */

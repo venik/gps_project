@@ -41,6 +41,7 @@ typedef struct rs232_data_s {
 
 } rs232_data_t;
 
+int rs232_program_gps(rs232_data_t *rs232data);
 /*
  * Description: print banner 
  * Return:  	nothing	
@@ -136,6 +137,9 @@ int rs232_read_cfg(rs232_data_t *rs232data)
 	}
 
 	printf("[%s] we've parsed the cfg-file\n", __func__) ;
+
+	
+	rs232_program_gps(rs232data);
 
 	return 0;
 }
@@ -250,8 +254,8 @@ int rs232_open_flush(rs232_data_t *rs232data)
 	iov[0].iov_base = blank_str;
 	iov[0].iov_len = strlen(blank_str);
 	for( i = 1; i < 10; i++ ) {
-		iov[i].iov_base = gps_regs[i-2].str;
-		iov[i].iov_len = strlen(gps_regs[i-2].str);
+		iov[i].iov_base = gps_regs[i-1].str;
+		iov[i].iov_len = strlen(gps_regs[i-1].str);
 	}
 
 	iov[iov_length - 1].iov_base = blank_str;

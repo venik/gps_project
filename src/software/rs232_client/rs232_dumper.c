@@ -99,104 +99,14 @@ int rs232_open_device(rs232_data_t *rs232data)
 static void rs232_destroy(rs232_data_t	*rs232data)
 {
 	close(rs232data->client[0].fd);
+	close(rs232data->client[1].fd);
 	close(rs232data->client[2].fd);
-}
-
-int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
-{
-	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[num];
-
-	//fprintf(I, "[%s]\n", __FUNCTION__);
-
-	pfd->events = POLLIN;
-
-	nready = poll(pfd, 1, TIMEOUT);
-
-	if( nready < 1 ) {
-		/* client not ready */
-		fprintf(I, "[%s] no data in the client socket\n", __func__);
-		return -1;
-	}
-
-	if( pfd->revents & POLLIN ) {
-		
-		res = read(pfd->fd, rs232data->recv_buf, todo);
-		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
-		
-		if( res <= 0 ) {
-			/* error occur */
-			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
-			return -1;
-		}
-		
-		dump_hex(rs232data->recv_buf, res);
-
-		fprintf(I, "[%s] fd = [%d] read = [%d]\n",
-			__func__,
-			pfd->fd,
-			res
-			);
-
-		return res;
-
-	}
-			
-	return -1;
-}
-
-int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
-{
-	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[num];
-
-	fprintf(I, "[%s]\n", __func__);
-
-	pfd->events = POLLOUT;
-
-	nready = poll(pfd, 1, TIMEOUT);
-
-	if( nready < 1 ) {
-		fprintf(I, "[err] the GUI not ready, disconnect...\n");
-		/* client not ready */
-		return -1;
-	}
-
-	if( pfd->revents & POLLOUT ) {
-		
-		res = write(pfd->fd, rs232data->send_buf, todo);
-	
-		dump_hex(rs232data->send_buf, todo);
-		
-		if( res <= 0 ) {
-			/* error occur */
-			fprintf(I, "[err] while writing. errno [%s]\n", strerror(errno));
-			return -1;
-
-		} else if( res != todo ) {
-			fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
-				__func__,
-				pfd->fd,
-				res,
-				todo
-				);
-
-			return -1;
-		}
-
-		fprintf(I, "[%s] wrote [%d] bytes\n", __FUNCTION__, res);
-
-		return 0;
-
-	}
-			
-	return -1;
 }
 
 int rs232_connection(rs232_data_t *rs232data)
 {
 	fprintf(I, "[%s]\n", __func__);
-	rs232data->client[1].fd = accept(rs232data->client[0].fd, NULL, NULL);
+	rs232data->client[GUI_FD].fd = accept(rs232data->client[LISTEN_FD].fd, NULL, NULL);
 
 	return 0;
 }
@@ -235,18 +145,10 @@ static void rs232_fsm_say_err_errno(rs232_data_t *rs232data, char *str)
 int rs232_get_command(rs232_data_t *rs232data) {
 
 	size_t	res;
-	size_t 	real_todo = 255;
-	int	i;
+	size_t 	real_todo;
+	int	i = 0;
 	
 	fprintf(I, "[%s]\n", __func__);
-
-	if( (res = rs232_poll_read(rs232data, 1, real_todo)) < 0 ) {
-		/* error occur */
-		fprintf(I, " close connection or error. errno %s\n", strerror(errno));
-		strcpy((char *)rs232data->send_buf, strerror(errno));
-		// FIXME
-		return(-1);
-	}
 
 	do {
 		res = 	strlen(rs232_commands[i]);
@@ -256,135 +158,10 @@ int rs232_get_command(rs232_data_t *rs232data) {
 			fprintf(I, "Yahooo\n");	
 		}
 
+		i++;
 	} while(res != 0);
 
 	return 0;
-}
-
-int rs232_fsm_test_sram(rs232_data_t *rs232data)
-{
-	size_t	res;
-	size_t 	real_todo = strlen(TEST_SRAM_CMD);
-	
-	if( rs232_poll_read(rs232data, 1, real_todo) < 0 ) {
-		/* error occur */
-		return BREAK;
-	}
-	
-	res = strncmp((const char *)rs232data->recv_buf, (const char *)TEST_SRAM_CMD, real_todo);
-
-
-	if( res == 0 ) {
-		fprintf(I, "[%s] request for test onboard SRAM-chip \n", __FUNCTION__);
-
-		/* work with board */
-		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
-		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
-		
-		*comm_req = RS232_TEST_SRAM;	
-		
-		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
-			/* error occur */
-			fprintf(I, "[%s] PC => Board: sram-chip test failed\n", __FUNCTION__);
-			return BREAK;
-		}
-		
-		if( rs232_poll_read(rs232data, 2, sizeof(uint8_t)) < 0 ) {
-			/* error occur */
-			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
-			return BREAK;
-		}
-
-		if( ((*comm_req) & 0xFFull) == (*comm_ans) ) {
-			fprintf(I, "SRAM work fine =) \n");
-
-			if( rs232_fsm_say_ack(rs232data) < 0 )
-				return BREAK;
-		
-		} else {
-			fprintf(I, "problem with the onboard sram =( \n");
-			return BREAK;
-		}
-
-
-		return TEST_SRAM; 
-
-	} 
-
-	rs232data->recv_buf[real_todo] = '\0';
-	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
-			TEST_RS232_CMD,
-			rs232data->recv_buf
-		);
-
-	rs232_fsm_say_err(rs232data);
-
-	return BREAK;
-		
-}
-int rs232_fsm_test_rs232(rs232_data_t *rs232data)
-{
-	size_t	res;
-	size_t 	real_todo = strlen(TEST_RS232_CMD);
-	
-	if( rs232_poll_read(rs232data, 1, real_todo) < 0 ) {
-		/* error occur */
-		return BREAK;
-	}
-	
-	res = strcmp((const char *)rs232data->recv_buf, (const char *)TEST_RS232_CMD);
-
-	//printf("[%x] [%x]", rs232data->recv_buf[real_todo], rs232data->recv_buf[real_todo + 1]);
-	//dump_hex(rs232data->recv_buf, real_todo);
-	//dump_hex((uint8_t *)TEST_RS232_CMD, real_todo);
-
-	if( res == 0 ) {
-		fprintf(I, "[%s] request for COM-port testing \n", __FUNCTION__);
-
-		/* work with board */
-		uint64_t 	*comm_req = (uint64_t *)rs232data->send_buf;
-		uint8_t 	*comm_ans = (uint8_t *)rs232data->recv_buf;
-		
-		*comm_req = RS232_TEST_RS232;	
-		
-		if( rs232_poll_write(rs232data, 2, sizeof(uint64_t)) < 0 ) {
-			/* error occur */
-			fprintf(I, "[%s] PC => Board: rs232 test\n", __FUNCTION__);
-			return BREAK;
-		}
-		
-		if( rs232_poll_read(rs232data, 2, sizeof(uint8_t)) < 0 ) {
-			/* error occur */
-			fprintf(I, "[%s] Board => PC answer\n", __FUNCTION__);
-			return BREAK;
-		}
-
-		if( ((*comm_req) & 0xFFull) == (*comm_ans) ) {
-			fprintf(I, "RS232 work fine =) \n");
-
-			if( rs232_fsm_say_ack(rs232data) < 0 )
-				return BREAK;
-		
-		} else {
-			fprintf(I, "problem with the RS232 connection =( \n");
-			return BREAK;
-		}
-
-
-		return TEST_SRAM; 
-
-	} 
-
-	rs232data->recv_buf[real_todo] = '\0';
-	fprintf(I, "ERROR: unknown command, we expect %s, but receive %s \n",
-			TEST_RS232_CMD,
-			rs232data->recv_buf
-		);
-
-	rs232_fsm_say_err(rs232data);
-
-	return BREAK;
-		
 }
 
 int rs232_fsm_set_port(rs232_data_t *rs232data)
@@ -462,30 +239,15 @@ int rs232_idle(rs232_data_t *rs232data)
 	need_exit = 1;
 
 	while(need_exit) {
-		res = rs232_poll_read(rs232data, 2, 255);
-		if( res != -1 ) {
+		res = rs232_poll_read(rs232data, GUI_FD, 255);
+		if( res > 0 ) {
 			/* data in the client socket - need parse it */
 			rs232_get_command(rs232data);
+		} else if( res == -1 ){
+			rs232_connection(rs232data);
 		}
 	}
-#if 0	
-	while(need_exit) {
-		switch(state) {
-		case CONNECTION:
-			fprintf(I, "[%s] CONNECTION\n", __FUNCTION__);
-			state = rs232_fsm_connection(rs232data);
-			break;
-
-		case SET_PORT:
-			fprintf(I, "[%s] SET_PORT\n", __FUNCTION__);
-			state = rs232_fsm_set_port(rs232data);
-			return 0;
-			//break;
-
-		};
-
-	}; // while(need_exit)
-#endif
+	
 	return 0;
 }
 
@@ -494,9 +256,10 @@ int rs232_make_net(rs232_data_t* rs232data)
 {
 	struct	sockaddr_in	sin = {};
 	socklen_t		len = sizeof(sin);
+	struct pollfd		*listen_socket = &rs232data->client[LISTEN_FD];
 
-	rs232data->client[0].fd = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
-	if( rs232data->client[0].fd < 0) {
+	listen_socket->fd = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
+	if( listen_socket->fd < 0) {
 		fprintf(I, "[%s] [err] during create socket. errno %s\n", __FUNCTION__, strerror(errno));
 		return -1;
 	}
@@ -505,20 +268,22 @@ int rs232_make_net(rs232_data_t* rs232data)
 	sin.sin_port = htons(rs232data->port);		// FIXME
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);	// listen on every interface
 
-	if( bind(rs232data->client[0].fd, (struct sockaddr *)&sin, len) < 0 ) {
+	if( bind(listen_socket->fd, (struct sockaddr *)&sin, len) < 0 ) {
 		fprintf(I, "[%s] [err] during bind the socket on port [%d]. errno %s\n",
-				__FUNCTION__,
+				__func__,
 				rs232data->port,
 				strerror(errno)
 			);
 
-		close(rs232data->client[0].fd);
+		close(listen_socket->fd);
 		return -1;
 	}
 
-	if( listen(rs232data->client[0].fd, 2) ) {
-		fprintf(I, "[%s] error during listen() the socket on port [%d]", __FUNCTION__, rs232data->port);
-		close(rs232data->client[0].fd);
+	if( listen(listen_socket->fd, 2) ) {
+		fprintf(I, "[%s] error during listen() the socket on port [%d]. errno [%s]",
+			__func__, rs232data->port, strerror(errno));
+
+		close(listen_socket->fd);
 		return -1;
 	}
 
