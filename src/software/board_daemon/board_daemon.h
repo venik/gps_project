@@ -1,5 +1,5 @@
-#ifndef _RS232_DUMPER_H
-#define _RS232_DUMPER_H
+#ifndef _BD_DAEMON_H
+#define _BD_DAEMON_H
 
 #include <poll.h>
 
@@ -7,28 +7,31 @@
 #define BUF_SIZE	1024*1024	// 1 Mb
 #define TIMEOUT		3000		// 3 sec
 
-/* commands */
-#define SET_PORT_CMD	"RS232_PORT:"
-#define TEST_RS232_CMD	"TEST_RS232\r\n"
-#define TEST_SRAM_CMD	"TEST_SRAM\r\n"
-#define ACK		"ACK\r\n"
-#define ERR 		"ERR: UNKNOWN COMMAND\r\n"
-
 FILE 		*I;
 uint8_t		need_exit;
 
-enum rs232_fd_list {
+#define TRACE(LEVEL, FORMAT, ARGS... )				\
+do {								\
+	char MSG[256];						\
+								\
+	if(LEVEL <= TRACE_LEVEL) {				\
+		snprintf( MSG, sizeof(MSG), FORMAT, ## ARGS);	\
+		fputs(MSG, I);					\
+	}							\
+} while (0)
+
+enum bd_fd_list {
 	LISTEN_FD	= 0,
 	GUI_FD		= 1,
 	BOARD_FD	= 2
 };
 
 /*****************************************
- *	Text protocol GUI <=> Dumper
+ *	Text protocol GUI <=> Board_daemon 
  *****************************************/
 
 /* avalible commands */
-char	rs232_commands[][255] = 
+char	gui_commands[][255] = 
 {
 	{"RS232_PORT:"},
 	{"TEST_RS232"},
@@ -37,23 +40,22 @@ char	rs232_commands[][255] =
 };
 
 /********************************************
- *	Binary protocol Dumper <=> GPS-Board 
+ *	Binary protocol Board daemon <=> GPS-Board 
  ********************************************/
 enum rs232_comm_request {
-	/* 0x00 - 0x10 	SRAM-command */
+	
 	RS232_TEST_SRAM		= 0x02,
 	RS232_WRITE_BYTE	= 0x04,
 	RS232_READ_BYTE		= 0x08,
-	/* 0x11 - 0x20 	GPS-command */
+
 	RS232_SET_REG		= 0x11,
-	/* Other */
 	RS232_TEST_RS232	= 0xAA 
 };
 
 /********************************************
  *	Work definition 
  ********************************************/
-typedef struct rs232_data_s {
+typedef struct bd_data_s {
 
 	char		name[MAXLINE];			/* rs232 dev-name */
 	uint8_t 	recv_buf[BUF_SIZE];
@@ -63,21 +65,21 @@ typedef struct rs232_data_s {
 	struct pollfd	client[3];
 	uint16_t	port;
 
-} rs232_data_t;
+} bd_data_t;
 
 /* signal handlers */
-static void rs232_sig_INT(int sig)
+static void bd_sig_INT(int sig)
 {
         need_exit = 0;
         signal(15, SIG_IGN);
 }
 
-int rs232_make_signals(rs232_data_t* rs232data)
+int bd_make_signals()
 {
 	/* registering signals */
 	struct sigaction int_sig;
         
-	int_sig.sa_handler = &rs232_sig_INT;
+	int_sig.sa_handler = &bd_sig_INT;
         sigemptyset(&int_sig.sa_mask);
         int_sig.sa_flags = SA_NOMASK;
 
@@ -127,14 +129,13 @@ void dump_hex(volatile uint8_t *data, size_t size)
                 data++; 
         } 
         fprintf(I, "\n");
-}
+};
 
 /* network helpers */
-int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
+int bd_poll_read(bd_data_t *bd_data, uint8_t num, size_t todo)
 {
 	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[num];
-
+	struct pollfd	*pfd = &bd_data->client[num];
 	//fprintf(I, "[%s]\n", __func__);
 
 	pfd->events = POLLIN;
@@ -152,10 +153,10 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 
 	if( pfd->revents & POLLIN ) {
 		
-		res = read(pfd->fd, rs232data->recv_buf, todo);
+		res = read(pfd->fd, bd_data->recv_buf, todo);
 		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
 	
-		rs232data->recv_buf[res] = '\0';
+		bd_data->recv_buf[res] = '\0';
 
 		if( res < 0 ) {
 			/* error occur */
@@ -168,7 +169,7 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 			return -1;
 		}
 	
-		dump_hex(rs232data->recv_buf, res);
+		dump_hex(bd_data->recv_buf, res);
 
 		fprintf(I, "[%s] fd = [%d] read = [%d]\n", __func__, pfd->fd, res );
 		return res;
@@ -177,32 +178,34 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	return -1;
 }
 
-int rs232_read_command(rs232_data_t *rs232data, uint8_t num)
+int gui_read_command(bd_data_t *bd_data, uint8_t num)
 {
 	int 	res;
 
 	/* get size of a incomming command */
-	res = rs232_poll_read(rs232data, num, 4);
+	res = bd_poll_read(bd_data, num, 4);
 	if( res < 0 ) 
 		return -1;
 
 	/* get the comm */
-	rs232data->recv_buf[3] = '\0';
-	int	todo = atoi((const char *)rs232data->recv_buf);
+	bd_data->recv_buf[3] = '\0';
+	int	todo = atoi((const char *)bd_data->recv_buf);
 
 	if(todo < 0) {
 		/* wrong size - reconnection */
 	}
 
-	res = rs232_poll_read(rs232data, num, todo);
+	res = bd_poll_read(bd_data, num, todo);
 	if( res < 0 ) 
 		return -1;
+
+	return 0;
 }
 
-int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
+int bd_poll_write(bd_data_t *bd_data, uint8_t num, size_t todo)
 {
 	int nready, res;
-	struct pollfd	*pfd = &rs232data->client[num];
+	struct pollfd	*pfd = &bd_data->client[num];
 
 	fprintf(I, "[%s] todo [%d]\n", __func__, todo);
 
@@ -218,11 +221,11 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 
 	if( pfd->revents & POLLOUT ) {
 	
-		dump_hex(rs232data->send_buf, todo);
+		dump_hex(bd_data->send_buf, todo);
 	
 		do {
 			errno = 0;
-			res = write(pfd->fd, rs232data->send_buf, todo);
+			res = write(pfd->fd, bd_data->send_buf, todo);
 
 			if( res < 0 ) {
 				/* error occur */
@@ -250,4 +253,4 @@ int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	return -1;
 }
 
-#endif /* _RS232_DUMPER_H */
+#endif /* */
