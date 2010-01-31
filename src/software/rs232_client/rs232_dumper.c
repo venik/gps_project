@@ -43,21 +43,23 @@ int rs232_open_device(rs232_data_t *rs232data)
 	int fd;
 	struct termios options;
 
+	fprintf(I, "[%s]\n", __func__);
+
 	fd = open(rs232data->name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
 
-	if( fd == -1 ) {
-		snprintf((char *)rs232data->recv_buf, MAXLINE, "[%s] ERR during open rs232 [%s]. errno: %s\n",
+	if( fd < 0 ) {
+		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] ERR during open rs232 [%s]. errno: %s\n",
 			__func__, rs232data->name, strerror(errno));
 
-		fprintf(I, "%s", rs232data->recv_buf);
+		fprintf(I, "%s", rs232data->send_buf);
 		return fd;
 	}
 
 	if( tcgetattr(fd, &options) == -1 ) {
-		snprintf((char *)rs232data->recv_buf, MAXLINE, "[%s] [ERR] can't get rs232 options. errno %s",
+		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] [ERR] can't get rs232 options. errno %s",
 			__func__, strerror(errno));
 
-		fprintf(I,"%s\n", (char *)rs232data->recv_buf);
+		fprintf(I,"%s\n", (char *)rs232data->send_buf);
 		return -1;
 	}
 	
@@ -86,12 +88,14 @@ int rs232_open_device(rs232_data_t *rs232data)
 	
 	/* tcflush(fd, TCIFLUSH); */
 	if (tcsetattr(fd, TCSANOW, &options) == -1) {
-		snprintf((char *)rs232data->recv_buf, MAXLINE, "[%s] [ERR] can't set rs232 attributes. errno %s",
+		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] [ERR] can't set rs232 attributes. errno %s",
 			__func__, strerror(errno));
 
-		fprintf(I, "%s\n", (char *)rs232data->recv_buf);
+		fprintf(I, "%s\n", (char *)rs232data->send_buf);
 		return -1;
 	}
+
+	fprintf(I, "[%s] [%d] fd = [%d]\n", __func__, __LINE__, fd);
 
 	return fd;
 }
@@ -129,8 +133,8 @@ int rs232_get_command(rs232_data_t *rs232data) {
 			goto parse_finish;	
 		}
 
-		/* debug part */
 #if 1	
+		/* debug part */
 		dump_hex((uint8_t *)rs232_commands[i], res);
 		fprintf(I, "[%s] line:[%d] src:[%d] match:[%d]\n", __func__, __LINE__, res, real_todo);	
 #endif 
@@ -138,7 +142,7 @@ int rs232_get_command(rs232_data_t *rs232data) {
 		i++;
 	} while(res != 0);
 
-	snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] unknown command", __func__);
+	snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] [err] unknown command\n", __func__);
 	fprintf(I, "%s\n", (char *)rs232data->recv_buf);	
 
 	return -1;
@@ -164,7 +168,6 @@ int rs232_fsm_setport(rs232_data_t *rs232data)
 	if( res < 0 ) {
 		/* error during opening the rs232-port */
 		real_todo = strlen((char *)rs232data->send_buf);
-
 		rs232_poll_write(rs232data, GUI_FD, real_todo);
 		return -1;
 	}
@@ -172,8 +175,9 @@ int rs232_fsm_setport(rs232_data_t *rs232data)
 	rs232data->client[BOARD_FD].fd = res;
 
 	/* make the ACK answer */
+	sprintf((char *)rs232data->send_buf, "ACK\n");
+	fprintf(I, "%s\n", (char *)rs232data->recv_buf);	
 	real_todo = strlen((char *)rs232data->send_buf);
-
 	res = rs232_poll_write(rs232data, GUI_FD, real_todo);
 	if( res < 0 ) {
 		/* cannot send ACK, close the rs232 */
@@ -211,7 +215,8 @@ int rs232_idle(rs232_data_t *rs232data)
 	need_exit = 1;
 
 	while(need_exit) {
-		res = rs232_poll_read(rs232data, GUI_FD, 255);
+		//res = rs232_poll_read(rs232data, GUI_FD, 255);
+		res = rs232_read_command(rs232data, GUI_FD);
 		if( res > 0 ) {
 			/* data in the client socket - need parse it */
 			res = rs232_get_command(rs232data);

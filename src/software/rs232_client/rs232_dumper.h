@@ -135,12 +135,12 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	int nready, res;
 	struct pollfd	*pfd = &rs232data->client[num];
 
-	//fprintf(I, "[%s]\n", __FUNCTION__);
+	//fprintf(I, "[%s]\n", __func__);
 
 	pfd->events = POLLIN;
 
-	nready = poll(pfd, 1, -1);
-	//nready = poll(rs232data->client, 3, -1);
+	//nready = poll(pfd, 1, -1);
+	nready = poll(pfd, 1, TIMEOUT);
 
 	if( nready < 1 ) {
 		/* client not ready */
@@ -154,7 +154,9 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 		
 		res = read(pfd->fd, rs232data->recv_buf, todo);
 		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
-		
+	
+		rs232data->recv_buf[res] = '\0';
+
 		if( res < 0 ) {
 			/* error occur */
 			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
@@ -168,17 +170,33 @@ int rs232_poll_read(rs232_data_t *rs232data, uint8_t num, size_t todo)
 	
 		dump_hex(rs232data->recv_buf, res);
 
-		fprintf(I, "[%s] fd = [%d] read = [%d]\n",
-			__func__,
-			pfd->fd,
-			res
-			);
-
+		fprintf(I, "[%s] fd = [%d] read = [%d]\n", __func__, pfd->fd, res );
 		return res;
-
 	}
 			
 	return -1;
+}
+
+int rs232_read_command(rs232_data_t *rs232data, uint8_t num)
+{
+	int 	res;
+
+	/* get size of a incomming command */
+	res = rs232_poll_read(rs232data, num, 4);
+	if( res < 0 ) 
+		return -1;
+
+	/* get the comm */
+	rs232data->recv_buf[3] = '\0';
+	int	todo = atoi((const char *)rs232data->recv_buf);
+
+	if(todo < 0) {
+		/* wrong size - reconnection */
+	}
+
+	res = rs232_poll_read(rs232data, num, todo);
+	if( res < 0 ) 
+		return -1;
 }
 
 int rs232_poll_write(rs232_data_t *rs232data, uint8_t num, size_t todo)
