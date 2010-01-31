@@ -8,10 +8,10 @@ First version of the board will contain
 				GPS chip arbiter					[done]
 
 			Software:
-				correlation code on C under Linux			[unknown]
+				correlation code on C under Linux			[none]
 				GPS-satellite signal generator				[unknown]
 				RS232 client in C under Linux				[in progress]
 				GUI for software modules				[in progress]
 
 
-Stage:				test the board and the software
+Stage: we are near the revision 1.0 of the board. At this moment we have board, correlator on the matlab and some usefull scripts
