@@ -1,25 +1,25 @@
 #ifndef __GUI_SERVER_
 #define __GUI_SERVER_
 
-int rs232_connection(rs232_data_t *rs232data)
+int gui_connection(bd_data_t *bd_data)
 {
-	fprintf(I, "[%s]\n", __func__);
-	rs232data->client[GUI_FD].fd = accept(rs232data->client[LISTEN_FD].fd, NULL, NULL);
+	TRACE(0, "[%s]\n", __func__);
+	bd_data->client[GUI_FD].fd = accept(bd_data->client[LISTEN_FD].fd, NULL, NULL);
 
 	return 0;
 }
 
-int rs232_fsm_setport(rs232_data_t *rs232data)
+int gui_fsm_setport(rs232_data_t *rs232data)
 {
 	/* RS232_PORT + : = point to the dev-name */
-	char 	*p_port = (char *)(rs232data->recv_buf + strlen(rs232_commands[0]));
+	char 	*p_port = (char *)(bd_data->recv_buf + strlen(gui_commands[0]));
 
 	int 	res;
 	size_t 	real_todo;
 
-	fprintf(I, "[%s] port[%s]\n", __func__, p_port);
+	TRACE(0, "[%s] port[%s]\n", __func__, p_port);
 
-	strncpy(rs232data->name, p_port, MAXLINE);
+	strncpy(bd_data->name, p_port, MAXLINE);
 
 	res = rs232_open_device(rs232data);
 	if( res < 0 ) {

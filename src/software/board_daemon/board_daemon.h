@@ -10,6 +10,7 @@
 FILE 		*I;
 uint8_t		need_exit;
 
+#define TRACE_LEVEL 0
 #define TRACE(LEVEL, FORMAT, ARGS... )				\
 do {								\
 	char MSG[256];						\
@@ -57,13 +58,16 @@ enum rs232_comm_request {
  ********************************************/
 typedef struct bd_data_s {
 
-	char		name[MAXLINE];			/* rs232 dev-name */
+	char		name[MAXLINE];		/* rs232 dev-name */
 	uint8_t 	recv_buf[BUF_SIZE];
 	uint8_t 	send_buf[BUF_SIZE];
 
 	/* network part */
 	struct pollfd	client[3];
 	uint16_t	port;
+
+	/* support */
+	char		cfg_name[MAXLINE];	/* config name */	
 
 } bd_data_t;
 

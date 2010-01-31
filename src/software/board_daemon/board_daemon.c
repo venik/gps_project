@@ -19,6 +19,7 @@
 #include <errno.h>
 
 #include "board_daemon.h"
+#include "rs232_dumper.h"
 
 /*
  * Description: print banner 
@@ -35,27 +36,36 @@ void board_daemon_banner()
 
 static void board_daemon_destroy(bd_data_t	*bd_data)
 {
+	TRACE(0, "[%s] free memory, close fd\n", __func__);
+
 	close(bd_data->client[0].fd);
 	close(bd_data->client[1].fd);
 	close(bd_data->client[2].fd);
+
+	free(bd_data);
+	bd_data = NULL;
 }
 
 int main(int argc, char **argv) {
 	
-	bd_data_t		bd_data = {};
-	int 			res;
-	
-	I = stdout;
+	bd_data_t	*bd_data = (bd_data_t *)malloc(sizeof(bd_data_t));
+	int 		res;
 
+	memset(bd_data, 0, sizeof(bd_data));
+
+	/* FIXME - some constants, need implement it */
+	I = stdout;
+	sprintf(bd_data->name, "/dev/ttyS0");
+
+	/* parse input */
 	while ( (res = getopt(argc,argv,"hc:")) != -1){
 		switch (res) {
 		case 'h':
 			board_daemon_banner();
 			return -1;
 		
-		case 'p':
-			fprintf(I, "Set listen port to [%s]\n", optarg);
-			bd_data.port = atoi(optarg);
+		case 'c':
+			strncpy(bd_data->cfg_name, optarg, MAXLINE);
 			break;
 		
 		default:
@@ -63,10 +73,12 @@ int main(int argc, char **argv) {
         	};
 	};
 
-#if 0
-	if( rs232_check_opts(&rs232data) != 0 )
+	if( strlen(bd_data->cfg_name) == 0 ) {
+		TRACE(0, "[%s] Error. You must declare a config name via -c parameter\n", __func__);
 		return -1;
+	}
 
+#if 0
 	if( rs232_make_net(&rs232data) != 0 )
 		return -1;
 
@@ -82,8 +94,13 @@ int main(int argc, char **argv) {
 
 #endif
 
+	/* init environment */
+	rs232_open_device(bd_data);
+
+	/* create new threads */	
+
 	/* free memory and close all fd's */
-	board_daemon_destroy(&bd_data);
+	board_daemon_destroy(bd_data);
 
 	return 0;
 }

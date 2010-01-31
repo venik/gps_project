@@ -1,32 +1,38 @@
+#ifndef __RS232_DUMPER_
+#define __RS232_DUMPER_
+
 #include "rs232_dumper.h"
 
-/*
+/********************************************************************************************
  * Description: open rs232 interface with name dev_name
- * Return: 	filedescriptor or 0 if failed
- */
-int rs232_open_device(rs232_data_t *rs232data)
+ ********************************************************************************************/
+int rs232_open_device(bd_data_t *bd_data)
 {
-	int fd;
 	struct termios options;
+	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
 
-	fprintf(I, "[%s]\n", __func__);
+	TRACE(0, "[%s]\n", __func__);
 
-	fd = open(rs232data->name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
+	pfd->fd = open(bd_data->name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
 
-	if( fd < 0 ) {
-		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] ERR during open rs232 [%s]. errno: %s\n",
-			__func__, rs232data->name, strerror(errno));
+	if( pfd->fd < 0 ) {
+		snprintf((char *)bd_data->send_buf, MAXLINE, "[%s] ERR during open rs232 [%s]. errno: %s\n",
+			__func__, bd_data->name, strerror(errno));
 
-		fprintf(I, "%s", rs232data->send_buf);
-		return fd;
+		TRACE(0, "%s", bd_data->send_buf);
+		return pfd->fd;
 	}
 
-	if( tcgetattr(fd, &options) == -1 ) {
-		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] [ERR] can't get rs232 options. errno %s",
+	if( tcgetattr(pfd->fd, &options) == -1 ) {
+		snprintf((char *)bd_data->send_buf, MAXLINE, "[%s] [ERR] can't get rs232 options. errno %s",
 			__func__, strerror(errno));
 
-		fprintf(I,"%s\n", (char *)rs232data->send_buf);
-		return -1;
+		TRACE(0,"%s\n", (char *)bd_data->send_buf);
+
+		close(pfd->fd);
+		pfd->fd = -1;
+
+		return pfd->fd;
 	}
 	
 	/* set port speed */
@@ -53,15 +59,21 @@ int rs232_open_device(rs232_data_t *rs232data)
 	options.c_iflag &= ~(IXON|IXOFF|IXANY);
 	
 	/* tcflush(fd, TCIFLUSH); */
-	if (tcsetattr(fd, TCSANOW, &options) == -1) {
-		snprintf((char *)rs232data->send_buf, MAXLINE, "[%s] [ERR] can't set rs232 attributes. errno %s",
+	if (tcsetattr(pfd->fd, TCSANOW, &options) == -1) {
+		snprintf((char *)bd_data->send_buf, MAXLINE, "[%s] [ERR] can't set rs232 attributes. errno %s",
 			__func__, strerror(errno));
 
-		fprintf(I, "%s\n", (char *)rs232data->send_buf);
-		return -1;
+		TRACE(0, "%s\n", (char *)bd_data->send_buf);
+		
+		close(pfd->fd);
+		pfd->fd = -1;
+
+		return pfd->fd;
 	}
 
-	fprintf(I, "[%s] [%d] fd = [%d]\n", __func__, __LINE__, fd);
+	TRACE(0, "[%s] succsessfully opened fd = [%d]\n", __func__, pfd->fd);
 
-	return fd;
+	return pfd->fd;
 }
+
+#endif /* __RS232_DUMPER_ */
