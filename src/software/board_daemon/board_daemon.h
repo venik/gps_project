@@ -182,30 +182,6 @@ int bd_poll_read(bd_data_t *bd_data, uint8_t num, size_t todo)
 	return -1;
 }
 
-int gui_read_command(bd_data_t *bd_data, uint8_t num)
-{
-	int 	res;
-
-	/* get size of a incomming command */
-	res = bd_poll_read(bd_data, num, 4);
-	if( res < 0 ) 
-		return -1;
-
-	/* get the comm */
-	bd_data->recv_buf[3] = '\0';
-	int	todo = atoi((const char *)bd_data->recv_buf);
-
-	if(todo < 0) {
-		/* wrong size - reconnection */
-	}
-
-	res = bd_poll_read(bd_data, num, todo);
-	if( res < 0 ) 
-		return -1;
-
-	return 0;
-}
-
 int bd_poll_write(bd_data_t *bd_data, uint8_t num, size_t todo)
 {
 	int nready, res;

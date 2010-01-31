@@ -20,6 +20,7 @@
 
 #include "board_daemon.h"
 #include "rs232_dumper.h"
+#include "gui_server.h"
 
 /*
  * Description: print banner 

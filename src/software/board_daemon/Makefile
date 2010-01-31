@@ -4,7 +4,7 @@ CFLAGS += -Wall -g
 all: board_daemon.o
 	$(CC) $(CFLAGS) -o board_daemon board_daemon.o
 
-board_daemon.o: board_daemon.c board_daemon.h
+board_daemon.o: board_daemon.c board_daemon.h rs232_dumper.h
 
 clean:
 	rm board_daemon board_daemon.o 
