@@ -24,7 +24,8 @@ int gui_read_command(bd_data_t *bd_data, uint8_t num)
 	int	todo = atoi((const char *)bd_data->recv_buf);
 
 	if(todo < 0) {
-		/* wrong size - reconnection */
+		/* FIXME wrong size - reconnection */
+		return -1;
 	}
 
 	res = bd_poll_read(bd_data, num, todo);
@@ -34,6 +35,7 @@ int gui_read_command(bd_data_t *bd_data, uint8_t num)
 	return 0;
 }
 
+/* set the port - network request */
 int gui_fsm_setport(bd_data_t *bd_data)
 {
 	/* RS232_PORT + : = point to the dev-name */
@@ -100,7 +102,7 @@ int gui_make_net(bd_data_t* bd_data)
 
 	listen_socket->fd = socket(AF_INET/* inet */, SOCK_STREAM/*2-way stream*/, 0);
 	if( listen_socket->fd < 0) {
-		fprintf(I, "[%s] [err] during create socket. errno %s\n", __func__, strerror(errno));
+		TRACE(0, "[%s] [err] during create socket. errno %s\n", __func__, strerror(errno));
 		return -1;
 	}
 
@@ -123,6 +125,8 @@ int gui_make_net(bd_data_t* bd_data)
 		close(listen_socket->fd);
 		return -1;
 	}
+	
+	TRACE(0, "[%s] successfully bind the tcp port [%d]\n", __func__, bd_data->port);
 
 	return 0;
 }
@@ -141,21 +145,21 @@ int gui_get_command(bd_data_t *bd_data) {
 		real_todo = strncmp((const char *)bd_data->recv_buf, gui_commands[i], res);
 
 		if( (real_todo == 0) && (res != 0) ) {
-			fprintf(I, "Catch res = [%d], command [%s]\n", real_todo, gui_commands[i]);	
+			TRACE(0, "Catch res = [%d], command [%s]\n", real_todo, gui_commands[i]);	
 			goto parse_finish;	
 		}
 
 #if 1	
 		/* debug part */
 		dump_hex((uint8_t *)gui_commands[i], res);
-		fprintf(I, "[%s] line:[%d] src:[%d] match:[%d]\n", __func__, __LINE__, res, real_todo);	
+		TRACE(0, "[%s] line:[%d] src:[%d] match:[%d]\n", __func__, __LINE__, res, real_todo);	
 #endif 
 
 		i++;
 	} while(res != 0);
 
 	snprintf((char *)bd_data->send_buf, MAXLINE, "[%s] [err] unknown command\n", __func__);
-	fprintf(I, "%s\n", (char *)bd_data->recv_buf);	
+	TRACE(0, "%s\n", (char *)bd_data->recv_buf);	
 
 	return -1;
 
@@ -164,15 +168,19 @@ parse_finish:
 	return i;
 }
 
-int gui_idle(bd_data_t *bd_data)
+void *gui_process(void *priv)
 {
 	int	res;
+	bd_data_t *bd_data = (bd_data_t *)priv;
 
-	need_exit = 1;
+	if( gui_make_net(bd_data) != 0 )
+		return NULL;
 
-	while(need_exit) {
-		res = bd_poll_read(bd_data, GUI_FD, 255);
-		//res = gui_read_command(bd_data, GUI_FD);
+	gui_connection(bd_data);
+
+	while(bd_data->need_exit) {
+		//res = bd_poll_read(bd_data, GUI_FD, 255);
+		res = gui_read_command(bd_data, GUI_FD);
 		if( res > 0 ) {
 			/* data in the client socket - need parse it */
 			res = gui_get_command(bd_data);
@@ -191,7 +199,7 @@ int gui_idle(bd_data_t *bd_data)
 		}
 	}
 	
-	return 0;
+	return NULL;
 };
 
 

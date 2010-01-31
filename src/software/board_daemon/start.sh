@@ -1,1 +1,1 @@
-./rs232_dumper -p 1234
+./board_daemon -c cfg 

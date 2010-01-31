@@ -18,6 +18,8 @@
 
 #include <errno.h>
 
+#include <pthread.h>
+
 #include "board_daemon.h"
 #include "rs232_dumper.h"
 #include "gui_server.h"
@@ -97,10 +99,24 @@ int main(int argc, char **argv) {
 
 	/* init environment */
 	rs232_open_device(bd_data);
+	bd_data->need_exit = 1;
+	bd_data->port = 1234;
+	need_exit = 1;
 
 	/* create new threads */	
+	res = pthread_create(&bd_data->gui_thread, NULL, gui_process, bd_data);
+	if ( res ){
+		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
+			__func__, res, strerror(errno) );
+		goto destroy;
+	}
+
+	/* FIXME improve it */
+	while(need_exit) {
+	}
 
 	/* free memory and close all fd's */
+destroy:
 	board_daemon_destroy(bd_data);
 
 	return 0;

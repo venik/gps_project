@@ -11,7 +11,7 @@ int rs232_open_device(bd_data_t *bd_data)
 	struct termios options;
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
 
-	TRACE(0, "[%s]\n", __func__);
+	//TRACE(0, "[%s]\n", __func__);
 
 	pfd->fd = open(bd_data->name, (O_RDWR | O_NOCTTY/* | O_NONBLOCK*/));
 

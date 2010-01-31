@@ -8,7 +8,7 @@
 #define TIMEOUT		3000		// 3 sec
 
 FILE 		*I;
-uint8_t		need_exit;
+int 		need_exit;
 
 #define TRACE_LEVEL 0
 #define TRACE(LEVEL, FORMAT, ARGS... )				\
@@ -68,6 +68,9 @@ typedef struct bd_data_s {
 
 	/* support */
 	char		cfg_name[MAXLINE];	/* config name */	
+	int 		need_exit;
+
+	pthread_t	gui_thread;
 
 } bd_data_t;
 
