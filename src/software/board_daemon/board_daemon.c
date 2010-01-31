@@ -82,23 +82,14 @@ int main(int argc, char **argv) {
 	}
 
 #if 0
-	if( rs232_make_net(&rs232data) != 0 )
-		return -1;
-
 	if( rs232_make_signals(&rs232data) != 0 )
 		return -1;
-
-	/* init section */
-	rs232data.client[BOARD_FD].fd = -1;
-
-	/* protocol handler */
-	rs232_connection(&rs232data);
-	rs232_idle(&rs232data);
 
 #endif
 
 	/* init environment */
 	rs232_open_device(bd_data);
+
 	bd_data->need_exit = 1;
 	bd_data->port = 1234;
 	need_exit = 1;
@@ -111,9 +102,18 @@ int main(int argc, char **argv) {
 		goto destroy;
 	}
 
+	res = pthread_create(&bd_data->rs232_thread, NULL, rs232_process, bd_data);
+	if ( res ){
+		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
+			__func__, res, strerror(errno) );
+		goto destroy;
+	}
+
 	/* FIXME improve it */
 	while(need_exit) {
 	}
+
+	bd_data->need_exit = 0;
 
 	/* free memory and close all fd's */
 destroy:

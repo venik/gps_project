@@ -71,6 +71,7 @@ typedef struct bd_data_s {
 	int 		need_exit;
 
 	pthread_t	gui_thread;
+	pthread_t	rs232_thread;
 
 } bd_data_t;
 

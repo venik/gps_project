@@ -76,4 +76,22 @@ int rs232_open_device(bd_data_t *bd_data)
 	return pfd->fd;
 }
 
+void *rs232_process(void *priv)
+{
+	bd_data_t *bd_data = (bd_data_t *)priv;
+	
+	while(bd_data->need_exit) {
+		TRACE(0, "[%s] Process...\n", __func__);
+
+		if( bd_data->client[BOARD_FD].fd < 0 ) {
+			TRACE(0, "[%s] Warning. Board not connected!!!\n", __func__);
+		}
+
+		usleep(3000000);
+	}
+
+	return NULL;
+}
+
+
 #endif /* __RS232_DUMPER_ */
