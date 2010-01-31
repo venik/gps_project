@@ -80,6 +80,8 @@ void *rs232_process(void *priv)
 {
 	bd_data_t *bd_data = (bd_data_t *)priv;
 	
+	rs232_open_device(bd_data);
+
 	while(bd_data->need_exit) {
 		TRACE(0, "[%s] Process...\n", __func__);
 
@@ -92,6 +94,5 @@ void *rs232_process(void *priv)
 
 	return NULL;
 }
-
 
 #endif /* __RS232_DUMPER_ */

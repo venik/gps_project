@@ -88,8 +88,6 @@ int main(int argc, char **argv) {
 #endif
 
 	/* init environment */
-	rs232_open_device(bd_data);
-
 	bd_data->need_exit = 1;
 	bd_data->port = 1234;
 	need_exit = 1;
@@ -109,7 +107,7 @@ int main(int argc, char **argv) {
 		goto destroy;
 	}
 
-	/* FIXME improve it */
+	/* FIXME improve it - waite for threads */
 	while(need_exit) {
 	}
 
