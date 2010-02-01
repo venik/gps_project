@@ -23,7 +23,10 @@
 
 #include <errno.h>
 
+FILE 	*I;
+
 #include "gps_registers.h"
+#include "trace.h"
 
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb

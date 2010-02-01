@@ -1,5 +1,7 @@
 CC = gcc
-CFLAGS += -Wall -g -lpthread
+ROOT = ../
+INCLUDE = -I. -I$(ROOT)/include
+CFLAGS += -Wall -g -lpthread $(INCLUDE)
 
 all: board_daemon.o
 	$(CC) $(CFLAGS) -o board_daemon board_daemon.o

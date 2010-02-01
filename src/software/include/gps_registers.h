@@ -17,23 +17,6 @@ int8_t gps_value[] = {2, 6, -2, -6};
 int8_t gps_val_3bit_sign[] = {1, 3, 5, 7, -1, -3, -5, -7};
 int8_t gps_val_3bit_usign[] = {-7, -5, -3, -1, 1, 3, 5, 7};
 
-void hex2str(char *str, uint8_t src)
-{
-	uint8_t	i = 128, j = 0;
-	do {
-		if( src & i ) {
-			str[j] = '1' ;				
-		} else {
-			str[j] = '0' ;				
-		}
-		
-		j++;
-		i >>= 1 ;
-	} while(i);
-
-	str[j] = '\0' ;
-}
-
 typedef struct gps_reg_str_s {
 	uint8_t		addr;
 	uint64_t	reg;

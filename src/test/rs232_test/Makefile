@@ -1,10 +1,12 @@
 CC = gcc
-CFLAGS += -Wall -g
+ROOT = ../../software
+INCLUDE = -I. -I$(ROOT)/include
+CFLAGS += -Wall -g $(INCLUDE)
 
 all: rs232_ttool.o
 	$(CC) $(CFLAGS) -o rs232_ttool rs232_ttool.o
 
-rs232_ttool.o: rs232_ttool.c gps_registers.h
+rs232_ttool.o: rs232_ttool.c
 
 clean:
 	rm rs232_ttool rs232_ttool.o flush tags

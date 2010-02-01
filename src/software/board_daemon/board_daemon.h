@@ -3,23 +3,19 @@
 
 #include <poll.h>
 
+#define TRACE_LEVEL 0
+FILE 		*I;
+int 		need_exit;
+
+#include "trace.h"
+
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
 #define TIMEOUT		3000		// 3 sec
 
-FILE 		*I;
-int 		need_exit;
+#define SECOND		1000000
+#define	MINUTE		60 * SECOND
 
-#define TRACE_LEVEL 0
-#define TRACE(LEVEL, FORMAT, ARGS... )				\
-do {								\
-	char MSG[256];						\
-								\
-	if(LEVEL <= TRACE_LEVEL) {				\
-		snprintf( MSG, sizeof(MSG), FORMAT, ## ARGS);	\
-		fputs(MSG, I);					\
-	}							\
-} while (0)
 
 enum bd_fd_list {
 	LISTEN_FD	= 0,
@@ -102,44 +98,6 @@ int bd_make_signals()
 
 	return 0;
 }
-
-/* help functions */
-void dump_asci(volatile uint8_t *data, size_t size)
-{
-        unsigned long   i;
-
-        for(i=0;i<size;i++) {
-                if(!(i&0x1f)) {
-                        fprintf(I, "\n%08lx:", i);
-                }
-                uint8_t c = *data;
-                c = (c > 0x1f) && (c < 0x7f) ?c :'.';
-                fprintf(I, "  %c",  c);
-                data++;
-        }
-        fprintf(I, "\n");
-}
-
-void dump_hex(volatile uint8_t *data, size_t size)
-{
-        unsigned long   i;
-
-        dump_asci(data, size);
-
-        fprintf(I, "len: %lu@%08lx", (unsigned long)size, (unsigned long)data);
-        if(!data)
-                return;
-
-        for(i=0;i<size;i++) {
-                if(!(i&0x1f)) {
-                        fprintf(I, "\n%08lx:", i);
-                }
-
-                fprintf(I, " %02x", *data);
-                data++; 
-        } 
-        fprintf(I, "\n");
-};
 
 /* network helpers */
 int bd_poll_read(bd_data_t *bd_data, uint8_t num, size_t todo)

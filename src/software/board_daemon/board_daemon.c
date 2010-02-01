@@ -21,6 +21,9 @@
 #include <pthread.h>
 
 #include "board_daemon.h"
+
+#include "gps_registers.h"
+
 #include "rs232_dumper.h"
 #include "gui_server.h"
 
