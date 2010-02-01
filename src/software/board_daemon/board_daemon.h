@@ -5,6 +5,7 @@
 
 #include <poll.h>
 #include "trace.h"
+#include "gps_registers.h"
 
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
@@ -12,6 +13,8 @@
 
 #define SECOND		1000000
 #define	MINUTE		60 * SECOND
+
+gps_reg_str_t gps_regs[10];
 
 enum bd_fd_list {
 	LISTEN_FD	= 0,
@@ -38,7 +41,8 @@ typedef struct bd_data_s {
 
 	pthread_t	gui_thread;
 	pthread_t	rs232_thread;
-
+	
+	gps_reg_str_t gps_regs[10];
 } bd_data_t;
 
 /* signal handlers */

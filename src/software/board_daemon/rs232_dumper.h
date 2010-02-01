@@ -117,14 +117,14 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	TRACE(0, "[%s]\n", __func__);
 
 	uint8_t		buff[1<<18] = {};
-	uint64_t	addr = 0;
+	uint64_t	addr;
 	uint32_t	max_addr = (1<<18) - 2;
 	
 	uint64_t	comm_64;
 	int 		res;
 	
 	char		str[10] = {};
-	//char		header_string[] = "# Mode: 2bit, sign/magnitude\n# format [q2 i2 q1 i1]\n# i\tq\n";
+	char		header_string[] = "# Mode: 2bit, sign/magnitude\n# format [q2 i2 q1 i1]\n# i\tq\n";
 	char		str_i_q[255] = {};
 	
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
@@ -136,7 +136,8 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	comm_64 = RS232_DUMP_DATA ;
 	res = write(pfd->fd, &comm_64, sizeof(uint64_t));
 	
-	for(addr = 0; addr < max_addr; addr++ ) {
+	/* because the first data is buggy */
+	for(addr = 1; addr < max_addr; addr++ ) {
 
 		res = read(pfd->fd, buff+addr, 1);
 
@@ -157,8 +158,27 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	return 0;
 }
 
-uint8_t rs232_program_max(bd_data_t *bd_data, uint8_t reg)
+int rs232_program_max(bd_data_t *bd_data)
 {
+	int 		res;
+	uint8_t		i;
+	uint64_t	comm_64;
+
+
+	for( i = 0; i < 11; i++ ) {
+		comm_64 = RS232_SET_REG;		
+
+		comm_64 |= (bd_data->gps_regs[i].reg<<12);		// data
+		comm_64 |= (i<<8);					// address
+		
+		res = rs232_send_comm(bd_data, comm_64);
+		if( res < 0 ) {
+			/* need restart the board - strange response */
+			rs232_close_device(bd_data);
+			return -1;
+		}
+	}
+	
 	return 0;
 }
 
@@ -195,6 +215,7 @@ int rs232_work(bd_data_t *bd_data)
 	}
 
 	/* get the flush */
+	/* add the mode checking */
 	rs232_dump_mem(bd_data) ;
 
 	return 0;
@@ -206,14 +227,23 @@ void *rs232_process(void *priv)
 
 	bd_data_t *bd_data = (bd_data_t *)priv;
 	
-	rs232_open_device(bd_data);
+	res = rs232_open_device(bd_data);
+	if( res == -1 )
+		pthread_exit((void *) -1);
+
+	res = rs232_program_max(bd_data);
+	if( res == -1 )
+		pthread_exit((void *) -1);
 
 	while(bd_data->need_exit) {
 		TRACE(0, "[%s] Process...\n", __func__);
 
 		if( bd_data->client[BOARD_FD].fd < 0 ) {
 			TRACE(0, "[%s] Warning. Board not connected!!!\n", __func__);
+			pthread_exit((void *) -1);
 		} else {
+			/* FIXME - check the task from gui */
+			
 			res = rs232_work(bd_data);
 			/* check for errors */
 			if( res < 0 )
