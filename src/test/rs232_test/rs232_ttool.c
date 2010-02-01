@@ -109,14 +109,14 @@ int rs232_read_cfg(rs232_data_t *rs232data)
 		if( *p_start != '#' ) {
 			/* maybe it's data, algo not so robust as i wish */
 			/* our format is =>addr[tab]value<= */
-			/* sample 0	0x8ec0000 */
+			/* sample 0 0x8ec0000 */
 
 			iov_length = 2;
 
 			iov[0].iov_base = pre_reg;
 			iov[0].iov_len = sizeof(pre_reg);
 
-			res = sscanf(p_start, "%04d\t%llx\n", &addr, &reg);
+			res = sscanf(p_start, "%04d %llx\n", &addr, &reg);
 			if(res < 2) {
 				printf("[err] cannot parse the string [%s]\n", p_start);
 			} else {
