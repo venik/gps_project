@@ -1,12 +1,9 @@
 #ifndef _BD_DAEMON_H
 #define _BD_DAEMON_H
 
-#include <poll.h>
-
 #define TRACE_LEVEL 0
-FILE 		*I;
-int 		need_exit;
 
+#include <poll.h>
 #include "trace.h"
 
 #define MAXLINE		255
@@ -16,37 +13,10 @@ int 		need_exit;
 #define SECOND		1000000
 #define	MINUTE		60 * SECOND
 
-
 enum bd_fd_list {
 	LISTEN_FD	= 0,
 	GUI_FD		= 1,
 	BOARD_FD	= 2
-};
-
-/*****************************************
- *	Text protocol GUI <=> Board_daemon 
- *****************************************/
-
-/* avalible commands */
-char	gui_commands[][255] = 
-{
-	{"RS232_PORT:"},
-	{"TEST_RS232"},
-	{"TEST_SRAM"},
-	{""}
-};
-
-/********************************************
- *	Binary protocol Board daemon <=> GPS-Board 
- ********************************************/
-enum rs232_comm_request {
-	
-	RS232_TEST_SRAM		= 0x02,
-	RS232_WRITE_BYTE	= 0x04,
-	RS232_READ_BYTE		= 0x08,
-
-	RS232_SET_REG		= 0x11,
-	RS232_TEST_RS232	= 0xAA 
 };
 
 /********************************************

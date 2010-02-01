@@ -31,6 +31,8 @@ FILE 	*I;
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
 
+static gps_reg_str_t gps_regs[10];
+
 typedef struct rs232_data_s {
 	char	name[MAXLINE];
 	char	cfg_name[MAXLINE];

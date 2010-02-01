@@ -7,7 +7,7 @@
 #define GET_I2(x) ( (x & (0x3<<4)) >> 4)
 #define GET_Q2(x) ( (x & (0x3<<6)) >> 6)
 
-/* table for tranfer byte i,q. sign/magnidute mode */
+/* table for tranfer byte i,q. sign/magnitude mode */
 int8_t gps_value[] = {2, 6, -2, -6};
 
 /* 3 bits form */
@@ -22,8 +22,6 @@ typedef struct gps_reg_str_s {
 	uint64_t	reg;
 	char		str[30];
 } gps_reg_str_t;
-
-static gps_reg_str_t gps_regs[10];
 
 #define GPS_FILL(GPS_REG, ADDR) 				\
 {								\
