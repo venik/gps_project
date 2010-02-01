@@ -86,7 +86,9 @@ int bd_make_signals()
 {
 	/* registering signals */
 	struct sigaction int_sig;
-        
+       
+	TRACE(0, "[%s] make signal handlers\n", __func__);
+
 	int_sig.sa_handler = &bd_sig_INT;
         sigemptyset(&int_sig.sa_mask);
         int_sig.sa_flags = SA_NOMASK;

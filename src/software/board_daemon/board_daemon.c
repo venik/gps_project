@@ -81,11 +81,8 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-#if 0
-	if( rs232_make_signals(&rs232data) != 0 )
+	if( bd_make_signals(&bd_data) != 0 )
 		return -1;
-
-#endif
 
 	/* init environment */
 	bd_data->need_exit = 1;
@@ -100,19 +97,44 @@ int main(int argc, char **argv) {
 		goto destroy;
 	}
 
+	TRACE(0, "[%s] gui server thread successfully started\n", __func__);
+
 	res = pthread_create(&bd_data->rs232_thread, NULL, rs232_process, bd_data);
 	if ( res ){
 		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
 			__func__, res, strerror(errno) );
 		goto destroy;
 	}
+	
+	TRACE(0, "[%s] rs232 dumper thread successfully started\n", __func__);
 
-	/* FIXME improve it - waite for threads */
+	/* FIXME improve it - wait for threads */
 	while(need_exit) {
 	}
 
+	TRACE(0, "[%s] zero init\n", __func__);
 	bd_data->need_exit = 0;
 
+	/* we wait when threads are stop */
+	res = pthread_cancel(bd_data->gui_thread);
+	if ( res )
+		TRACE(0, "[%s] Error. Cannot cancel the gui server thread, returned [%d]. errno: %s\n",
+			__func__, res, strerror(errno) );
+
+	res = pthread_join(bd_data->gui_thread, NULL);
+	if ( res )
+		TRACE(0, "[%s] Error. Cannot join to the gui server thread, returned [%d]. errno: %s\n",
+			__func__, res, strerror(errno) );
+
+	TRACE(0, "[%s] gui server thread successfully stopped\n", __func__);
+
+	res = pthread_join(bd_data->rs232_thread, NULL);
+	if ( res )
+		TRACE(0, "[%s] Error. Cannot join rs232 dumper thread, returned [%d]. errno: %s\n",
+			__func__, res, strerror(errno) );
+
+	TRACE(0, "[%s] rs232 dumper thread successfully stopped\n", __func__);
+	
 	/* free memory and close all fd's */
 destroy:
 	board_daemon_destroy(bd_data);

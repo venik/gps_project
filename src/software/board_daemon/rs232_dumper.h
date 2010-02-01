@@ -92,7 +92,9 @@ void *rs232_process(void *priv)
 		usleep(3000000);
 	}
 
-	return NULL;
+	TRACE(0, "[%s] near exit\n", __func__);
+
+	pthread_exit((void *) 0);
 }
 
 #endif /* __RS232_DUMPER_ */

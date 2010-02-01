@@ -198,8 +198,10 @@ void *gui_process(void *priv)
 			gui_connection(bd_data);
 		}
 	}
-	
-	return NULL;
+
+	TRACE(0, "[%s] near exit\n", __func__);
+
+	pthread_exit((void *) 0);
 };
 
 
