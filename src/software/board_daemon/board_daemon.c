@@ -58,11 +58,12 @@ static void board_daemon_destroy(bd_data_t *bd_data)
 int board_daemon_cfg(bd_data_t *bd_data)
 {
 	cfg_parser_t	*cfg_parser = NULL;
+	char		tmp_str[MAXLINE] = {};
+	int 		i;
 
 	TRACE(0, "[%s]\n", __func__);
 
-	cfg_string_t cfg_vals[] = { 	{"port",  0},
-					{"addr0", 0},
+	cfg_string_t cfg_vals[] = { 	{"addr0", 0},
 					{"addr1", 0},
 					{"addr2", 0},
 					{"addr3", 0},
@@ -72,6 +73,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 					{"addr7", 0},
 					{"addr8", 0},
 					{"addr9", 0},
+					{"port",  0},
 					{"", 0}
 				};
 
@@ -81,6 +83,18 @@ int board_daemon_cfg(bd_data_t *bd_data)
 	}
 
 	cfg_get_vals(cfg_parser) ;
+
+	/* store args */
+	snprintf(tmp_str, MAXLINE, "%llx", cfg_vals[0].val);
+	sscanf(tmp_str, "%d", &bd_data->port);
+
+	for( i=0; i<11; i++) {
+		bd_data->gps_regs[i].reg = cfg_vals[i].val ;
+		hex2str(tmp_str, i);
+		sprintf(bd_data->gps_regs[i].str, "# %sb 0x%08llx\n", tmp_str, cfg_vals[i].val);
+	}
+	
+	cfg_destroy(cfg_parser);
 
 	return 0;
 }
@@ -127,7 +141,6 @@ int main(int argc, char **argv) {
 
 	/* init environment */
 	bd_data->need_exit = 1;
-	bd_data->port = 1234;
 	need_exit = 1;
 
 	/* create new threads */	

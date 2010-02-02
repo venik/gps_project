@@ -18,7 +18,6 @@ int8_t gps_val_3bit_sign[] = {1, 3, 5, 7, -1, -3, -5, -7};
 int8_t gps_val_3bit_usign[] = {-7, -5, -3, -1, 1, 3, 5, 7};
 
 typedef struct gps_reg_str_s {
-	uint8_t		addr;
 	uint64_t	reg;
 	char		str[30];
 } gps_reg_str_t;
