@@ -44,12 +44,13 @@ int cfg_get_vals(cfg_parser_t *cfg_parser)
 {
 	size_t	line_len = 65536, str_len; 
 	int 	on = 1;
-	char	tmp_str[line_len];
+	char	tmp_str[line_len], err_token[255];
 	int	size_of_cfg, i, res;
 	cfg_string_t	*cfg_vals = cfg_parser->cfg_vals;
 
 	char		*p_str, *p_start;
 
+	/* FIXME - need improvements, if file > line_len it will broke */
 	while(on) {
 		size_of_cfg = read(cfg_parser->fd, tmp_str, line_len);	
 		if( size_of_cfg < 0 ) {
@@ -63,18 +64,20 @@ int cfg_get_vals(cfg_parser_t *cfg_parser)
 			on = 0;
 		}
 
-		while( p_start != (tmp_str + line_len) ) {
+		p_str = tmp_str;
 
-			if( *p_start == '\0' ) {
+		while( p_str != (tmp_str + line_len) ) {
+
+			if( *p_str == '\0' ) {
 				/* end of the buffer */
 				break;
 			}
 
-			p_str = p_start;
+			p_start = p_str;
 
 			/* walk trough the current line */
 			do {
-				//printf("[%c][%d]\n", *p_str, *p_str) ;
+				//TRACE(0, "[%c][%d]\n", *p_str, *p_str) ;
 				p_str++;
 			} while( (*p_str != '\n') && (*p_str != '\0') );
 
@@ -88,28 +91,46 @@ int cfg_get_vals(cfg_parser_t *cfg_parser)
 					res = strncmp(cfg_vals[i].name, p_start, str_len);
 
 					/* have we found it? */
-					if( res == 0 )
+					if( res == 0 ) {
+						TRACE(0, "[%s] catch res = [%d] val:[%s]\n",
+							__func__, res, cfg_vals[i].name);
 						break;
+					}
+				
+					/* update vals */
+					i++;
+					str_len = strlen(cfg_vals[i].name);
 
 				} while( str_len != 0 );
 
 				if( str_len == 0 ) {
 					/* unknown token */
-					p_start = p_str + 1;
+					strncpy(err_token, p_start, p_str - p_start);
+					err_token[p_str - p_start] = '\0' ;
+					TRACE(0, "[err] cannot parse the string [%s]\n", err_token);
+					
+					p_str ++;
+					continue;
 				}
 
-				/* move pointer after the token */
+				//TRACE(0, "len id:[%d]:[%d]\n", i, str_len);
+
 				p_start += str_len;
 
-				i = sscanf(p_start, "=%llx\n", &cfg_vals[i].val);
-				if(i < 1) {
-					TRACE(0, "[err] cannot parse the string [%s]\n", p_start);
+				res = sscanf(p_start, "=%llx\n", &cfg_vals[i].val);
+				if(res < 1) {
+					strncpy(err_token, p_start, p_str - p_start);
+					err_token[p_str - p_start] = '\0' ;
+					TRACE(0, "[err] cannot parse the string [%s]\n", err_token);
 				} else {
 					TRACE(0, "[%s] detected token[%s] val[0x%llx]\n",
 						__func__, cfg_vals[i].name, cfg_vals[i].val) ;
 				}
 
 			} // if( *p_start != '#' )
+			
+			/* move pointer after the token */
+			p_str++;
 
 		} // while( p_start != (tmp_str + line_len) )
 	}

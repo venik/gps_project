@@ -62,6 +62,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 	TRACE(0, "[%s]\n", __func__);
 
 	cfg_string_t cfg_vals[] = { 	{"port",  0},
+					{"addr0", 0},
 					{"addr1", 0},
 					{"addr2", 0},
 					{"addr3", 0},
