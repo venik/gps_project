@@ -103,7 +103,7 @@ int rs232_send_comm(bd_data_t *bd_data, uint64_t reg)
 	if( buff != (uint8_t)(reg & 0xFFull)) {
 		/* wrong answer */
 		/* this function work not correct for reading from the memory */
-		TRACE(0, "[%s] Error. Wrong answer. command [0x%02x] answer [0x%02x]",
+		TRACE(0, "[%s] Error. Wrong answer. command [0x%02x] answer [0x%02x]\n",
 			__func__, (uint8_t)(reg & 0xFFull), buff);
 
 		return -1;

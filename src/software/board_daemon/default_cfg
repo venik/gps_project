@@ -12,4 +12,7 @@ addr8=0x1e0f401
 addr9=0x14c0402
 
 #comment
-port=1234
+gui_tcpport=1234
+
+#comment
+rs232_portname=/dev/ttyUSB0

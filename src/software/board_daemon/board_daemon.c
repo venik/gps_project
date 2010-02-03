@@ -99,6 +99,22 @@ int board_daemon_cfg(bd_data_t *bd_data)
 		TRACE(0, "Init reg [%d] with val [0x%07llx]\n", i, bd_data->gps_regs[i].reg);
 	}
 
+	bd_data->port = atoi(cfg_vals[10].val_str);
+	if( bd_data->port == 0 ) {
+		TRACE(0, "Warning. Cannot find/or parser [%s] token int the cfg-file Set default 1234 \n",
+			cfg_vals[10].name );
+		bd_data->port = 1234;
+	}
+
+	res = strlen(cfg_vals[11].val_str);
+	if( res == 0 ) {
+		TRACE(0, "Error. You MUST declare rs232-port name in [%s] token in the cfg-file\n",
+			cfg_vals[11].name);
+		return -1;
+	};
+	strncpy(bd_data->name, cfg_vals[11].val_str, 255);
+
+	/* free memery after cfg-file parsing */
 	cfg_destroy(cfg_parser);
 
 	return 0;
@@ -142,8 +158,6 @@ int main(int argc, char **argv) {
 	if( board_daemon_cfg(bd_data) != 0 )
 		return -1;
 	
-	exit(-1);
-
 	/* init environment */
 	bd_data->need_exit = 1;
 	need_exit = 1;
