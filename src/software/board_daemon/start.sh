@@ -1,1 +1,1 @@
-./board_daemon -c cfg 
+./board_daemon -c default_cfg 

@@ -114,11 +114,11 @@ int rs232_send_comm(bd_data_t *bd_data, uint64_t reg)
 
 int rs232_dump_mem(bd_data_t *bd_data)
 {
-	TRACE(0, "[%s]\n", __func__);
+	TRACE(0, "[%s] Start dumping \n", __func__);
 
 	uint8_t		buff[1<<18] = {};
 	uint64_t	addr;
-	uint32_t	max_addr = (1<<18) - 2;
+	uint32_t	max_addr = (1<<18);
 	
 	uint64_t	comm_64;
 	int 		res;
@@ -141,9 +141,8 @@ int rs232_dump_mem(bd_data_t *bd_data)
 
 		res = read(pfd->fd, buff+addr, 1);
 
-		hex2str(str, buff[addr]);
-
-		TRACE(0, "=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
+		//hex2str(str, buff[addr]);
+		//TRACE(0, "=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
 
 		sprintf(str_i_q, "%d\t%d\n%d\t%d\n", 
 			gps_value[GET_I1(buff[addr])],
@@ -154,6 +153,8 @@ int rs232_dump_mem(bd_data_t *bd_data)
 
 		//write(rs232data->fd_flush, str_i_q, strlen(str_i_q));
 	}
+
+	TRACE(0, "[%s] Dumped successfully\n", __func__);
 
 	return 0;
 }
@@ -214,6 +215,18 @@ int rs232_work(bd_data_t *bd_data)
 		return -1;
 	}
 
+	usleep(SECOND);
+
+	/* FIXME - command from gui for reprogramming MAX2769 */
+	if(0) {
+		res = rs232_program_max(bd_data);
+		if( res == -1 )
+			return -1;
+			
+	}
+
+	usleep(3 * SECOND);
+
 	/* get the flush */
 	/* add the mode checking */
 	rs232_dump_mem(bd_data) ;
@@ -250,7 +263,7 @@ void *rs232_process(void *priv)
 				break;
 		}
 
-		usleep(3 * SECOND);
+		usleep(15 * SECOND);
 	}
 
 	TRACE(0, "[%s] near exit\n", __func__);

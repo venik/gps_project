@@ -7,7 +7,6 @@
 
 typedef	struct cfg_string_s {
 	char		name[255];
-	//uint64_t	val;
 	char		val_str[255];
 } cfg_string_t;
 
