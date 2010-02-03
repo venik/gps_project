@@ -7,7 +7,8 @@
 
 typedef	struct cfg_string_s {
 	char		name[255];
-	uint64_t	val;
+	//uint64_t	val;
+	char		val_str[255];
 } cfg_string_t;
 
 typedef struct cfg_parser_s {
@@ -76,10 +77,10 @@ int cfg_get_vals(cfg_parser_t *cfg_parser)
 			p_start = p_str;
 
 			/* walk trough the current line */
-			do {
+			while( (*p_str != '\n') && (*p_str != '\0') ) {
 				//TRACE(0, "[%c][%d]\n", *p_str, *p_str) ;
 				p_str++;
-			} while( (*p_str != '\n') && (*p_str != '\0') );
+			}; // while( (*p_str != '\n') && (*p_str != '\0') )
 
 			if( *p_start != '#' ) {
 				/* it's not the comment */
@@ -103,29 +104,31 @@ int cfg_get_vals(cfg_parser_t *cfg_parser)
 
 				} while( str_len != 0 );
 
-				if( str_len == 0 ) {
+				if( *p_start == '\n' ) {
+					TRACE(0, "empty string\n");
+					p_str++;
+					continue;
+				} else if( str_len == 0 ) {
 					/* unknown token */
 					strncpy(err_token, p_start, p_str - p_start);
 					err_token[p_str - p_start] = '\0' ;
 					TRACE(0, "[err] cannot parse the string [%s]\n", err_token);
 					
-					p_str ++;
+					p_str++;
 					continue;
 				}
 
 				//TRACE(0, "len id:[%d]:[%d]\n", i, str_len);
 
-				p_start += str_len;
+				/* len of the token + 1 ( ex. blabla= ) */
+				p_start += (str_len + 1);
 
-				res = sscanf(p_start, "=%llx\n", &cfg_vals[i].val);
-				if(res < 1) {
-					strncpy(err_token, p_start, p_str - p_start);
-					err_token[p_str - p_start] = '\0' ;
-					TRACE(0, "[err] cannot parse the string [%s]\n", err_token);
-				} else {
-					TRACE(0, "[%s] detected token[%s] val[0x%llx]\n",
-						__func__, cfg_vals[i].name, cfg_vals[i].val) ;
-				}
+				strncpy(cfg_vals[i].val_str, p_start, p_str - p_start);
+				cfg_vals[i].val_str[p_str - p_start] = '\0' ;
+
+
+				TRACE(0, "[%s] detected token [%s] val [%s]\n",
+					__func__, cfg_vals[i].name, cfg_vals[i].val_str) ;
 
 			} // if( *p_start != '#' )
 			

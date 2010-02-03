@@ -1,12 +1,15 @@
 # the default cfg
 addr0=a2939a3
 addr1=855028c
+addr2=0x6aff1dc
+addr3=0x9ec0008
+addr4=0x0c00080
+addr5=0x8000070
+addr6=0x8000000
+addr7=0x10061b2
+
+addr8=0x1e0f401
+addr9=0x14c0402
+
+#comment
 port=1234
-#2 0x6aff1dc
-#3 0x9ec0008
-#4 0x0c00080
-#5 0x8000070
-#6 0x8000000
-#7 0x10061b2
-#8 0x1e0f401
-#9 0x14c0402

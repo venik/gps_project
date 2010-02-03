@@ -59,22 +59,23 @@ int board_daemon_cfg(bd_data_t *bd_data)
 {
 	cfg_parser_t	*cfg_parser = NULL;
 	char		tmp_str[MAXLINE] = {};
-	int 		i;
+	int 		i, res;
 
 	TRACE(0, "[%s]\n", __func__);
 
-	cfg_string_t cfg_vals[] = { 	{"addr0", 0},
-					{"addr1", 0},
-					{"addr2", 0},
-					{"addr3", 0},
-					{"addr4", 0},
-					{"addr5", 0},
-					{"addr6", 0},
-					{"addr7", 0},
-					{"addr8", 0},
-					{"addr9", 0},
-					{"port",  0},
-					{"", 0}
+	cfg_string_t cfg_vals[] = { 	{"addr0", ""},
+					{"addr1", ""},
+					{"addr2", ""},
+					{"addr3", ""},
+					{"addr4", ""},
+					{"addr5", ""},
+					{"addr6", ""},
+					{"addr7", ""},
+					{"addr8", ""},
+					{"addr9", ""},
+					{"gui_tcpport",  ""},
+					{"rs232_portname",  ""},
+					{"", ""}
 				};
 
 	cfg_parser = cfg_prepare(bd_data->cfg_name, cfg_vals);
@@ -85,15 +86,19 @@ int board_daemon_cfg(bd_data_t *bd_data)
 	cfg_get_vals(cfg_parser) ;
 
 	/* store args */
-	snprintf(tmp_str, MAXLINE, "%llx", cfg_vals[0].val);
-	sscanf(tmp_str, "%d", &bd_data->port);
+	for( i=0; i<10; i++) {
+		res = sscanf(cfg_vals[i].val_str, "%llx", &bd_data->gps_regs[i].reg); ;
+		if( res < 1 ) {
+			TRACE(0, "Error. cannot parse/or it's empty [%s] value. register [%d]\n",
+				cfg_vals[i].val_str, i);
+			return -1;
+		}
 
-	for( i=0; i<11; i++) {
-		bd_data->gps_regs[i].reg = cfg_vals[i].val ;
 		hex2str(tmp_str, i);
-		sprintf(bd_data->gps_regs[i].str, "# %sb 0x%08llx\n", tmp_str, cfg_vals[i].val);
+		sprintf(bd_data->gps_regs[i].str, "# %sb 0x%08llx\n", tmp_str, bd_data->gps_regs[i].reg);
+		TRACE(0, "Init reg [%d] with val [0x%07llx]\n", i, bd_data->gps_regs[i].reg);
 	}
-	
+
 	cfg_destroy(cfg_parser);
 
 	return 0;
