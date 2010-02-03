@@ -1,6 +1,10 @@
 #ifndef __RS232_DUMPER_
 #define __RS232_DUMPER_
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
 /********************************************************************************************
  * Description: open rs232 interface with name dev_name
  ********************************************************************************************/
@@ -158,6 +162,28 @@ int rs232_open_dump_file(bd_data_t *bd_data)
 	return 0;
 }
 
+int rs232_dump_upload()
+{
+	pid_t	pid;
+
+	if( (pid = fork()) < 0 ) {
+		printf("Just Error\n");
+		return -1;
+	} else if( pid == 0) {
+		if( execl("/bin/sh", "sh", "../manage_scripts/store_flush.sh", NULL) < 0 ) {
+			TRACE(0, "Error execl()\n");
+			return -1;
+		}
+	};
+	
+	if( waitpid(pid, NULL, 0) < 0 ) {
+		TRACE(0, "Error waitpid()\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 int rs232_dump_mem(bd_data_t *bd_data)
 {
 	TRACE(0, "[%s] Start dumping \n", __func__);
@@ -202,6 +228,10 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	}
 
 	TRACE(0, "[%s] Dumped successfully\n", __func__);
+
+	/* upload flush */
+	rs232_dump_upload();
+	TRACE(0, "[%s] Uploaded successfully\n", __func__);
 
 	close(dfd->fd);
 
@@ -312,7 +342,7 @@ void *rs232_process(void *priv)
 				break;
 		}
 
-		usleep(15 * SECOND);
+		usleep(MINUTE * 10);
 	}
 
 	TRACE(0, "[%s] near exit\n", __func__);
