@@ -14,12 +14,11 @@
 #define SECOND		1000000
 #define	MINUTE		60 * SECOND
 
-gps_reg_str_t gps_regs[10];
-
 enum bd_fd_list {
 	LISTEN_FD	= 0,
 	GUI_FD		= 1,
-	BOARD_FD	= 2
+	BOARD_FD	= 2,
+	DUMP_FD		= 3
 };
 
 /********************************************
@@ -32,7 +31,7 @@ typedef struct bd_data_s {
 	uint8_t 	send_buf[BUF_SIZE];
 
 	/* network part */
-	struct pollfd	client[3];
+	struct pollfd	client[4];
 	uint32_t	port;
 
 	/* support */

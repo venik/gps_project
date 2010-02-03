@@ -112,6 +112,52 @@ int rs232_send_comm(bd_data_t *bd_data, uint64_t reg)
 	return buff;
 }
 
+
+int rs232_open_dump_file(bd_data_t *bd_data)
+{
+	int		iov_length = 13;
+	int		i;
+	struct 		iovec iov[iov_length];
+	struct pollfd	*pfd = &bd_data->client[DUMP_FD];
+
+	pfd->fd = open("/tmp/flush", O_RDWR|O_CREAT|O_TRUNC, 0666);
+
+	if( pfd->fd < 0 ) {
+		TRACE(0, "Error. during open the flush file. errno %s\n", strerror(errno));
+		return -1;;
+	}
+
+	/* get and write current time */
+	time_t	cur_time;
+	char	p_time[40] = "# ";
+	char	blank_str[] = "#\n";
+
+	time(&cur_time);
+	ctime_r(&cur_time, p_time + 2);
+
+	iov[0].iov_base = p_time;
+	iov[0].iov_len = strlen(p_time);
+	iov[1].iov_base = blank_str;
+	iov[1].iov_len = strlen(blank_str);
+
+	for( i = 0; i < 10; i++ ) {
+		iov[i + 2].iov_base = bd_data->gps_regs[i].str;
+		iov[i + 2].iov_len = strlen(bd_data->gps_regs[i].str);
+	}
+
+	iov[12].iov_base = blank_str;
+	iov[12].iov_len = strlen(blank_str);
+
+	i = writev(pfd->fd, iov, iov_length);
+
+	if( i < 0) {
+		TRACE(0, "[%s] err. errno [%s]\n", __func__, strerror(errno));
+		return -1;
+	}
+
+	return 0;
+}
+
 int rs232_dump_mem(bd_data_t *bd_data)
 {
 	TRACE(0, "[%s] Start dumping \n", __func__);
@@ -123,14 +169,15 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	uint64_t	comm_64;
 	int 		res;
 	
-	char		str[10] = {};
+	//char		str[10] = {};
 	char		header_string[] = "# Mode: 2bit, sign/magnitude\n# format [q2 i2 q1 i1]\n# i\tq\n";
 	char		str_i_q[255] = {};
 	
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
+	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
 
-	//rs232_open_flush(rs232data);
-	//write(rs232data->fd_flush, header_string, strlen(header_string));
+	rs232_open_dump_file(bd_data);
+	write(dfd->fd, header_string, strlen(header_string));
 
 	/* flush it */
 	comm_64 = RS232_DUMP_DATA ;
@@ -151,10 +198,12 @@ int rs232_dump_mem(bd_data_t *bd_data)
 			gps_value[GET_Q2(buff[addr])]
 		);
 
-		//write(rs232data->fd_flush, str_i_q, strlen(str_i_q));
+		write(dfd->fd, str_i_q, strlen(str_i_q));
 	}
 
 	TRACE(0, "[%s] Dumped successfully\n", __func__);
+
+	close(dfd->fd);
 
 	return 0;
 }
