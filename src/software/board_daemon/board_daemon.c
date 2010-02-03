@@ -28,6 +28,7 @@ int 		need_exit;
 #include "gps_registers.h"
 #include "rs232_dumper.h"
 #include "gui_server.h"
+#include "cfg_parser.h"
 
 /*
  * Description: print banner 
@@ -42,7 +43,7 @@ void board_daemon_banner()
 	printf("  -h:	display this information\n");
 }
 
-static void board_daemon_destroy(bd_data_t	*bd_data)
+static void board_daemon_destroy(bd_data_t *bd_data)
 {
 	TRACE(0, "[%s] free memory, close fd\n", __func__);
 
@@ -52,6 +53,50 @@ static void board_daemon_destroy(bd_data_t	*bd_data)
 
 	free(bd_data);
 	bd_data = NULL;
+}
+
+int board_daemon_cfg(bd_data_t *bd_data)
+{
+	cfg_parser_t	*cfg_parser = NULL;
+	char		tmp_str[MAXLINE] = {};
+	int 		i;
+
+	TRACE(0, "[%s]\n", __func__);
+
+	cfg_string_t cfg_vals[] = { 	{"addr0", 0},
+					{"addr1", 0},
+					{"addr2", 0},
+					{"addr3", 0},
+					{"addr4", 0},
+					{"addr5", 0},
+					{"addr6", 0},
+					{"addr7", 0},
+					{"addr8", 0},
+					{"addr9", 0},
+					{"port",  0},
+					{"", 0}
+				};
+
+	cfg_parser = cfg_prepare(bd_data->cfg_name, cfg_vals);
+	if( cfg_parser == NULL ) {
+		return -1;
+	}
+
+	cfg_get_vals(cfg_parser) ;
+
+	/* store args */
+	snprintf(tmp_str, MAXLINE, "%llx", cfg_vals[0].val);
+	sscanf(tmp_str, "%d", &bd_data->port);
+
+	for( i=0; i<11; i++) {
+		bd_data->gps_regs[i].reg = cfg_vals[i].val ;
+		hex2str(tmp_str, i);
+		sprintf(bd_data->gps_regs[i].str, "# %sb 0x%08llx\n", tmp_str, cfg_vals[i].val);
+	}
+	
+	cfg_destroy(cfg_parser);
+
+	return 0;
 }
 
 int main(int argc, char **argv) {
@@ -86,12 +131,16 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	if( bd_make_signals(&bd_data) != 0 )
+	if( bd_make_signals(bd_data) != 0 )
 		return -1;
+
+	if( board_daemon_cfg(bd_data) != 0 )
+		return -1;
+	
+	exit(-1);
 
 	/* init environment */
 	bd_data->need_exit = 1;
-	bd_data->port = 1234;
 	need_exit = 1;
 
 	/* create new threads */	

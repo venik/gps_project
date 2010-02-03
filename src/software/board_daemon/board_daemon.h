@@ -33,7 +33,7 @@ typedef struct bd_data_s {
 
 	/* network part */
 	struct pollfd	client[3];
-	uint16_t	port;
+	uint32_t	port;
 
 	/* support */
 	char		cfg_name[MAXLINE];	/* config name */	
@@ -42,6 +42,7 @@ typedef struct bd_data_s {
 	pthread_t	gui_thread;
 	pthread_t	rs232_thread;
 	
+	/* gps registers array */
 	gps_reg_str_t gps_regs[10];
 } bd_data_t;
 

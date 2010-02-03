@@ -11,6 +11,8 @@ do {								\
 	}							\
 } while (0)
 
+#define TRACE_LINE() TRACE(0, "[%s]:%d\n", __func__, __LINE__);
+
 /* hex to binary */
 void hex2str(char *str, uint8_t src)
 {
