@@ -1,4 +1,6 @@
 # the default cfg
+
+# GPS Registers
 addr0=a2939a3
 addr1=855028c
 addr2=0x6aff1dc
@@ -11,8 +13,9 @@ addr7=0x10061b2
 addr8=0x1e0f401
 addr9=0x14c0402
 
-#comment
+# GUI-server thread 
 gui_tcpport=1234
 
-#comment
+# Board-server thread
 rs232_portname=/dev/ttyUSB0
+upload_script=../manage_scripts/store_flush.sh

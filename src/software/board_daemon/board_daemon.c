@@ -73,8 +73,9 @@ int board_daemon_cfg(bd_data_t *bd_data)
 					{"addr7", ""},
 					{"addr8", ""},
 					{"addr9", ""},
-					{"gui_tcpport",  ""},
-					{"rs232_portname",  ""},
+					{"gui_tcpport",  ""},		// 10
+					{"rs232_portname",  ""},	// 11
+					{"upload_script", ""},		// 12
 					{"", ""}
 				};
 
@@ -106,13 +107,30 @@ int board_daemon_cfg(bd_data_t *bd_data)
 		bd_data->port = 1234;
 	}
 
+	/* rs232 device name */
 	res = strlen(cfg_vals[11].val_str);
 	if( res == 0 ) {
 		TRACE(0, "Error. You MUST declare rs232-port name in [%s] token in the cfg-file\n",
 			cfg_vals[11].name);
 		return -1;
 	};
-	strncpy(bd_data->name, cfg_vals[11].val_str, 255);
+	strncpy(bd_data->name, cfg_vals[11].val_str, MAXLINE);
+	
+	/* rs232 device name */
+	res = strlen(cfg_vals[12].val_str);
+	if( res == 0 ) {
+		TRACE(0, "Error. You MUST declare full path with the name of the the upload script in the [%s] \
+				token in the cfg-file\n", cfg_vals[12].name);
+		return -1;
+	};
+	
+	res = access(cfg_vals[12].val_str, R_OK);
+	if( res != 0 ) {
+		TRACE(0, "Error. Upload script [%s] failed. errno: %s \n",
+			cfg_vals[12].val_str, strerror(errno));
+		return -1;
+	};
+	strncpy(bd_data->upload_script, cfg_vals[12].val_str, MAXLINE);
 
 	/* free memery after cfg-file parsing */
 	cfg_destroy(cfg_parser);

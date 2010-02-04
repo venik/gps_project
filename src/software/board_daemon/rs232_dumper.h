@@ -162,16 +162,16 @@ int rs232_open_dump_file(bd_data_t *bd_data)
 	return 0;
 }
 
-int rs232_dump_upload()
+int rs232_dump_upload(bd_data_t *bd_data)
 {
 	pid_t	pid;
 
 	if( (pid = fork()) < 0 ) {
-		printf("Just Error\n");
+		TRACE(0, "Error. Cannot fork(). errno: %s\n", strerror(errno));
 		return -1;
 	} else if( pid == 0) {
-		if( execl("/bin/sh", "sh", "../manage_scripts/store_flush.sh", NULL) < 0 ) {
-			TRACE(0, "Error execl()\n");
+		if( execl("/bin/sh", "sh", bd_data->upload_script, NULL) < 0 ) {
+			TRACE(0, "Error execl(). errno: %s\n", strerror(errno));
 			return -1;
 		}
 	};
@@ -230,7 +230,7 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	TRACE(0, "[%s] Dumped successfully\n", __func__);
 
 	/* upload flush */
-	rs232_dump_upload();
+	rs232_dump_upload(bd_data);
 	TRACE(0, "[%s] Uploaded successfully\n", __func__);
 
 	close(dfd->fd);

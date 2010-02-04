@@ -25,14 +25,11 @@ enum bd_fd_list {
  *	Work definition 
  ********************************************/
 typedef struct bd_data_s {
-
-	char		name[MAXLINE];		/* rs232 dev-name */
-	uint8_t 	recv_buf[BUF_SIZE];
-	uint8_t 	send_buf[BUF_SIZE];
-
 	/* network part */
 	struct pollfd	client[4];
 	uint32_t	port;
+	uint8_t 	recv_buf[BUF_SIZE];
+	uint8_t 	send_buf[BUF_SIZE];
 
 	/* support */
 	char		cfg_name[MAXLINE];	/* config name */	
@@ -40,7 +37,11 @@ typedef struct bd_data_s {
 
 	pthread_t	gui_thread;
 	pthread_t	rs232_thread;
-	
+
+	/* rs232 */
+	char		upload_script[MAXLINE];	/* upload script */	
+	char		name[MAXLINE];		/* rs232 dev-name */
+
 	/* gps registers array */
 	gps_reg_str_t gps_regs[10];
 } bd_data_t;
