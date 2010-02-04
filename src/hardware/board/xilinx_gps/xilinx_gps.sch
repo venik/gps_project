@@ -1,8 +1,8 @@
-ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
+ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_gps.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2010 2 2 21 31 44)
+  (timeStamp 2010 2 4 22 33 51)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -4059,6 +4059,30 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
       )
     )
   )
+  (compDef "XTAL3225_1"
+    (originalName "XTAL3225")
+    (compHeader 
+      (sourceLibrary "XILINX_GPS.LIB")
+      (numPins 4)
+      (numParts 1)
+      (alts (ieeeAlt False) (deMorganAlt False))
+      (refDesPrefix "U")
+    )
+    (compPin "1" (pinName "1") (partNum 1) (symPinNum 1) (gateEq 1) (pinEq 1) )
+    (compPin "2" (pinName "2") (partNum 1) (symPinNum 3) (gateEq 1) (pinEq 2) )
+    (compPin "3" (pinName "3") (partNum 1) (symPinNum 2) (gateEq 1) (pinEq 3) )
+    (compPin "4" (pinName "4") (partNum 1) (symPinNum 4) (gateEq 1) (pinEq 4) )
+    (attachedSymbol (partNum 1) (altType Normal) (symbolName "XTAL2") )
+    (attachedPattern (patternNum 1) (patternName "TCO5860")
+      (numPads 4)
+      (padPinMap 
+        (padNum  1) (compPinRef "1")
+        (padNum  2) (compPinRef "2")
+        (padNum  3) (compPinRef "3")
+        (padNum  4) (compPinRef "4")
+      )
+    )
+  )
   (compDef "SG710_1"
     (originalName "SG710")
     (compHeader 
@@ -6451,7 +6475,19 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (compValue "VCC_D")
     (patternName "WIRE_PAD")
   )
+  (compInst "U40"
+    (compRef "XTAL3225_1")
+    (originalName "XTAL3225")
+    (patternName "TCO5860")
+  )
+  (compInst "C79"
+    (compRef "CSMD0805_1")
+    (originalName "CSMD0805")
+    (compValue "10nF")
+    (patternName "C_SMD0805")
+  )
   (net "GND"
+    (node "U40" "2")
     (node "R3" "2")
     (node "C25" "2")
     (node "R32" "2")
@@ -7418,6 +7454,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (node "U20" "24")
   )
   (net "NET00036"
+    (node "C79" "2")
     (node "C65" "2")
     (node "U20" "15")
   )
@@ -7640,14 +7677,18 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (node "R43" "1")
     (node "U34" "3")
   )
+  (net "NET00069"
+    (node "C79" "1")
+    (node "U40" "1")
+  )
 )
 
 (schematicDesign "SchDesign_1"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "50.0mil")
       (grid "1.0mil")
+      (grid "50.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9387,6 +9428,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (wire (line (pt 8300.0 9950.0) (pt 8300.0 10150.0) (width 10.0) (netNameRef "NET00026") )
     )
     (junction (pt 8300.0 10150.0) (netNameRef "NET00026") )
+    (wire (line (pt 8650.0 8150.0) (pt 8650.0 8300.0) (width 10.0) (netNameRef "NET00069") )
+    )
     (wire (line (pt 8500.0 9250.0) (pt 8550.0 9250.0) (width 10.0) (netNameRef "GND") )
     )
     (wire (line (pt 8550.0 9250.0) (pt 8600.0 9250.0) (width 10.0) (netNameRef "GND") )
@@ -9522,6 +9565,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     )
     (wire (line (pt 8650.0 9650.0) (pt 8650.0 9550.0) (width 10.0) (netNameRef "VCC_A") )
     )
+    (wire (line (pt 8650.0 8700.0) (pt 8650.0 8850.0) (width 10.0) (netNameRef "NET00036") )
+    )
     (wire (line (pt 9150.0 9550.0) (pt 9150.0 9650.0) (width 10.0) (netNameRef "GND") )
     )
     (symbol (symbolRef "CP_1") (refDesRef "C70") (partNum 1) (pt 10150.0 7850.0) (rotation 270.0) 
@@ -9601,6 +9646,12 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (symbol (symbolRef "C_1") (refDesRef "C69") (partNum 1) (pt 5900.0 8850.0) (rotation 270.0) 
       (attr "Value" "" (pt 0.0 -210.0) (rotation 270.0) (isVisible True) (textStyleRef "tiny") )
       (attr "RefDes" "" (pt 0.0 -190.0) (rotation 270.0) (isVisible True) (justify LowerRight) (textStyleRef "tiny") )
+    )
+    (wire (line (pt 8650.0 7350.0) (pt 8650.0 6950.0) (width 10.0) (netNameRef "GND") )
+    )
+    (symbol (symbolRef "C_1") (refDesRef "C79") (partNum 1) (pt 8650.0 8300.0) (rotation 90.0) 
+      (attr "Value" "" (pt 0.0 210.0) (rotation 90.0) (isVisible True) (textStyleRef "tiny") )
+      (attr "RefDes" "" (pt 0.0 190.0) (rotation 90.0) (isVisible True) (justify LowerRight) (textStyleRef "tiny") )
     )
     (wire (line (pt 10150.0 6550.0) (pt 10150.0 7450.0) (width 10.0) (netNameRef "GND") )
     )
@@ -9707,6 +9758,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (port (pt 7550.0 5850.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_138") )
     (wire (line (pt 7500.0 8850.0) (pt 7500.0 8800.0) (width 10.0) (netNameRef "NET00036") )
     )
+    (junction (pt 7500.0 8850.0) (netNameRef "NET00036") )
     (port (pt 7450.0 9150.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_138") )
     (port (pt 7450.0 9050.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_139") )
     (wire (line (pt 8000.0 9250.0) (pt 8100.0 9250.0) (width 10.0) (netNameRef "VCC_D") )
@@ -9784,6 +9836,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     )
     (symbol (symbolRef "C_1") (refDesRef "C60") (partNum 1) (pt 8100.0 9250.0) )
     (symbol (symbolRef "C_1") (refDesRef "C66") (partNum 1) (pt 7450.0 9550.0) )
+    (port (pt 8650.0 6950.0) (portType NoAngle_Sgl_Vert) (netNameRef "GND") (rotation 180.0) )
     (symbol (symbolRef "C_1") (refDesRef "C68") (partNum 1) (pt 8700.0 9550.0) )
     (symbol (symbolRef "C_1") (refDesRef "C67") (partNum 1) (pt 8600.0 9850.0) )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U37") (partNum 1) (pt 8900.0 10300.0) )
@@ -9893,6 +9946,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
     (wire (line (pt 7350.0 8850.0) (pt 7500.0 8850.0) (width 10.0) (netNameRef "NET00036") )
     )
     (port (pt 10000.0 8950.0) (portType LeftAngle_Sgl_Horz) (netNameRef "VCC_D") (rotation 180.0) )
+    (wire (line (pt 8650.0 8850.0) (pt 7500.0 8850.0) (width 10.0) (netNameRef "NET00036") )
+    )
     (wire (line (pt 8000.0 9150.0) (pt 8550.0 9150.0) (width 10.0) (netNameRef "VCC_D") )
     )
     (wire (line (pt 8000.0 9250.0) (pt 7350.0 9250.0) (width 10.0) (netNameRef "VCC_D") )
@@ -9973,6 +10028,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_gps\xilinx_lab3.sch"
       (attr "Value" "" (pt -100.0 -200.0) (rotation 180.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
     )
     (symbol (symbolRef "XTAL2_1") (refDesRef "U13") (partNum 1) (pt 7500.0 7750.0) )
+    (symbol (symbolRef "XTAL2_1") (refDesRef "U40") (partNum 1) (pt 8650.0 7750.0) )
     (symbol (symbolRef "IDC26_1") (refDesRef "U15") (partNum 1) (pt 6100.0 6250.0) )
     (symbol (symbolRef "MAX28_1") (refDesRef "U20") (partNum 1) (pt 5950.0 10150.0) )
     (wire (line (pt 11050.0 1050.0) (pt 10200.0 1050.0) (width 10.0) (netNameRef "GND") )
