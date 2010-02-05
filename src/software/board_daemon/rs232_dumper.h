@@ -316,6 +316,8 @@ int rs232_work(bd_data_t *bd_data)
 void *rs232_process(void *priv)
 {
 	int	res;
+	useconds_t flush_time = 10 * MINUTE, time_remain = 0 ;
+	useconds_t cycle_time = 30 * SECOND;
 
 	bd_data_t *bd_data = (bd_data_t *)priv;
 	
@@ -330,19 +332,28 @@ void *rs232_process(void *priv)
 	while(bd_data->need_exit) {
 		TRACE(0, "[%s] Process...\n", __func__);
 
-		if( bd_data->client[BOARD_FD].fd < 0 ) {
-			TRACE(0, "[%s] Warning. Board not connected!!!\n", __func__);
-			pthread_exit((void *) -1);
-		} else {
-			/* FIXME - check the task from gui */
-			
-			res = rs232_work(bd_data);
-			/* check for errors */
-			if( res < 0 )
-				break;
-		}
+		/* FIXME - too late now, i need checkit */
+		if( (bd_data->need_flush_now != 0) || (time_remain >= flush_time) ) {
 
-		usleep(MINUTE * 10);
+			if( bd_data->client[BOARD_FD].fd < 0 ) {
+				TRACE(0, "[%s] Warning. Board not connected!!!\n", __func__);
+				pthread_exit((void *) -1);
+			} else {
+				/* FIXME - check the task from gui */
+				time_remain = 0;	
+				res = rs232_work(bd_data);
+				/* check for errors */
+				if( res < 0 )
+					break;
+			
+				/* clear the flag */
+				bd_data->need_flush_now = 0;
+
+			} // if( bd_data->client[BOARD_FD].fd < 0 )
+		} // if( (bd_data->need_flush_now == 0) || (time_remain >= flush_time) )
+
+		usleep(cycle_time);
+		time_remain += cycle_time;
 	}
 
 	TRACE(0, "[%s] near exit\n", __func__);

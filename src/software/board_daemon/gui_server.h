@@ -4,7 +4,7 @@
 int gui_connection(bd_data_t *bd_data)
 {
 	TRACE(0, "[%s]\n", __func__);
-	bd_data->client[GUI_FD].fd = accept(bd_data->client[LISTEN_FD].fd, NULL, NULL);
+	//bd_data->client[GUI_FD].fd = accept(bd_data->client[LISTEN_FD].fd, NULL, NULL);
 
 	return 0;
 }
@@ -180,7 +180,7 @@ void *gui_process(void *priv)
 
 	while(bd_data->need_exit) {
 		//res = bd_poll_read(bd_data, GUI_FD, 255);
-		res = gui_read_command(bd_data, GUI_FD);
+		//res = gui_read_command(bd_data, GUI_FD);
 		if( res > 0 ) {
 			/* data in the client socket - need parse it */
 			res = gui_get_command(bd_data);

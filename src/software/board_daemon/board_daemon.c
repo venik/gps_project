@@ -22,6 +22,7 @@
 
 FILE 		*I;
 int 		need_exit;
+int 		need_flush_now;
 
 #include "board_protocols.h"
 #include "board_daemon.h"
@@ -114,6 +115,13 @@ int board_daemon_cfg(bd_data_t *bd_data)
 			cfg_vals[11].name);
 		return -1;
 	};
+
+	res = access(cfg_vals[11].val_str, W_OK | R_OK);
+	if( res != 0 ) {
+		TRACE(0, "Error. rs232 port [%s] access fail. errno: %s \n",
+			cfg_vals[11].val_str, strerror(errno));
+		return -1;
+	};
 	strncpy(bd_data->name, cfg_vals[11].val_str, MAXLINE);
 	
 	/* rs232 device name */
@@ -141,7 +149,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 int main(int argc, char **argv) {
 	
 	bd_data_t	*bd_data = (bd_data_t *)malloc(sizeof(bd_data_t));
-	int 		res;
+	int 		res = 0;
 
 	memset(bd_data, 0, sizeof(bd_data));
 
@@ -178,15 +186,18 @@ int main(int argc, char **argv) {
 	
 	/* init environment */
 	bd_data->need_exit = 1;
+	bd_data->need_flush_now = 0;
 	need_exit = 1;
 
 	/* create new threads */	
+#if 0
 	res = pthread_create(&bd_data->gui_thread, NULL, gui_process, bd_data);
 	if ( res ){
 		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
 			__func__, res, strerror(errno) );
 		goto destroy;
 	}
+#endif
 
 	TRACE(0, "[%s] gui server thread successfully started\n", __func__);
 
@@ -201,18 +212,24 @@ int main(int argc, char **argv) {
 
 	/* FIXME improve it - wait for threads */
 	while(need_exit) {
+		/* FIXME - too late now, i need check it with the Board */
+		if( need_flush_now == 1 ) {
+			TRACE(0, "!!! Signal USR1 came, flush now\n");
+			bd_data->need_flush_now = 1;
+			need_flush_now = 0;
+		}
 	}
 
 	TRACE(0, "[%s] zero init\n", __func__);
 	bd_data->need_exit = 0;
 
 	/* we wait when threads are stop */
-	res = pthread_cancel(bd_data->gui_thread);
+	//res = pthread_cancel(bd_data->gui_thread);
 	if ( res )
 		TRACE(0, "[%s] Error. Cannot cancel the gui server thread, returned [%d]. errno: %s\n",
 			__func__, res, strerror(errno) );
 
-	res = pthread_join(bd_data->gui_thread, NULL);
+	//res = pthread_join(bd_data->gui_thread, NULL);
 	if ( res )
 		TRACE(0, "[%s] Error. Cannot join to the gui server thread, returned [%d]. errno: %s\n",
 			__func__, res, strerror(errno) );
