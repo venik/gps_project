@@ -23,8 +23,8 @@ public class GpsHelper {
 		int G2[] = new int[1023];
 		int G2_tmp[] = new int[1023];
 		int CA[] = new int[1023];
-		int reg1[] = {1,1,1,1,1,1,1,1,1,1};
-		int reg2[] = {1,1,1,1,1,1,1,1,1,1};
+		int reg1[] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+		int reg2[] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 		int save1, save2;
 		//int G1[] = {1,1,1,1,1,1,1,1,1,1};
 		//int G2[] = {1,1,1,1,1,1,1,1,1,1};
@@ -35,9 +35,8 @@ public class GpsHelper {
 		for( i=0; i<1023; i++) {
 			G1[i] = reg1[9];			// g1(i) = reg(10) ;
 
-			save1 = reg1[2] ^ reg1[9];		// save1 = reg(3) * reg(10);
+			save1 = reg1[2] * reg1[9];		// save1 = reg(3) * reg(10);
 		
-			//System.out.println(i + ": " + Arrays.toString(reg1) + " save1=" + save1);
 
 			/* shift left */
 			for( j=9; j > 0; j-- ) {
@@ -53,7 +52,7 @@ public class GpsHelper {
 			G2[i] = reg2[9]; 
 
 			/* save2 = reg(2)*reg(3)*reg(6)*reg(8)*reg(9)*reg(10); */
-			save2 = reg2[1]^reg2[2]^reg2[5]^reg2[7]^reg2[8]^reg2[9] ;
+			save2 = reg2[1]*reg2[2]*reg2[5]*reg2[7]*reg2[8]*reg2[9] ;
 			
 			/* shift left */
 			for( j=9; j > 0; j-- ) {
@@ -62,27 +61,33 @@ public class GpsHelper {
 
 			reg2[0] = save2;			// reg(1) = save2;
 		}
+		
+		//System.out.println("G1 " + Arrays.toString(G1) + "\n");
+		//System.out.println("G2 " + Arrays.toString(G2) + "\n");
 
-		/* FIXME = Shift G2 */
-		int val = 19;
-		for( i=0; i <= g2s[val]; i++) {
-			G2_tmp[i] = G2[1022 - (g2s[val] - i)] ;
+		int val = 19 - 1;
+		for( i=0; i < g2s[val]; i++) {
+			G2_tmp[i] = G2[1023 - (g2s[val] - i)] ;
 		}
-		for( i=0; i < 1023 - g2s[val]; i++) {
-			G2_tmp[i + g2s[val]] = G2[i] ;
+		for( i=g2s[val]; i < 1023; i++) {
+			G2_tmp[i] = G2[i - g2s[val]] ;
 		}
 
 		G2 = G2_tmp;
 
-		/* finish loop */
+		//System.out.println("G2_tmp " + Arrays.toString(G2) + "\n");
+
+		/* finish loop - FIXME why * (-1) */
 		for( i=0; i<1023; i++) {
-			CA[i] = G1[i] ^ G2[i] ;
+			CA[i] = (G1[i] * G2[i]) * (-1) ;
 		}
 
 		/* Print out */
+		/*
 		for( i=0; i<1023; i++) {
 			System.out.println(i + ": CA >" + CA[i] + "\tG2 >" + G2[i] + "\tG1 >" + G1[i]) ;
 		}
+		*/
 
 	}
 
