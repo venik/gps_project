@@ -1,5 +1,5 @@
 all:
-	javac *.java
+	javac -Xlint *.java
 
 clean:
 	rm -rf *.class 
