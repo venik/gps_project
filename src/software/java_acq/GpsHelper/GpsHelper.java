@@ -1,20 +1,19 @@
-import java.util.Arrays;
+import java.util.Arrays ;
 
 public class GpsHelper {
+
+	private int CA[] = new int[1023] ;
+	private int ca16[] = new int[16368] ;		/* 1023 * 16 */
+
 	GpsHelper() {
 	/* Constructor */
 		System.out.println("Constructor\n");
-
-		GenerateCA();
 	}
 
-	private void GenerateCA() {
+	private void GenerateCA(int svnum)
+	{
+		System.out.println("Generate CA. PRN = " + svnum);
 
-		int CPS[][] = 	{ {2,6},{3,7},{4,8},{5,9},{1,9},{2,10},{1,8},{2,9},{3,10},
-				  {2,3},{3,4},{5,6},{6,7},{7,8},{8,9},{9,10},{1,4},{2,5},
-				  {3,6},{4,7},{5,8},{6,9},{1,3},{4,6},{5,7},{6,8},{7,9},
-				  {8,10},{1,6},{2,7},{3,8},{4,9} };
-		
 		int g2s[] = {	5,6,7,8,17,18,139,140,141,251,252,254,255,256,257,
 				258,469,470,471,472,473,474,509,512,513,514,515,516,
 				859,860,861,862 };
@@ -22,12 +21,9 @@ public class GpsHelper {
 		int G1[] = new int[1023];
 		int G2[] = new int[1023];
 		int G2_tmp[] = new int[1023];
-		int CA[] = new int[1023];
 		int reg1[] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 		int reg2[] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 		int save1, save2;
-		//int G1[] = {1,1,1,1,1,1,1,1,1,1};
-		//int G2[] = {1,1,1,1,1,1,1,1,1,1};
 
 		int i,j;
 
@@ -39,10 +35,8 @@ public class GpsHelper {
 		
 
 			/* shift left */
-			for( j=9; j > 0; j-- ) {
+			for( j=9; j > 0; j-- )
 				reg1[j] = reg1[j-1];		// reg(1,2:10) = reg(1,1:9);
-				//System.out.println(j + ": " + reg1[j-1] + "->"  + reg1[j]);
-			}
 			
 			reg1[0] = save1;			// reg(1) = save1;
 		}
@@ -55,9 +49,8 @@ public class GpsHelper {
 			save2 = reg2[1]*reg2[2]*reg2[5]*reg2[7]*reg2[8]*reg2[9] ;
 			
 			/* shift left */
-			for( j=9; j > 0; j-- ) {
+			for( j=9; j > 0; j-- )
 				reg2[j] = reg2[j-1];		// reg(1,2:10) = reg(1,1:9);
-			}
 
 			reg2[0] = save2;			// reg(1) = save2;
 		}
@@ -65,36 +58,63 @@ public class GpsHelper {
 		//System.out.println("G1 " + Arrays.toString(G1) + "\n");
 		//System.out.println("G2 " + Arrays.toString(G2) + "\n");
 
-		int val = 19 - 1;
-		for( i=0; i < g2s[val]; i++) {
-			G2_tmp[i] = G2[1023 - (g2s[val] - i)] ;
+		for( i=0; i < g2s[svnum - 1]; i++) {
+			G2_tmp[i] = G2[1023 - (g2s[svnum - 1] - i)] ;
 		}
-		for( i=g2s[val]; i < 1023; i++) {
-			G2_tmp[i] = G2[i - g2s[val]] ;
+		for( i=g2s[svnum - 1]; i < 1023; i++) {
+			G2_tmp[i] = G2[i - g2s[svnum - 1]] ;
 		}
 
 		G2 = G2_tmp;
 
-		//System.out.println("G2_tmp " + Arrays.toString(G2) + "\n");
+		//System.out.println("G2_tmp " + Arrays.toString(G2_tmp) + "\n");
 
 		/* finish loop - FIXME why * (-1) */
 		for( i=0; i<1023; i++) {
 			CA[i] = (G1[i] * G2[i]) * (-1) ;
 		}
 
+		//System.out.println("CA: " + Arrays.toString(CA) + "\n");
+		
 		/* Print out */
-		/*
-		for( i=0; i<1023; i++) {
-			System.out.println(i + ": CA >" + CA[i] + "\tG2 >" + G2[i] + "\tG1 >" + G1[i]) ;
-		}
-		*/
+		//for( i=0; i<1023; i++) {
+			//System.out.println(i + ": CA >" + CA[i] + "\tG2 >" + G2[i] + "\tG1 >" + G1[i]) ;
+		//}
+	}
 
+	public int GetCACode_16(int PRN)
+	{
+		double	chip_width =  1/1.023e6 ;	/* CA chip duration, sec */
+		double  ts = 1/16.368e6 ; 	 	/* discretization period, sec */
+		int	N = 1023 ;
+
+		int 	k;
+		int	tmp_index;
+
+		/* generate the CA code for the satellite */
+		GenerateCA(PRN);
+
+		// FIXME - check this cheat
+		for( k=0; k < (N*16); k++ ) {
+			tmp_index = (int)(Math.abs( (ts*k) / chip_width) );
+			tmp_index = ((tmp_index < 1023) ? tmp_index : 1022);
+			
+			//System.out.println(k + ": tmp_index: " + tmp_index + "\n") ;
+    			
+			ca16[k] = CA[tmp_index] ;
+		}
+		
+		//System.out.println("ca16 " + Arrays.toString(ca16) + "\n");
+
+		return 0;
 	}
 
 	public static void main(String args[]) {
 		System.out.println("GpsHelper class\n");
 
 		GpsHelper gpsh = new GpsHelper();
+
+		gpsh.GetCACode_16(19) ;
 
 	}
 }
