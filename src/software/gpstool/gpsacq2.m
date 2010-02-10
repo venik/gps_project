@@ -25,6 +25,7 @@ if IsRealInput
     ca16 = ca16 .* LO_sig ;
 else
     ca16 = ca16 .* real(LO_sig) ;
+    %ca16 = conj(ca16 .* LO_sig) ;
 end
 CA16 = fft(ca16) ;
 c_CA16 = conj(CA16) ;
