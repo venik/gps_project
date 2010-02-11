@@ -15,6 +15,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <poll.h>
 
 #include <errno.h>
 
@@ -190,7 +191,7 @@ int main(int argc, char **argv) {
 	need_exit = 1;
 
 	/* create new threads */	
-#if 0
+#if 1
 	res = pthread_create(&bd_data->gui_thread, NULL, gui_process, bd_data);
 	if ( res ){
 		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
@@ -225,11 +226,11 @@ int main(int argc, char **argv) {
 
 	/* we wait when threads are stop */
 	//res = pthread_cancel(bd_data->gui_thread);
-	if ( res )
-		TRACE(0, "[%s] Error. Cannot cancel the gui server thread, returned [%d]. errno: %s\n",
-			__func__, res, strerror(errno) );
+	//if ( res )
+	//	TRACE(0, "[%s] Error. Cannot cancel the gui server thread, returned [%d]. errno: %s\n",
+	//		__func__, res, strerror(errno) );
 
-	//res = pthread_join(bd_data->gui_thread, NULL);
+	res = pthread_join(bd_data->gui_thread, NULL);
 	if ( res )
 		TRACE(0, "[%s] Error. Cannot join to the gui server thread, returned [%d]. errno: %s\n",
 			__func__, res, strerror(errno) );

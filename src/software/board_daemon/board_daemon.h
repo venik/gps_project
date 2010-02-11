@@ -3,7 +3,6 @@
 
 #define TRACE_LEVEL 0
 
-#include <poll.h>
 #include "trace.h"
 #include "gps_registers.h"
 
@@ -86,102 +85,5 @@ int bd_make_signals()
 	return 0;
 }
 
-/* network helpers */
-int bd_poll_read(bd_data_t *bd_data, uint8_t num, size_t todo)
-{
-	int nready, res;
-	struct pollfd	*pfd = &bd_data->client[num];
-	//fprintf(I, "[%s]\n", __func__);
-
-	pfd->events = POLLIN;
-
-	//nready = poll(pfd, 1, -1);
-	nready = poll(pfd, 1, TIMEOUT);
-
-	if( nready < 1 ) {
-		/* client not ready */
-		fprintf(I, "[%s] no data in the client socket\n", __func__);
-		return -1;
-	}
-
-	fprintf(I, "[%s] data here\n", __func__);
-
-	if( pfd->revents & POLLIN ) {
-		
-		res = read(pfd->fd, bd_data->recv_buf, todo);
-		fprintf(I, "[%s] need [%d] received [%d] \n", __func__, todo, res);
-	
-		bd_data->recv_buf[res] = '\0';
-
-		if( res < 0 ) {
-			/* error occur */
-			fprintf(I, "[err] while reading. errno [%s]\n", strerror(errno));
-			close(pfd->fd);
-			return -1;
-		} else if( res == 0 ) {
-			fprintf(I, "closed socket\n");
-			close(pfd->fd);
-			return -1;
-		}
-	
-		dump_hex(bd_data->recv_buf, res);
-
-		fprintf(I, "[%s] fd = [%d] read = [%d]\n", __func__, pfd->fd, res );
-		return res;
-	}
-			
-	return -1;
-}
-
-int bd_poll_write(bd_data_t *bd_data, uint8_t num, size_t todo)
-{
-	int nready, res;
-	struct pollfd	*pfd = &bd_data->client[num];
-
-	fprintf(I, "[%s] todo [%d]\n", __func__, todo);
-
-	pfd->events = POLLOUT;
-
-	nready = poll(pfd, 1, TIMEOUT);
-
-	if( nready < 1 ) {
-		fprintf(I, "[err] the GUI not ready, disconnect...\n");
-		/* client not ready */
-		return -1;
-	}
-
-	if( pfd->revents & POLLOUT ) {
-	
-		dump_hex(bd_data->send_buf, todo);
-	
-		do {
-			errno = 0;
-			res = write(pfd->fd, bd_data->send_buf, todo);
-
-			if( res < 0 ) {
-				/* error occur */
-				fprintf(I, "[%s] [err] while writing. errno [%s]\n", __func__, strerror(errno));
-				close(pfd->fd);
-				return -1;
-			} else if( res == 0 ) {
-				fprintf(I, "[%s] [err] GUI closed the socket\n", __func__);
-				close(pfd->fd);
-				return -1;
-			}
-
-			if( res != todo ) {
-				fprintf(I, "[%s] fd = [%d] res = [%d] todo = [%d]",
-					__func__, pfd->fd, res, todo );
-			}
-			
-			todo -= res;
-
-		} while(todo != 0);
-
-		return 0;
-	}
-			
-	return -1;
-}
 
 #endif /* */
