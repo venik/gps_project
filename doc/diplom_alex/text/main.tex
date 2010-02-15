@@ -1,10 +1,14 @@
 %\documentclass[a4paper,12pt]{eskdtext}		%размер бумаги устанавливаем А4, шрифт 12пунктов
 \documentclass[a4paper,14pt]{scrartcl}		%размер бумаги устанавливаем А4, шрифт 12пунктов
+%\documentclass[14pt,a4paper,twoside]{report}
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}			%включаем свою кодировку: koi8-r или utf8 в UNIX, cp1251 в Windows
 \usepackage[english,russian]{babel}		%используем русский и английский языки с переносами
 \usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float} %подключаем нужные пакеты расширений
 \usepackage[dvips]{graphicx}			%хотим вставлять в диплом рисунки?
+\usepackage{soul}
+\usepackage[14pt]{extsizes}
+
 \graphicspath{{images/}}			%путь к рисункам
 
 \makeatletter
@@ -29,14 +33,14 @@
 \renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}% Меняем везде перечисления на цифра.цифра
 
 \begin{document}
-\input{title}					% это титульный лист
-\input{diplom_task}
+%\input{title}					% это титульный лист
+%\input{diplom_task}
 \tableofcontents 				% это оглавление, которое генерируется автоматически
 \newpage
 \input{research}				% исследовательский раздел 
-\input{special}					% специальный раздел 
-\input{tech}					% технологический раздел 
-\input{bjd}					% архиважно биля 
-\input{economic}				% экономический раздел 
-\input{other}					% хзн раздел 
+%\input{special}					% специальный раздел 
+%\input{tech}					% технологический раздел 
+%\input{bjd}					% архиважно биля 
+%\input{economic}				% экономический раздел 
+%\input{other}					% хзн раздел 
 \end{document}
