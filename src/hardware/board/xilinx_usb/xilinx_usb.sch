@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2010 2 11 0 3 31)
+  (timeStamp 2010 2 16 22 2 4)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits Mil)
-  (guidString "{BA7DB5B0-9236-4697-891E-22A98FE32245}")
+  (guidString "{ED3BBB7E-F3E5-414A-9378-78D5BE61DE0E}")
 )
 
 (library "Library_1"
@@ -4762,6 +4762,30 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
       )
     )
   )
+  (compDef "STDX-610-N_1"
+    (originalName "STDX-610-N")
+    (compHeader 
+      (sourceLibrary "LAB_XILINX.LIB")
+      (numPins 4)
+      (numParts 1)
+      (alts (ieeeAlt False) (deMorganAlt False))
+      (refDesPrefix "BTN")
+    )
+    (compPin "1" (pinName "1") (partNum 1) (symPinNum 1) (gateEq 1) (pinEq 0) )
+    (compPin "2" (pinName "2") (partNum 1) (symPinNum 2) (gateEq 1) (pinEq 0) )
+    (compPin "3" (pinName "3") (partNum 1) (symPinNum 3) (gateEq 1) (pinEq 0) )
+    (compPin "4" (pinName "4") (partNum 1) (symPinNum 4) (gateEq 1) (pinEq 0) )
+    (attachedSymbol (partNum 1) (altType Normal) (symbolName "STDX-610-N") )
+    (attachedPattern (patternNum 1) (patternName "SDTX-610-N")
+      (numPads 4)
+      (padPinMap 
+        (padNum  1) (compPinRef "1")
+        (padNum  2) (compPinRef "2")
+        (padNum  3) (compPinRef "3")
+        (padNum  4) (compPinRef "4")
+      )
+    )
+  )
   (compDef "SA04-11_1"
     (originalName "SA04-11")
     (compHeader 
@@ -4803,30 +4827,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
         (padNum 12) (compPinRef "12")
         (padNum 13) (compPinRef "13")
         (padNum 14) (compPinRef "14")
-      )
-    )
-  )
-  (compDef "STDX-610-N_1"
-    (originalName "STDX-610-N")
-    (compHeader 
-      (sourceLibrary "LAB_XILINX.LIB")
-      (numPins 4)
-      (numParts 1)
-      (alts (ieeeAlt False) (deMorganAlt False))
-      (refDesPrefix "BTN")
-    )
-    (compPin "1" (pinName "1") (partNum 1) (symPinNum 1) (gateEq 1) (pinEq 0) )
-    (compPin "2" (pinName "2") (partNum 1) (symPinNum 2) (gateEq 1) (pinEq 0) )
-    (compPin "3" (pinName "3") (partNum 1) (symPinNum 3) (gateEq 1) (pinEq 0) )
-    (compPin "4" (pinName "4") (partNum 1) (symPinNum 4) (gateEq 1) (pinEq 0) )
-    (attachedSymbol (partNum 1) (altType Normal) (symbolName "STDX-610-N") )
-    (attachedPattern (patternNum 1) (patternName "SDTX-610-N")
-      (numPads 4)
-      (padPinMap 
-        (padNum  1) (compPinRef "1")
-        (padNum  2) (compPinRef "2")
-        (padNum  3) (compPinRef "3")
-        (padNum  4) (compPinRef "4")
       )
     )
   )
@@ -5955,11 +5955,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (originalName "DS210")
     (patternName "DS210")
   )
-  (compInst "U7"
-    (compRef "SA04-11_1")
-    (originalName "SA04-11")
-    (patternName "SA04")
-  )
   (compInst "U34"
     (compRef "IDC26M_1")
     (originalName "IDC26M")
@@ -6212,46 +6207,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (patternName "C0805")
   )
   (compInst "R58"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R61"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R62"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R63"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R64"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R65"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R66"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R67"
-    (compRef "R1206_1")
-    (originalName "R1206")
-    (patternName "C0805")
-  )
-  (compInst "R68"
     (compRef "R1206_1")
     (originalName "R1206")
     (patternName "C0805")
@@ -7278,8 +7233,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (node "U9" "14")
     (node "U8" "3")
     (node "U8" "14")
-    (node "U7" "3")
-    (node "U7" "14")
     (node "U1" "90")
     (node "U1" "108")
     (node "U1" "128")
@@ -7605,38 +7558,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (node "R57" "1")
     (node "R58" "2")
     (node "BTN9" "1")
-  )
-  (net "NET00112"
-    (node "R61" "1")
-    (node "U7" "1")
-  )
-  (net "NET00113"
-    (node "R62" "1")
-    (node "U7" "2")
-  )
-  (net "NET00114"
-    (node "R63" "1")
-    (node "U7" "7")
-  )
-  (net "NET00115"
-    (node "R64" "1")
-    (node "U7" "8")
-  )
-  (net "NET00116"
-    (node "R65" "1")
-    (node "U7" "9")
-  )
-  (net "NET00117"
-    (node "R66" "1")
-    (node "U7" "10")
-  )
-  (net "NET00118"
-    (node "R67" "1")
-    (node "U7" "11")
-  )
-  (net "NET00119"
-    (node "R68" "1")
-    (node "U7" "13")
   )
   (net "I/O_3"
     (node "U15" "17")
@@ -8276,8 +8197,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "50.0mil")
       (grid "1.0mil")
+      (grid "50.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9348,14 +9269,10 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (port (pt 5900.0 7000.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_117") (rotation 180.0) )
     (port (pt 5900.0 7600.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_101") (rotation 180.0) )
     (port (pt 6500.0 7400.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") (rotation 180.0) )
-    (port (pt 6500.0 8800.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") (rotation 180.0) )
     (symbol (symbolRef "R_1") (refDesRef "R73") (partNum 1) (pt 7700.0 7100.0) )
     (symbol (symbolRef "R_1") (refDesRef "R69") (partNum 1) (pt 7700.0 7000.0) )
     (symbol (symbolRef "R_1") (refDesRef "R71") (partNum 1) (pt 7700.0 7300.0) )
     (port (pt 7700.0 7600.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
-    (symbol (symbolRef "R_1") (refDesRef "R66") (partNum 1) (pt 7700.0 8600.0) )
-    (symbol (symbolRef "R_1") (refDesRef "R65") (partNum 1) (pt 7700.0 8500.0) )
-    (symbol (symbolRef "R_1") (refDesRef "R68") (partNum 1) (pt 7700.0 8900.0) )
     (port (pt 9700.0 7000.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_84") (rotation 180.0) )
     (port (pt 9700.0 7600.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_76") (rotation 180.0) )
     (port (pt 9700.0 8900.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_100") (rotation 180.0) )
@@ -9374,9 +9291,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (port (pt 5900.0 7500.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_102") (rotation 180.0) )
     (symbol (symbolRef "R_1") (refDesRef "R70") (partNum 1) (pt 7700.0 7200.0) )
     (symbol (symbolRef "R_1") (refDesRef "R72") (partNum 1) (pt 7700.0 7500.0) )
-    (symbol (symbolRef "R_1") (refDesRef "R64") (partNum 1) (pt 7700.0 8400.0) )
-    (port (pt 7700.0 9000.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
-    (symbol (symbolRef "R_1") (refDesRef "R67") (partNum 1) (pt 7700.0 8700.0) )
     (port (pt 9700.0 8400.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_95") (rotation 180.0) )
     (port (pt 9700.0 7500.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_77") (rotation 180.0) )
     (port (pt 9700.0 9000.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_98") (rotation 180.0) )
@@ -9416,11 +9330,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
       (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
       (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
     )
-    (symbol (symbolRef "R_1") (refDesRef "R62") (partNum 1) (pt 6500.0 8900.0) (rotation 180.0) 
-      (attr "Type" "" (pt -300.0 0.0) (rotation 180.0) (justify Center) (textStyleRef "small") )
-      (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
-      (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
-    )
     (symbol (symbolRef "R_1") (refDesRef "R58") (partNum 1) (pt 299.06 mm 2800.0) )
     (port (pt 12100.0 7100.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_83") )
     (port (pt 12100.0 7000.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_82") )
@@ -9446,17 +9355,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
       (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
       (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
     )
-    (symbol (symbolRef "R_1") (refDesRef "R63") (partNum 1) (pt 6500.0 8400.0) (rotation 180.0) 
-      (attr "Type" "" (pt -300.0 0.0) (rotation 180.0) (justify Center) (textStyleRef "small") )
-      (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
-      (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
-    )
     (symbol (symbolRef "R_1") (refDesRef "R84") (partNum 1) (pt 10300.0 9000.0) (rotation 180.0) 
-      (attr "Type" "" (pt -300.0 0.0) (rotation 180.0) (justify Center) (textStyleRef "small") )
-      (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
-      (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
-    )
-    (symbol (symbolRef "R_1") (refDesRef "R61") (partNum 1) (pt 6500.0 9000.0) (rotation 180.0) 
       (attr "Type" "" (pt -300.0 0.0) (rotation 180.0) (justify Center) (textStyleRef "small") )
       (attr "RefDes" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
       (attr "Value" "" (pt -300.0 0.0) (rotation 180.0) (isVisible True) (justify UpperCenter) (textStyleRef "tiny") )
@@ -9466,7 +9365,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (port (pt 12100.0 8400.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_93") )
     (port (pt 12100.0 7500.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_79") )
     (port (pt 12100.0 8700.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_97") )
-    (symbol (symbolRef "SA04_1") (refDesRef "U7") (partNum 1) (pt 6500.0 9000.0) )
     (symbol (symbolRef "SA04_1") (refDesRef "U8") (partNum 1) (pt 6500.0 7600.0) )
     (symbol (symbolRef "STDX-610-N_1") (refDesRef "BTN7") (partNum 1) (pt 264.3 mm 2800.0) )
     (symbol (symbolRef "SA04_1") (refDesRef "U9") (partNum 1) (pt 10300.0 9000.0) )
@@ -10664,7 +10562,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 4))
+      (currentLayer (layerNumRef 3))
     )
     (gridState 
       (currentAbsGrid "50.0mil")
