@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2010 2 17 22 9 42)
+  (timeStamp 2010 2 17 23 56 47)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -5990,11 +5990,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (originalName "SA04-11")
     (patternName "SA04")
   )
-  (compInst "U10"
-    (compRef "SA04-11_1")
-    (originalName "SA04-11")
-    (patternName "SA04")
-  )
   (compInst "BTN11"
     (compRef "STDX-610-N_1")
     (originalName "STDX-610-N")
@@ -7227,8 +7222,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (node "R55" "2")
     (node "R57" "2")
     (node "L1" "2")
-    (node "U10" "3")
-    (node "U10" "14")
     (node "U9" "3")
     (node "U9" "14")
     (node "U8" "3")
@@ -7659,38 +7652,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
   (net "I/O_32"
     (node "U14" "20")
     (node "U1" "32")
-  )
-  (net "NET00136"
-    (node "R85" "1")
-    (node "U10" "7")
-  )
-  (net "NET00137"
-    (node "R86" "1")
-    (node "U10" "2")
-  )
-  (net "NET00138"
-    (node "R87" "1")
-    (node "U10" "1")
-  )
-  (net "NET00139"
-    (node "R88" "1")
-    (node "U10" "8")
-  )
-  (net "NET00140"
-    (node "R89" "1")
-    (node "U10" "10")
-  )
-  (net "NET00141"
-    (node "R90" "1")
-    (node "U10" "11")
-  )
-  (net "NET00142"
-    (node "R91" "1")
-    (node "U10" "13")
-  )
-  (net "NET00143"
-    (node "R92" "1")
-    (node "U10" "9")
   )
   (net "I/O_38"
     (node "U14" "32")
@@ -8197,8 +8158,8 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "50.0mil")
       (grid "1.0mil")
+      (grid "50.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9368,7 +9329,6 @@ ACCEL_ASCII "C:\work\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.sch"
     (symbol (symbolRef "SA04_1") (refDesRef "U8") (partNum 1) (pt 6500.0 7600.0) )
     (symbol (symbolRef "STDX-610-N_1") (refDesRef "BTN7") (partNum 1) (pt 264.3 mm 2800.0) )
     (symbol (symbolRef "SA04_1") (refDesRef "U9") (partNum 1) (pt 10300.0 9000.0) )
-    (symbol (symbolRef "SA04_1") (refDesRef "U10") (partNum 1) (pt 10300.0 7600.0) )
     (drawBorder True)
     (EntireDesign True)
     (isRotated False)
