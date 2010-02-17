@@ -41,7 +41,7 @@ architecture rs232_rx_new of rs232_rx_new is
 	-- rx part
 	signal rs232_counter: integer range 0 to 8 := 0;
 	signal rs232_value: std_logic_vector (7 downto 0) := ( others => '0') ;
-	signal byte_counter: integer range 0 to 65 := 0;
+	signal byte_counter: integer range 0 to 7 := 0;
 begin
 
 -- comapre module
@@ -128,16 +128,27 @@ if rising_edge(clk) then
 			if( NewBaudSignal >= 433 ) then
 				
 				rs232_rx_next_state <= rx_idle ;
-				comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
-								
+--				comm((byte_counter + 7) downto byte_counter) <= rs232_value ;
+case byte_counter is
+      when 0 => comm(7 downto 0) <= rs232_value;
+      when 1 => comm(15 downto 8) <= rs232_value;
+      when 2 => comm(23 downto 16) <= rs232_value;
+      when 3 => comm(31 downto 24) <= rs232_value;
+      when 4 => comm(39 downto 32) <= rs232_value;
+      when 5 => comm(47 downto 40) <= rs232_value;
+      when 6 => comm(55 downto 48) <= rs232_value;
+      when 7 => comm(63 downto 56) <= rs232_value;
+      when others => comm(7 downto 0) <= rs232_value;
+end case;
+					
 				-- byte counter for 64 bits input comm
 				if( rs232_rx_next_state = rx_idle ) then
-					if( byte_counter = 56 ) then
+					if( byte_counter = 7 ) then
 						--if( byte_counter = 0 ) then
 						byte_counter <= 0 ;
 						rx_done_tick <= '1' ;
 					else
-						byte_counter <= byte_counter + 8 ;
+						byte_counter <= byte_counter + 1 ;
 					end if ;
 				end if;
 				
