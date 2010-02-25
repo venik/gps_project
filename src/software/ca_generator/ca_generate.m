@@ -49,7 +49,7 @@ function ca_generate()
   G2(1)=xora;
  end 
   
- function [ResBit]=result_bit(G1,G2,NumSat,Length)
+ function [ResBit]=result_bit(G1,G2,NumSat,Length,ResBit)
   for k=1:Length;
    ResBitTemp=xor(G1(10),G2(k2(NumSat)));
    ResBit(k)=xor(ResBitTemp,G2(k1(NumSat)));
@@ -58,10 +58,8 @@ function ca_generate()
   end
  end
 
- function [x_re,x_im]=gen_sin(nSample,ShiftSat,NumSat)
+ function [x_re,x_im]=gen_sin(nSample,ShiftSat,NumSat,x_re,x_im)
   takt=nSample*16;
-  x_re=zeros(takt,32);
-  x_im=zeros(takt,32);
   for i=1:takt-ShiftSat; 
    x_re(i+ShiftSat,NumSat)=sin(2*pi*4.092/16.368*i);
    x_im(i+ShiftSat,NumSat)=cos(2*pi*4.092/16.368*i);
@@ -79,15 +77,17 @@ function ca_generate()
   end
  end
 
+% Program
  [G1,G2,k1,k2]=init();
  addsat=1;
  x_resum=0;
  x_imsum=0;
+ ResBit=0;
  while addsat==1
-  param = inputdlg({'NumSat (1-32)' 'Length' 'ShiftSat'}, 'Input Data',[1 10;1 10; 1 10], {'6' '33' '0'}, 'on');
+  param = inputdlg({'NumSat (1-37)' 'Length' 'ShiftSat'}, 'Input Data',[1 10;1 10; 1 10], {'6' '37' '0'}, 'on');
   NumSat = str2double(param{1});
-   if (NumSat<1)||(NumSat>32) 
-      errnumsat = errordlg('NumSat<1 or NumSat >32 ', 'NumSat incorrect');
+   if (NumSat<1)||(NumSat>37) 
+      errnumsat = errordlg('NumSat<1 or NumSat >37 ', 'NumSat incorrect');
       disp('NumSat incorrect')
    end    
   Length = str2double(param{2});
@@ -101,8 +101,10 @@ function ca_generate()
       disp('ShiftSat incorrect')
     end 
   nSample=fix(Length/16);
-  [ResBit]=result_bit(G1,G2,NumSat,Length);
-  [x_re,x_im]=gen_sin(nSample,ShiftSat,NumSat);
+  x_re=zeros(Length,37);
+  x_im=zeros(Length,37);
+  [ResBit]=result_bit(G1,G2,NumSat,Length,ResBit);
+  [x_re,x_im]=gen_sin(nSample,ShiftSat,NumSat,x_re,x_im);
   [x_re,x_im]=sig_gen(ResBit,nSample,x_re,x_im,NumSat);
   x_resum=x_resum+x_re
   x_imsum=x_imsum+x_im
