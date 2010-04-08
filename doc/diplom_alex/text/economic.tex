@@ -22,27 +22,27 @@
 
 % http://users.sdsc.edu/~ssmallen/latex/longtable.html
 %\begin{table}[H]
-\begin{longtable}{|c|c|}
-%\begin{center}
+%\begin{longtable}{|c|c|}
+\begin{center}
+\begin{longtable}{|l|l|}
 \caption{Состав работ и стадии разработки ПК} \label{tab:eco1} \\ \hline
 \multicolumn{1}{|c|}{\textbf{Стадии разработки}}    &   \multicolumn{1}{c|}{\textbf{Перечень работ}} \\ \hline
 \endfirsthead
 
-\multicolumn{3}{c}%
+\multicolumn{2}{c} %
 {{\bfseries \tablename \thetable{} -- continued from previous page}} \\
 \hline \multicolumn{1}{|c|}{\textbf{Time (s)}} &
-\multicolumn{1}{c|}{\textbf{Triple chosen}} &
+%\multicolumn{1}{c|}{\textbf{Triple chosen}} &
 \multicolumn{1}{c|}{\textbf{Other feasible triples}} \\ \hline 
 \endhead
 
-\hline \multicolumn{3}{|r|}{{Continued on next page}} \\ \hline
+\multicolumn{2}{|r|}{{}} \\ %\hline
+%\hline \multicolumn{2}{|r|}{{Continued on next page}} \\ %\hline
 \endfoot
 
-\hline \hline
+\hline
 \endlastfoot
-
-	\hline
-		Техническое задание &	\begin{parbox}{5in} {
+		Техническое задание & \begin{parbox}{5in} {
 						\begin{itemize}
 							\item постановка задачи;
 							\item подбор литературы;
@@ -68,11 +68,6 @@
 						\item определение свойств и требований к аппаратному обеспечению;
 					\end{itemize} } 
 				\end{parbox} \\
-	\endfirsthead
-		\caption*{Продолжение таблицы \ref{t:sroki_hraneniya_produktov}} \\
-	\hline
-		\multicolumn{1}{|c|} 1  &  \multicolumn{1}{c|} 2 \\
-	\hline 
 		Рабочий проект & \begin{parbox}{5in} {
 					\begin{itemize} 
 						\item программирование;
@@ -90,10 +85,8 @@
 						\item ;
 					\end{itemize} }
 				\end{parbox} \\
-
-	\hline
 \end{longtable}
-%\end{center}
+\end{center}
 %\end{table}
 
 \newpage
