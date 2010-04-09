@@ -25,7 +25,7 @@
 \begin{longtable}{|l|l|}
 \caption{Состав работ и стадии разработки ПК} \label{tab:eco1} \\ \hline
 \multicolumn{1}{|c|}{\textbf{Стадии разработки}}    &   \multicolumn{1}{c|}{\textbf{Перечень работ}} \\ \hline
-\multicolumn{1}{|c|}{\textbf{1}}    &   \multicolumn{1}{c|}{\textbf{2}} \\ \hline
+\multicolumn{1}{|c|}{\textbf{1}}    &   \multicolumn{1}{|c|}{\textbf{2}} \\ \hline
 \endfirsthead
 
 %\multicolumn{2}{c} %
@@ -97,18 +97,61 @@
 Трудоемкость каждого вида работ определяется в соответствии с методическими указаниями \cite{bibl53} по формуле:
 
 \begin{equation}
-t_i = \frac{3\cdot{t_{min}} + 2\cdot{t_{max}}}{5}
-\label{eq:l1_freq}
+t_i = \frac{3\cdot{t_{min}} + 2\cdot{t_{max}}}{5},
+\label{eq:eco1}
 \end{equation}
-
 где:	$t_{min}$ - минимально возможная трудоемкость выполнения отдельного вида работ в человеко-днях; \\
 	$t_{max}$ - максимально возможная трудоемкость выполнения отдельного вида работ в человеко-днях.
 
-Продолжительность каждого вида работ в календарных днях $((T_i)$) определяется по формуле \cite{bibl53}:
+Продолжительность каждого вида работ в календарных днях ${(T_i)}$ определяется по формуле \cite{bibl53}:
 
 \begin{equation}
-T_i = \frac{t_i}{\mbox{Ч}_i}\cdot{K_{\mbox{вых}}}	% FIXME
-\label{eq:l1_freq}
+T_i = \frac{t_i}{\mbox{Ч}_i}\cdot{K_{\mbox{вых}}},
+\label{eq:eco2}
 \end{equation}
+где:	${t_i}$ - трудоемкость работы, человек-дней; \\
+	${\mbox{Ч}_i}$ - численность исполнителей, человек; \\
+	${K_{\mbox{вых}}}$ - коэффициент, учитывающий выходные и праздничные дни: \\
+
+\begin{equation}
+T_i = \frac{K_{\mbox{кап}}}{K_{\mbox{раб}}},
+\label{eq:eco3}
+\end{equation}
+где:	${K_{\mbox{кап}}}$ - число календарных дней;
+	${K_{\mbox{раб}}}$ - рабочие дни.
+
+Для расчёта принимается среднее значение ${K_{\mbox{вых}} = 1.45}$. 
+
+Полный список видов и этапов работ по созданию ПС, экспертные оценки и расчетные величины их трудоемкости,
+а также продолжительность каждого вида работ, рассчитанные по формулам (\ref{eq:eco1}) и (\ref{eq:eco2}) представлены
+в таблице ~\ref{tab:eco2}.
+
+\begin{center}
+\begin{longtable}{|l|l|}
+\caption{Расчёт трудоёмкости и продолжительности работ по созданию ПС} \label{tab:eco2} \\ \hline
+
+\multicolumn{1}{|p{1cm}|}{\textbf{ 1 }} &
+\multicolumn{1}{|p{5cm}|}{\textbf{2}} &
+\multicolumn{1}{|p{5cm}|}{\textbf{3}} \\ \hline
+%& \multicolumn{1}{|p{1cm}|}{\textbf{Количество исполнителей, чел.}} \\ \hline
+%\multicolumn{1}{|c|}{\textbf{Продолжительность, календарные дни}} \\ \hline
+
+%\multicolumn{1}{|c|}{\textbf{1}}    &   \multicolumn{1}{c|}{\textbf{2}} \\ \hline
+
+\endfirsthead
+
+%\multicolumn{2}{|l|}{{Продолжение таблицы ~\ref{tab:eco1}}} \\ %\hline
+%\hline \multicolumn{1}{|c|}{\textbf{1}} &
+%\multicolumn{1}{c|}{\textbf{2}} \\ \hline 
+%\endhead
+\endfoot
+
+\hline
+\endlastfoot
+
+% ================================================================
+
+\end{longtable}
+\end{center}
 
 \newpage
