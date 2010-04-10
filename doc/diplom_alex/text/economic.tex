@@ -246,31 +246,70 @@ ${\mbox{З}_{\mbox{ср}}}$ определяется по формуле (\ref{e
 \end{longtable}
 \end{center}
 
+\subsubsection*{Дополнительная заработная плата}
+Дополнительная заработная плата на период разработки ПС рассчитывается относительно основной и составляет 10\% от её величины:
 
+\begin{equation}
+C_{\mbox{доп}} = C_{\mbox{осн}} \cdot 0.1,
+%\label{eq:eco_smeta}
+\end{equation}
 
+\subsubsection*{Расчёт отчислений на социальное страхование}
+Отчисления на социальное страхование рассчитываются относительно выплаченной заработной платы (суммы основной и
+дополнительной заработной платы). Составляют 26\%:
 
+\begin{equation}
+C_{\mbox{соц}} = (C_{\mbox{доп}} + C_{\mbox{осн}}) \cdot 0.26,
+%\label{eq:eco_smeta}
+\end{equation}
 
+\subsubsection*{Расчёт расходов на материалы}
+На эту статью относят все затраты на магнитные носители данных, бумагу, для печатных устройств, канцтовары и др.
+Затраты по ним определяются по экспертным оценкам. Расчёт расходов на материалы приведён в табл. \ref{tab:eco_zatnm}
 
-%\begin{center}
-%\begin{longtable}{|l|l|}
-%\caption{Состав работ и стадии разработки ПК} \label{tab:eco_zarplata} \\ \hline
-%\multicolumn{1}{|c|}{\textbf{№}}    & \multicolumn{1}{|c|}{\textbf{Исполнитель}} \\ \hline
-%\multicolumn{1}{c|}{\textbf{Оклад руб/мес}} & \multicolumn{1}{|c|}{\textbf{Оклад руб/день}}    &   
-%\multicolumn{1}{c|}{\textbf{Трудоемкость чел.дн.}} & \multicolumn{1}{|c|}{\textbf{Сумма}} \\ \hline
+\begin{center}
+\begin{longtable}{|c|c|c|c|}
+\caption{Затраты на заработную плату} \label{tab:eco_zatnm} \\ \hline
+\multicolumn{1}{|c|}{\textbf{№}} & \multicolumn{1}{c|}{\textbf{Материалы}} & 
+\multicolumn{1}{c|}{\textbf{Кол-во, шт}} &   \multicolumn{1}{c|}{\textbf{Стоимость, руб.}} \\ \hline
 
-%\multicolumn{1}{|c|}{\textbf{1}}    &   \multicolumn{1}{|c|}{\textbf{2}} & 
-%\multicolumn{1}{|c|}{\textbf{3}}    &   \multicolumn{1}{|c|}{\textbf{4}} & 
-%\multicolumn{1}{|c|}{\textbf{5}}    &   \multicolumn{1}{|c|}{\textbf{6}} \\ \hline 
-%\endfirsthead
-%
-%\multicolumn{2}{|l|}{{Продолжение таблицы ~\ref{tab:eco1}}} \\ %\hline
-%\hline \multicolumn{1}{|c|}{\textbf{1}} &
-%\multicolumn{1}{c|}{\textbf{2}} \\ \hline 
-%\endhead
+\multicolumn{1}{|c|}{\textbf{1}} &   \multicolumn{1}{c|}{\textbf{2}} & 
+\multicolumn{1}{c|}{\textbf{3}} &   \multicolumn{1}{c|}{\textbf{4}} \\ \hline
+\endfirsthead
 
-%\endfoot
+\multicolumn{4}{|l|}{{Продолжение таблицы ~\ref{tab:eco_zatnm}}} \\ %\hline
+\hline
+\multicolumn{1}{|c|}{\textbf{1}} &   \multicolumn{1}{c|}{\textbf{2}} & 
+\multicolumn{1}{c|}{\textbf{3}} &   \multicolumn{1}{c|}{\textbf{4}} \\ \hline
+\endhead
 
-%\hline
-%\endlastfoot
+\endfoot
+
+\hline
+\endlastfoot
+
+1. & Блокноты & 2 &   \\ \hline
+2. & Другие канцтовары & - &  \\ \hline
+ & Итого ${C_{\mbox{м}}}$ & & XXX \\
+
+\hline
+
+\end{longtable}
+\end{center}
+
+\subsubsection*{Накладные материалы}
+На статью «Накладные расходы» относят расходы, связанные с управлением и организацией работ, содержанием помещений
+(освещение, отопление, уборка и т.д.). Накладные расходы рассчитываются относительно основной заработной платы. Величина
+накладных расходов принимается равной 60\% от основной зарплаты исполнителей. Формула расчёта (\ref{eq:eco_naklr})
+
+\begin{equation}
+C_{\mbox{н}} = C_{\mbox{осн}} \cdot K,
+\label{eq:eco_naklr}
+\end{equation}
+где:	${C_{\mbox{н}}}$ - накладные расходы (руб.); \\
+	${C_{\mbox{осн}}}$ - основная заработная плата исполнителей (руб.);
+	${K}$ - коэффициент учёта накладных расходов (К=0,6).
+
+${C_{\mbox{н}} = XXX \cdot 0.6 = YYY}$
 
 \newpage
