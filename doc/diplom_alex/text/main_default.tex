@@ -1,0 +1,44 @@
+%\documentclass[a4paper,12pt]{eskdtext}		%размер бумаги устанавливаем А4, шрифт 12пунктов
+\documentclass[a4paper,14pt]{scrartcl}		%размер бумаги устанавливаем А4, шрифт 12пунктов
+%\documentclass[14pt,a4paper,twoside]{report}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}			%включаем свою кодировку: koi8-r или utf8 в UNIX, cp1251 в Windows
+\usepackage[english,russian]{babel}		%используем русский и английский языки с переносами
+\usepackage{amssymb,amsfonts,amsmath,mathtext,cite,enumerate,float} %подключаем нужные пакеты расширений
+\usepackage[dvips]{graphicx}			%хотим вставлять в диплом рисунки?
+\usepackage{soul}
+\usepackage[14pt]{extsizes}
+\usepackage{longtable} 
+\usepackage{graphicx}
+
+\graphicspath{{images/}}			%путь к рисункам
+
+\linespread{1.5}
+
+\makeatletter
+\renewcommand{\@biblabel}[1]{#1.} 		% Заменяем библиографию с квадратных скобок на точку:
+\makeatother
+
+\RequirePackage{lscape}
+
+%\renewcommand\large{\@setfontsize\large{15.5}{17}}
+%\renewcommand\Large{\@setfontsize\Large{16.5}{19}}
+%\renewcommand\small{\@setfontsize\small{9}{9.5}}
+
+\usepackage{geometry} 				% Меняем поля страницы
+\geometry{left=2cm}				% левое поле
+\geometry{right=1.4cm}				% правое поле
+\geometry{top=1cm}				% верхнее поле
+\geometry{bottom=2cm}				% нижнее поле
+
+\renewcommand{\theenumi}{\arabic{enumi}}	% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumi}{\arabic{enumi}}	% Меняем везде перечисления на цифра.цифра
+\renewcommand{\theenumii}{\arabic{enumii}}	% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}.}% Меняем везде перечисления на цифра.цифра
+\renewcommand{\theenumiii}{\arabic{enumiii}}	% Меняем везде перечисления на цифра.цифра
+\renewcommand{\labelenumiii}{\arabic{enumi}.\arabic{enumii}.\arabic{enumiii}.}% Меняем везде перечисления на цифра.цифра
+
+% redefine title and bibl
+\addto\captionsrussian{\def\contentsname{Содержание}}
+%\addto\captionsrussian{\def\bibname{Список rrrrrлитературы}}
+\addto\captionsrussian{\def\refname{Список используемых источников}}
