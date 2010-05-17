@@ -11,6 +11,7 @@
 \usepackage{longtable} 
 \usepackage{graphicx}
 \usepackage{indentfirst}
+\usepackage{enumerate}
 
 \graphicspath{{images/}}			%путь к рисункам
 
@@ -19,6 +20,7 @@
 \usepackage[format=plain,labelformat=simple,labelsep=endash,figurename=\CYRR\cyri\cyrs\cyru\cyrn\cyro\cyrk]{caption}
 \captionsetup{figurewithin=section}		% картинки нумеруются относительно секций
 \numberwithin{equation}{section}		% нумерация формул внутри раздела
+\numberwithin{table}{section}
 
 \makeatletter
 \renewcommand{\@biblabel}[1]{#1.} 		% Заменяем библиографию с квадратных скобок на точку:
