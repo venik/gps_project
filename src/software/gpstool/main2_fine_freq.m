@@ -3,18 +3,17 @@ clc, clear all ;
 nDumpSize = 16368*7 ; 
 x = readdump('./data/flush',nDumpSize) ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
-FR = 4092-5:1:4092+5 ; % frequency range
+FR = 4092-5:1:4092+5 ; % frequency range kHz
 t_offs = 100 ; % /* time offset */
 N = 16368 ;   % /* correlation length */
-fs = 16368e6 ;   % /* sampling freq */
-ts = 1/fs ; % /* sampling time */
+fs = 16368 ;   % /* sampling freq kHz */
 max_sat = zeros(32,1) ;
 max_fine_sat = zeros(32,1) ;
 sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
 
 PRN_range = 20:22 ;
-%PRN_range = 1:10 ;
+%PRN_range = 1:32 ;
 
 for PRN=PRN_range
     for f0 = FR
@@ -47,8 +46,9 @@ fprintf('Fine freq part ===>     \n') ;
 
 
 % fine freq estimation
+work_data = x(t_offs:end) ;
 for PRN=PRN_range
-    data_5ms = x(sat_shift_ca(PRN) + t_offs: sat_shift_ca(PRN) + t_offs + 5*N-1);
+    data_5ms = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N-1);
     ca16 = get_ca_code16(N/16,PRN) ;
     data_5ms = data_5ms' .* [ca16' ca16' ca16' ca16' ca16'];
 
@@ -56,7 +56,7 @@ for PRN=PRN_range
         
     fr = zeros(3,1) ;
     for i=[1:3]
-        fr(i) = max_sat_freq(PRN) * 1000 - 400 + (i - 1) * 400 ; 
+        fr(i) = max_sat_freq(PRN) - 400 + (i - 1) * 400 ;		% in kHz 
     end
     
     for i=[1:3]
@@ -73,11 +73,10 @@ for PRN=PRN_range
         %fprintf('\t %2d: CR: %12.5f, FREQ.:%6f \n', PRN, max_bin_freq, fr ) ;
 
     end
-    
+   
     max_bin_freq
     
     %[max_f, shift_ca] = max(max_bin_freq) ;
-    %max_f = max_f * conj(max_f) ;
     %fprintf('#PRN: %2d CR: [%12.5f] FREQ %6d \n',PRN, max_f, fr(shift_ca)  ) ;
         
     %fprintf('#PRN: %2d, CR: %12.5f, FREQ.:%6f \n',PRN,max_sat(PRN),max_sat_freq(PRN) ) ;
