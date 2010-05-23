@@ -1,7 +1,8 @@
 % main script for sattelite signal processing
 clc, clear all ;
 nDumpSize = 16368*16 ;          % FIXME - we can more 
-x = readdump('./data/flush',nDumpSize) ;
+%x = readdump('./data/flush',nDumpSize) ;
+load('./data/x.mat') ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
 FR = 4092-5:1:4092+5 ; % frequency range kHz
 t_offs = 100 ; % /* time offset */
@@ -15,8 +16,19 @@ max_fine_sat_new = zeros(32,1) ;
 sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
 
-PRN_range = 3 ;
-%PRN_range = 1:32 ;
+%PRN_range = 6 ;
+PRN_range = [21,22,23] ;
+
+% generate
+x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
+x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
+x = sin(2*pi*4092490/16368000*(0:length(x_ca16)-1)).' ;
+x = x.*x_ca16 ;
+%x(length(x)/2:end)=x(length(x)/2:end) * (-1) ;
+%x=x+randn(size(x))*1 ;
+%x = x(150:end) ;
+% generate
+
 
 for PRN=PRN_range
     for f0 = FR
@@ -30,7 +42,7 @@ for PRN=PRN_range
         %plot(acx), grid on, title(sprintf('PRN=%d, F_0=%f',PRN,f0)) ;
         %pause ;
     end
-    fprintf('#PRN: %2d, CR: %12.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
+    fprintf('#PRN: %2d, CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
 fprintf('Fine freq part ===>     \n') ;
@@ -54,19 +66,20 @@ for PRN=PRN_range
         local_replica = exp(j*2*pi * fr(i)/fs * (0:N-1)) ;
         max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) ) ;
     end
-   
-    %max_bin_freq
-    
+        
+    fprintf('%15.5f, %15.5f, %15.5f\n',max_bin_freq(1)^2,max_bin_freq(2)^2,max_bin_freq(3)^2) ;
+
     % adjust freq in freq bin
     [max_fine_sat(PRN), shift_ca] = max(max_bin_freq) ;
     fr(shift_ca) = max_sat_freq(PRN) + 0.2 * (shift_ca-2) ;
-    
+%end ;
+
     % get rid from possible phase change
     sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)/fs * (0:5*N-1)) ;
     phase = diff(-angle(sum(reshape(sig, N, 5))));
     phase_fix = phase;
     
-    threshold = 2.3*pi/5 ; % FIXME / or \
+    threshold = 2.3*pi\5 ; % FIXME / or \
     
     for i=1:4 ;
         if(abs(phase(i))) > threshold ;
@@ -77,10 +90,10 @@ for PRN=PRN_range
                 if(abs(phase(i))) > threshold ;
                     phase(i) = phase_fix(i) - pi ;
                     if(abs(phase(i))) > threshold ;
-                        phase(i) = phase_fix(i) - 3*pi ;
-                        if(abs(phase(i))) > threshold ;
-                            phase(i) = phase_fix(i) + pi ;
-                        end
+                       phase(i) = phase_fix(i) - 3*pi ;
+                       if(abs(phase(i))) > threshold ;
+                           phase(i) = phase_fix(i) + pi ;
+                       end
                     end
                 end
             end
@@ -91,36 +104,38 @@ for PRN=PRN_range
     fr(shift_ca) = fr(shift_ca) + dfrq ;
 
     % one more unneded correlation
-    max_fine_sat_new(PRN) = abs( sum(data_5ms(1:N).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1) ) ) ) ;
+    max_fine_sat_new(PRN) = abs( sum(data_5ms(1:N).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1))) ) ;
         
     fprintf('#PRN: %2d CR: [%10.5f] CR+phi: [%10.5f] FREQ %10.5f phase: %f \n', PRN, max_fine_sat(PRN), max_fine_sat_new(PRN), fr(shift_ca), dfrq) ;
    
     % prepare for tracking
     max_sat_freq(PRN) = fr(shift_ca) ;
     
-end
+%end
 
 fprintf('Results: \n') ;
 
 % plot result
-%subplot(3, 1, 1), barh(max_fine_sat_new), xlim([0,11000]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-%subplot(3, 1, 2), barh(max_fine_sat), xlim([0,11000]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
-%subplot(3, 1, 3), barh(max_sat),colormap summer, grid on, title('Correlator outputs') ;
+subplot(3, 1, 1), barh(max_fine_sat_new), xlim([0,11000]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
+subplot(3, 1, 2), barh(max_fine_sat), xlim([0,11000]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
+subplot(3, 1, 3), barh(max_sat), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
 % costas
-sec = 15;
-costas_phase = zeros(sec,1) ;
-for PRN=PRN_range
-    data = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + sec*N-1);
-    
-    for data_step=0:sec-1
-        carrier_generator = exp(j*2*pi * max_sat_freq(PRN)/fs * (0:N-1)) ;
-        for_descr = data((data_step * N) + 1: (data_step+1)*N ) ;
+%sec = 15;
+%costas_phase = zeros(sec,1) ;
+%for PRN=PRN_range
+%    data = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + sec*N-1);
+%    
+%    for data_step=0:sec-1
+%        carrier_generator = exp(j*2*pi * max_sat_freq(PRN)/fs * (0:N-1)) ;
+%        for_descr = data((data_step * N) + 1: (data_step+1)*N ) ;
         
-        costas_phase(data_step + 1) = angle(sum(for_descr.' .* carrier_generator)) ;
-        dfrq = costas_phase(data_step + 1) / (2*pi) ;
-        max_sat_freq(PRN) =  max_sat_freq(PRN) + dfrq ;
-    end
+%        costas_phase(data_step + 1) = -angle(sum(for_descr.' .* carrier_generator)) ;
+%        dfrq = costas_phase(data_step + 1) / (2*pi) ;
+%        max_sat_freq(PRN) =  max_sat_freq(PRN) + dfrq ;
+%    end
 end
 
-fprintf('hello\n') ;
+%costas_phase
+
+%fprintf('hello\n') ;
