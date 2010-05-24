@@ -23,13 +23,13 @@ PRN_range = 3 ;
 
 % ========= generate =======================
 x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
-x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
+x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
 x = sin(2*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 %x = exp(2*pi*4092100/16368000*(0:length(x_ca16)-1)).' ;
 x = x.*x_ca16 ;
 %x(length(x)/2:end)=x(length(x)/2:end) * (-1) ;
 %x=x+randn(size(x))*1 ;
-x = x(150:end) ;
+%x = x(150:end) ;
 % ========= generate =======================
 
 for PRN=PRN_range
@@ -127,50 +127,51 @@ fprintf('Results: \n') ;
 % costas & DLL
 sec = 15;
 chip_length = N/1023;
-I_data = zeros(N,1);
-Q_data = zeros(N,1);
+I_data = zeros(5*N,1);
+Q_data = zeros(5*N,1);
 
 % filter constants - tsui related values
 zu_cl = 0.707 ;             % damping ratio
 k0k1_cl = 4*pi * 100 ;      % gain
-B_cl = 25e-3 ;                 % noise bandwith
+B_cl = 50 ;                 % noise bandwith
 omega_cl = 8*zu_cl*B_cl / (4*zu_cl^2 + 1) ;
 C1_cl = (1/k0k1_cl) * (8*zu_cl*omega_cl*ts / (4 + 4*zu_cl*omega_cl*ts + (omega_cl*ts)^2) ) ;
-C2_cl = (1/k0k1_cl) * (4*(omega_cl*ts)^2 / (4 + 4*zu_cl*omega_cl*ts + (omega_cl*ts)^2) ) ;
+C2_cl = (1/k0k1_cl) * (4*(omega_cl*ts)^2   / (4 + 4*zu_cl*omega_cl*ts + (omega_cl*ts)^2) ) ;
 y_I_cl = zeros(3,1);
 x_I_cl = zeros(3,1);
 y_Q_cl = zeros(3,1);
 x_Q_cl = zeros(3,1);
 
-tmp = zeros(N+10,1) ;   % delete me
+tmp = zeros(10*N+10,1) ;   % delete me
 k = 1 ;                 % delete me too
-tmp_I = zeros(N+10,1) ;
-tmp_Q = zeros(N+10,1) ;
-tmp_I_f = zeros(N+10,1) ;
-tmp_Q_f = zeros(N+10,1) ;
+tmp_I = zeros(10*N+10,1) ;
+tmp_Q = zeros(10*N+10,1) ;
+tmp_I_f = zeros(10*N+10,1) ;
+tmp_Q_f = zeros(10*N+10,1) ;
 
-max_sat_freq(PRN) = max_sat_freq(PRN) - 0.4 ;
 phi = 0;
 
 for PRN=PRN_range
     %data = work_data(sat_shift_ca(PRN): end);
-    data = work_data(150: end);
+    data = work_data(1: end);
     ca16 = get_ca_code16(N/16,PRN) ;
+    
+    max_sat_freq(PRN) = max_sat_freq(PRN)*1000 - 200 ;      % convert kHz => Hz
     
     for data_step=1
         
-        data_chip = data(1:N) ;
-        data_chip = data_chip .* ca16 ;
-        I_data(1:N) = real( data_chip ) ;
-        Q_data(1:N) = real( data_chip ) ;
+        data_chip = data(1:10*N) ;
+        data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
+        I_data(1:10*N) = real( data_chip ) ;
+        Q_data(1:10*N) = real( data_chip ) ;
                    
         x_I_cl(1:2) = I_data(1:2) ;
         x_Q_cl(1:2) = Q_data(1:2) ;
         
         % make 1ms
-        for h=3:N
+        for h=3:10*N
                     
-            carrier_generator = exp( j*2*pi * (max_sat_freq(PRN)-phi*100)/fs * (h-1)) ;
+            carrier_generator = exp( j*2*pi * (max_sat_freq(PRN)+phi*0.2)*ts * (h-1)) ;
             I_channel = real(carrier_generator) ;
             Q_channel = imag(carrier_generator) ; 
 
@@ -205,7 +206,7 @@ for PRN=PRN_range
             %phi = y_I_cl(3) + y_Q_cl(3) * j ;
             %phi = angle(phi) / (2*pi);
                         
-            phi = atan(y_Q_cl(3)/y_I_cl(3)); % / (2*pi) ;
+            phi = atan(y_Q_cl(3)/y_I_cl(3)) / (2*pi) ;
             
             %max_sat_freq(PRN) =  max_sat_freq(PRN) - phi ;
 
@@ -218,6 +219,6 @@ for PRN=PRN_range
     end % for data_step=1
 end
 
-%costas_phase
+plot(tmp) ;
 
 %fprintf('hello\n') ;
