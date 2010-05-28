@@ -1,7 +1,6 @@
 % main script for sattelite signal processing
 clc, clear all ;
 nDumpSize = 16368*16 ;          % FIXME - we can more up to 32ms
-%x = readdump('./data/flush',nDumpSize) ;
 %load('./data/x.mat') ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
 FR = 4092-5:1:4092+5 ; % frequency range kHz
@@ -23,16 +22,17 @@ PRN_range = 19 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
-x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-    x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-    x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-    x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-    x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
-x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
+x = readdump('./data/flush',nDumpSize) ;
+% x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
+% x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%     x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%     x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%     x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%     x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
+% x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
 %x = sin(2*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
-x = x.*x_ca16 ;
+%x = x.*x_ca16 ;
 %x(length(x)/2:end)=x(length(x)/2:end) * (-1) ;
 %x=x+randn(size(x))*1 ;
 %x = x(150:end) ;
@@ -81,7 +81,6 @@ for PRN=PRN_range
     % adjust freq in freq bin
     [max_fine_sat(PRN), shift_ca] = max(max_bin_freq) ;
     fr(shift_ca) = max_sat_freq(PRN) + 0.2 * (shift_ca-2) ;
-%end ;
 
     % get rid from possible phase change
     sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)/fs * (0:5*N-1)) ;
@@ -131,10 +130,10 @@ fprintf('Results: \n') ;
 %subplot(3, 1, 3), barh(max_sat), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
 % costas & DLL
-sec = 20;
+time_range = 3*N ;
 chip_length = N/1023;
-I_data = zeros(5*N,1);
-Q_data = zeros(5*N,1);
+I_data = zeros(time_range,1);
+Q_data = zeros(time_range,1);
 
 % filter constants - tsui related values
 zu_cl = 0.7 ;             % damping ratio
@@ -144,15 +143,15 @@ B_cl = 20 ;                 % noise bandwith
 omega_cl = 8*zu_cl*B_cl / (4*zu_cl^2 + 1) ;
 C1_cl = (1/k0k1_cl) * (8*zu_cl*omega_cl*ts / (4 + 4*zu_cl*omega_cl*ts + (omega_cl*ts)^2) ) ;
 C2_cl = (1/k0k1_cl) * (4*(omega_cl*ts)^2   / (4 + 4*zu_cl*omega_cl*ts + (omega_cl*ts)^2) ) ;
-y_I_cl = zeros(3,1);
-x_I_cl = zeros(3,1);
-y_Q_cl = zeros(3,1);
-x_Q_cl = zeros(3,1);
+nco_ctl = 0 ;
+mixer_I1 = 0 ;
+mixer_Q1 = 0 ;
+lpf_I = 0 ;
+lpf_I1 = 0 ;
+lpf_Q = 0 ;
+lpf_Q1 = 0 ;
 
-time_range = 100*N ;
 
-tmp = zeros(time_range+10,1) ;   % delete me
-k = 1 ;                 % delete me too
 tmp_I = zeros(time_range+10,1) ;
 tmp_Q = zeros(time_range+10,1) ;
 tmp_I_f = zeros(time_range+10,1) ;
@@ -160,13 +159,15 @@ tmp_Q_f = zeros(time_range+10,1) ;
 tmp_I_c = zeros(time_range+10,1) ;
 tmp_Q_c = zeros(time_range+10,1) ;
 
-phi = 0;
+% lowpass filter coefs
+lpf_b = 0.981 ;
+lpf_a = 0.0095 ;
 
 for PRN=PRN_range
     data = work_data(sat_shift_ca(PRN): end);
     ca16 = get_ca_code16(N/16,PRN) ;
     
-    freq_error = 10 ;
+    freq_error = 0.5 ;
     max_sat_freq(PRN) = max_sat_freq(PRN)*1000 + freq_error;      % convert kHz => Hz
     %max_sat_freq(PRN) = max_sat_freq(PRN)*1000 ;      % convert kHz => Hz
     fprintf('start with freq\t%10.5f err = %f\n', max_sat_freq(PRN), freq_error) ;
@@ -174,86 +175,75 @@ for PRN=PRN_range
     for data_step=1
         
         data_chip = data(1:time_range) ;
-        %data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
-        data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
-                                ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
-                                ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
-                                ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
-                                ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
+        data_chip = data_chip .* [ca16;ca16;ca16] ;
+        %data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
+        %                        ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
+        %                        ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
+        %                        ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
+        %                        ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
+                            
         I_data(1:time_range) = real( data_chip ) ;
         Q_data(1:time_range) = real( data_chip ) ;
         %Q_data(1:time_range) = imag( data_chip ) ;
                    
         x_I_cl(1:2) = I_data(1:2) ;
         x_Q_cl(1:2) = Q_data(1:2) ;
+
+        % loop filter queues
+        y_theta_cl = zeros(3,1) ;
+        x_theta_cl = zeros(3,1) ;
         
-        %x_I_cl(1:2) = [0.001,0.001] ;
-        %x_Q_cl(1:2) = [0.001,0.002] ;
-        
-        %x_I_cl(1:2) = real(data_chip(1:2)) ;
-        %x_Q_cl(1:2) = imag(data_chip(1:2)) ;
-                
         % make 1ms
-        for h=3:time_range
+        for h=1:time_range
                     
-            carrier_generator = exp( j*2*pi * (max_sat_freq(PRN)-phi)  * (h-1)) ;
-            %   carrier_generator = exp( j*2*pi * max_sat_freq(PRN)*ts * (h-1)) ;
-            I_channel = real(carrier_generator) ;
-            Q_channel = imag(carrier_generator) ; 
+            nco_sample = exp(j*2*pi*(max_sat_freq(PRN) - nco_ctl)/fs*(h-1)) ;
+            mixer_I = data_chip(h)*real(nco_sample) ;
+            mixer_Q = data_chip(h)*imag(nco_sample) ;
             
-            tmp_I_c(k) = I_channel ;
-            tmp_Q_c(k) = Q_channel ;
-            
-            I_corr = I_channel .* I_data(h);
-            Q_corr = Q_channel .* Q_data(h);
-            %I_corr = real(data_chip(h) * carrier_generator);
-            %Q_corr = imag(data_chip(h) * carrier_generator);
-            
-            tmp_I(k) = I_corr;
-            tmp_Q(k) = Q_corr;
+            % I lowpass filter
+            lpf_I = lpf_b*lpf_I1 + lpf_a*mixer_I + lpf_a*mixer_I1 ;
+            mixer_I1 = mixer_I ;
+            lpf_I1 = lpf_I ;
 
-            % I channel
-            x_I_cl(3) = I_corr ;
-
-            y_I_cl(3) = k0k1_cl*(C1_cl+C2_cl)*x_I_cl(2) - k0k1_cl*C1_cl*x_I_cl(1) - ...
-                        (k0k1_cl*(C1_cl+C2_cl) - 2)*y_I_cl(2) - (1 - k0k1_cl*C1_cl)*y_I_cl(1) ;
-
-            y_I_cl(1:2) = y_I_cl(2:3) ;
-            x_I_cl(1:2) = x_I_cl(2:3) ;
-
-            % Q channel
-            x_Q_cl(3) = Q_corr ;
-
-            y_Q_cl(3) = k0k1_cl*(C1_cl+C2_cl)*x_Q_cl(2) - k0k1_cl*C1_cl*x_Q_cl(1) - ...
-                        (k0k1_cl*(C1_cl+C2_cl) - 2)*y_Q_cl(2) - (1 - k0k1_cl*C1_cl)*y_Q_cl(1) ;
-
-            y_Q_cl(1:2) = y_Q_cl(2:3) ;
-            x_Q_cl(1:2) = x_Q_cl(2:3) ;
+            % Q lowpass filter
+            lpf_Q = lpf_b*lpf_Q1 + lpf_a*mixer_Q + lpf_a*mixer_Q1 ;
+            mixer_Q1 = mixer_Q ;
+            lpf_Q1 = lpf_Q ;
+    
+            % descriminator
+            if lpf_I1==0
+                theta = 0 ;
+            else
+                theta = atan(lpf_Q1/lpf_I1) ;
+            end
             
-            tmp_I_f(k) = y_I_cl(3);
-            tmp_Q_f(k) = y_Q_cl(3);
-            
-            % phase correction
-            %phi = y_I_cl(3) + y_Q_cl(3) * j ;
-            %phi = angle(phi) / (2*pi);
-            
-            phi = atan(y_Q_cl(3)/y_I_cl(3)) * 100;% / (2*pi) ;
-            %phi = y_Q_cl(3) * y_I_cl(3) ;
-            %phi = y_Q_cl(3) * sign(y_I_cl(3)) ;
-            
-            %max_sat_freq(PRN) =  max_sat_freq(PRN) + phi ;
+            % loop filter
+            x_theta_cl(3) = theta ;
+            y_theta_cl(3) = k0k1_cl*(C1_cl+C2_cl)*x_theta_cl(2) - k0k1_cl*C1_cl*x_theta_cl(1) - ...
+                        (k0k1_cl*(C1_cl+C2_cl) - 2)*y_theta_cl(2) - (1 - k0k1_cl*C1_cl)*y_theta_cl(1) ;
+            y_theta_cl(1:2) = y_theta_cl(2:3) ;
+            x_theta_cl(1:2) = x_theta_cl(2:3) ;
 
-            %fprintf('[%2d] phi = %d\n', f, phi) ;
-            tmp(k) = phi;
-            k = k+1;
+            lf_theta = y_theta_cl(3) ;
+
+            nco_ctl = lf_theta / (2*pi) ;   
             
+            % collect data
+            data_mixed_I(h) = mixer_I ;
+            data_mixed_Q(h) = mixer_Q ;
+            data_lpf_I(h) = lpf_I ;
+            data_lpf_Q(h) = lpf_Q ;
+            data_theta(h) = theta ;
+            data_lf_theta(h) = lf_theta ;
+            data_nco_ctl(h) = nco_ctl ;
+
         end % for h=
         
-        fprintf('resulted freq\t%10.5f phi = %f\n', max_sat_freq(PRN), phi) ;
+        fprintf('resulted freq\t%10.5f phi = %f\n', max_sat_freq(PRN) + nco_ctl, nco_ctl) ;
         
     end % for data_step=1
 end
 
-plot((0:length(tmp)-1)*ts*1e3,tmp); xlim([0,99]) ;
+figure(1), plot(data_nco_ctl) ;
 
 %fprintf('hello\n') ;
