@@ -3,8 +3,15 @@ clc; clear all; clf;
 
 global corr_bahr ;
 
+DataStruct.time_range = 30 ;
+DataStruct.max_sat_freq = zeros(32,1) ;
+DataStruct.sat_shift_ca = zeros(32,1) ;
+DataStruct.work_data = zeros(16368 * DataStruct.time_range, 1) ;
+
 hMain = figure(1) ;
 set(hMain, 'Name', 'GNSS PLL', 'Position', [100 150 990 800]) ;
+
+set(hMain,'UserData',DataStruct) ;
 
 %uicontrol(hMain, 'Style', 'edit',  )
 
@@ -13,7 +20,7 @@ uicontrol(hMain, 'Style','edit', 'String','', 'Position', [620 610 250 50], 'Fon
 
 % buttons
 uicontrol(hMain, 'Style','pushbutton', 'Position', [620 710 250 50], 'String', 'Stage 1', 'Fontsize', 10, 'Callback', 'gui_corr');
-uicontrol(hMain, 'Style','pushbutton', 'Position', [620 510 250 50], 'String', 'Stage 2', 'Fontsize', 10);
+uicontrol(hMain, 'Style','pushbutton', 'Position', [620 510 250 50], 'String', 'Stage 2', 'Fontsize', 10, 'Callback', 'gui_pll');
 
 % axes
 % Satellite correlation

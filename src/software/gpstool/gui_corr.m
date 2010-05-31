@@ -1,9 +1,13 @@
 function gui_corr(varargin)
 global corr_bahr ;
 
-nDumpSize = 16368*30 ;          % FIXME - we can more up to 32ms
+hMain = figure(1) ;
+DataStruct = get(hMain,'UserData') ;
+
+nDumpSize = 16368 * DataStruct.time_range ;          % FIXME - we can more up to 32ms
+
 %load('./data/x.mat') ;
-%pwelch(x(1:16368),[],[],[],16.368e6) ;
+
 FR = 4092-5:1:4092+5 ; % frequency range kHz
 t_offs = 100 ;     % /* FIXME - time offset */
 N = 16368 ;   % /* correlation length */
@@ -17,9 +21,9 @@ max_fine_sat_new = zeros(32,1) ;
 sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
 
-PRN_range = 1:32 ;
+%PRN_range = 1:32 ;
 %PRN_range = 3 ;
-%PRN_range = 21 ;
+PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
@@ -56,5 +60,11 @@ end
 
 axes(corr_bahr)
 barh(max_sat), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
+
+DataStruct.max_sat_freq = max_sat_freq ;
+DataStruct.sat_shift_ca = sat_shift_ca ;
+DataStruct.work_data = x(t_offs:end) ;
+
+set(hMain,'UserData',DataStruct) ;
 
 end
