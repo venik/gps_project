@@ -1,5 +1,7 @@
 function gui_pll(varargin)
 
+global corr_bahr nco_ctl_plot I_chan_f Q_chan_f mixed_I mixed_Q theta_plot;
+
 hMain = figure(1) ;
 DataStruct = get(hMain,'UserData') ;
 
@@ -22,8 +24,8 @@ ts = 1/(fs * 1000) ;
 PRN_range = 21 ;
 
 % costas & DLL
-%time_range = N * DataStruct.time_range;
-time_range = N;
+time_range = N * (DataStruct.time_range - 1);
+%time_range = N;
 chip_length = N/1023;
 I_data = zeros(time_range,1);
 Q_data = zeros(time_range,1);
@@ -56,6 +58,8 @@ data_nco_ctl = zeros(time_range,1) ;
 lpf_b = 0.981 ;
 lpf_a = 0.0095 ;
 
+data_chip = zeros(time_range, 1) ;
+
 if 1
 for PRN=PRN_range
     data = work_data(sat_shift_ca(PRN): end);
@@ -71,10 +75,10 @@ for PRN=PRN_range
     for data_step=1
         
         data_chip = data(1:time_range);
-        %data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
-        %                          ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
+        data_chip = data_chip .* [ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;
+                                  ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16;ca16] ;
         
-        data_chip = data_chip .* ca16 ;
+        %data_chip = data_chip .* ca16 ;
                             
         I_data(1:time_range) = real( data_chip(1:time_range) ) ;
         Q_data(1:time_range) = real( data_chip(1:time_range) ) ;
@@ -135,5 +139,22 @@ for PRN=PRN_range
     end % for data_step=1
 end
 
-figure(2), plot(data_nco_ctl) ;
+axes(nco_ctl_plot)
+plot(data_nco_ctl), grid on, title('PLL correction') ;
+
+axes(I_chan_f)
+plot(data_lpf_I), grid on, title('I channel after lpf') ;
+
+axes(Q_chan_f)
+plot(data_lpf_Q), grid on, title('Q channel after lpf') ;
+
+axes(mixed_I)
+plot(data_mixed_I), grid on, title('mixed I') ;
+
+axes(mixed_Q)
+plot(data_mixed_Q), grid on, title('mixed Q') ;
+
+axes(theta_plot)
+plot(data_theta), grid on, title('theta') ;
+
 end
