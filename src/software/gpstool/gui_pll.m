@@ -11,6 +11,7 @@ sat_shift_ca = zeros(32,1) ;
 max_sat_freq = DataStruct.max_sat_freq ;
 sat_shift_ca = DataStruct.sat_shift_ca ;
 work_data = DataStruct.work_data ;
+PRN_range = DataStruct.PRN;
 
 nDumpSize = 16368*30 ;          % FIXME - we can more up to 32ms
 %load('./data/x.mat') ;
@@ -21,7 +22,7 @@ N = 16368 ;   % /* correlation length */
 fs = 16368 ;   % /* sampling freq kHz */
 ts = 1/(fs * 1000) ;
 
-PRN_range = 21 ;
+
 
 % costas & DLL
 time_range = N * (DataStruct.time_range - 1);
@@ -131,6 +132,28 @@ for PRN=PRN_range
             data_theta(h) = theta ;
             data_lf_theta(h) = lf_theta ;
             data_nco_ctl(h) = nco_ctl ;
+            
+            if (mod(h,N) == 0) && (h > N)
+                axes(nco_ctl_plot)
+                plot(data_nco_ctl(1:h)), grid on, title('PLL correction') ;
+
+                axes(I_chan_f)
+                plot(data_lpf_I(1:h)), grid on, title('I channel after lpf') ;
+
+                axes(Q_chan_f)
+                plot(data_lpf_Q(1:h)), grid on, title('Q channel after lpf') ;
+
+                axes(mixed_I)
+                plot(data_mixed_I(h-100:h)), grid on, title('mixed I') ;
+
+                axes(mixed_Q)
+                plot(data_mixed_Q(h-100:h)), grid on, title('mixed Q') ;
+
+                axes(theta_plot)
+                plot(data_theta(h-100:h)), grid on, title('theta') ;
+                
+                drawnow ;
+           end
 
         end % for h=
         
@@ -148,13 +171,13 @@ plot(data_lpf_I), grid on, title('I channel after lpf') ;
 axes(Q_chan_f)
 plot(data_lpf_Q), grid on, title('Q channel after lpf') ;
 
-axes(mixed_I)
-plot(data_mixed_I), grid on, title('mixed I') ;
+%axes(mixed_I)
+%plot(data_mixed_I), grid on, title('mixed I') ;
 
-axes(mixed_Q)
-plot(data_mixed_Q), grid on, title('mixed Q') ;
+%axes(mixed_Q)
+%plot(data_mixed_Q), grid on, title('mixed Q') ;
 
-axes(theta_plot)
-plot(data_theta), grid on, title('theta') ;
+%axes(theta_plot)
+%plot(data_theta), grid on, title('theta') ;
 
 end
