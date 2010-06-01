@@ -21,9 +21,9 @@ max_fine_sat_new = zeros(32,1) ;
 sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
 
-%PRN_range = 1:32 ;
+PRN_range = 1:32 ;
 %PRN_range = 3 ;
-PRN_range = 21 ;
+%PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================

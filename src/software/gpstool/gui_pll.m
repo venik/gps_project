@@ -13,7 +13,7 @@ sat_shift_ca = DataStruct.sat_shift_ca ;
 work_data = DataStruct.work_data ;
 PRN_range = DataStruct.PRN;
 
-nDumpSize = 16368*30 ;          % FIXME - we can more up to 32ms
+nDumpSize = 16368 * DataStruct.time_range ;          % FIXME - we can more up to 32ms
 %load('./data/x.mat') ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
 FR = 4092-5:1:4092+5 ; % frequency range kHz
@@ -144,13 +144,13 @@ for PRN=PRN_range
                 plot(data_lpf_Q(1:h)), grid on, title('Q channel after lpf') ;
 
                 axes(mixed_I)
-                plot(data_mixed_I(h-100:h)), grid on, title('mixed I') ;
+                plot(data_mixed_I(h-500:h)), grid on, title('mixed I'), xlim([1,500]) ;
 
                 axes(mixed_Q)
-                plot(data_mixed_Q(h-100:h)), grid on, title('mixed Q') ;
+                plot(data_mixed_Q(h-500:h)), grid on, title('mixed Q'), xlim([1,500]) ;
 
                 axes(theta_plot)
-                plot(data_theta(h-100:h)), grid on, title('theta') ;
+                plot(data_theta(h-500:h)), grid on, title('theta'), xlim([1,500]) ;
                 
                 drawnow ;
            end
@@ -162,14 +162,13 @@ for PRN=PRN_range
     end % for data_step=1
 end
 
-axes(nco_ctl_plot)
-plot(data_nco_ctl), grid on, title('PLL correction') ;
+axes(nco_ctl_plot) ,grid on, title('PLL correction'), xlim([1,h]) ;
 
 axes(I_chan_f)
-plot(data_lpf_I), grid on, title('I channel after lpf') ;
+plot(data_lpf_I), grid on, title('I channel after lpf'), xlim([1,h]);
 
 axes(Q_chan_f)
-plot(data_lpf_Q), grid on, title('Q channel after lpf') ;
+plot(data_lpf_Q), grid on, title('Q channel after lpf'), xlim([1,h]);
 
 %axes(mixed_I)
 %plot(data_mixed_I), grid on, title('mixed I') ;
