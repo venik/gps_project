@@ -43,7 +43,12 @@ PRN_range = 1:32 ;
 %x = x(150:end) ;
 % ========= generate =======================
 
+h = waitbar(0,'Correlation');
+
 for PRN=PRN_range
+    
+    waitbar( 1 / length(PRN_range) * PRN );
+    
     for f0 = FR
         acx = gpsacq2(x(t_offs:end),N,PRN,f0, 0) ;
         [max_f,shift_ca] = max(acx) ;
@@ -58,8 +63,10 @@ for PRN=PRN_range
     fprintf('#PRN: %2d, CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
+close(h) ; % waitbar()
+
 axes(corr_bahr)
-barh(max_sat), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
+barh(max_sat), ylim([1,32]), colormap summer, grid on ;
 
 DataStruct.max_sat_freq = max_sat_freq ;
 DataStruct.sat_shift_ca = sat_shift_ca ;

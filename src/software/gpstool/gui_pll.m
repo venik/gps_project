@@ -135,19 +135,19 @@ for PRN=PRN_range
             
             if (mod(h,N) == 0) && (h > N)
                 axes(nco_ctl_plot)
-                plot(data_nco_ctl(1:h)), grid on, title('PLL correction') ;
+                plot(data_nco_ctl(1:h)), grid on, title('Descriminator output') ;
 
                 axes(I_chan_f)
-                plot(data_lpf_I(1:h)), grid on, title('I channel after lpf') ;
+                plot(data_lpf_I(1:h)), grid on, title('filtered') ;
 
                 axes(Q_chan_f)
-                plot(data_lpf_Q(1:h)), grid on, title('Q channel after lpf') ;
+                plot(data_lpf_Q(1:h)), grid on, title('filtered') ;
 
                 axes(mixed_I)
-                plot(data_mixed_I(h-500:h)), grid on, title('mixed I'), xlim([1,500]) ;
+                plot(data_mixed_I(h-500:h)), grid on, xlim([1,500]) ;
 
                 axes(mixed_Q)
-                plot(data_mixed_Q(h-500:h)), grid on, title('mixed Q'), xlim([1,500]) ;
+                plot(data_mixed_Q(h-500:h)), grid on, xlim([1,500]) ;
 
                 axes(theta_plot)
                 plot(data_theta(h-500:h)), grid on, title('theta'), xlim([1,500]) ;
@@ -165,10 +165,10 @@ end
 axes(nco_ctl_plot) ,grid on, title('PLL correction'), xlim([1,h]) ;
 
 axes(I_chan_f)
-plot(data_lpf_I), grid on, title('I channel after lpf'), xlim([1,h]);
+plot(data_lpf_I), grid on, title('filtered'), xlim([1,h]);
 
 axes(Q_chan_f)
-plot(data_lpf_Q), grid on, title('Q channel after lpf'), xlim([1,h]);
+plot(data_lpf_Q), grid on, title('filtered'), xlim([1,h]);
 
 %axes(mixed_I)
 %plot(data_mixed_I), grid on, title('mixed I') ;
