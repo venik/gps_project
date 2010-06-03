@@ -52,13 +52,13 @@ I_chan_f = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position'
            grid on ;
 Q_chan_f = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [270 210 200 120], 'Fontsize', 12),
            grid on ;
-nco_ctl_plot = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [510 210 200 120], 'Fontsize', 12), ...
+nco_ctl_plot = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [515 210 200 120], 'Fontsize', 12), ...
                grid on ;
 
 % second line
 mixed_I = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 40 200 120], 'Fontsize', 12), ...
           grid on ;
 mixed_Q = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [270 40 200 120], 'Fontsize', 12), grid on ;
-theta_plot = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [510 40 200 120], 'Fontsize', 12), grid on ;
+theta_plot = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [515 40 200 120], 'Fontsize', 12), grid on ;
 
 end

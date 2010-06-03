@@ -162,7 +162,7 @@ for PRN=PRN_range
     end % for data_step=1
 end
 
-axes(nco_ctl_plot) ,grid on, title('PLL correction'), xlim([1,h]) ;
+axes(nco_ctl_plot) ,grid on, title('PLL correction'), xlim([1,h]), ylabel('Hz') ;
 
 axes(I_chan_f)
 plot(data_lpf_I), grid on, title('filtered'), xlim([1,h]);
