@@ -17,12 +17,74 @@ nDumpSize = 16368*30 ;          % FIXME - we can more up to 32ms
 %load('./data/x.mat') ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
 FR = 4092-5:1:4092+5 ; % frequency range kHz
-t_offs = 100 ;     % /* FIXME - time offset */
 N = 16368 ;   % /* correlation length */
 fs = 16368 ;   % /* sampling freq kHz */
 ts = 1/(fs * 1000) ;
 
 
+% fine freq estimation
+if 1
+for PRN=PRN_range
+data_5ms = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N-1);
+ca16 = get_ca_code16(N/16,PRN) ;
+ca16 = [ca16;ca16;ca16;ca16;ca16] ;
+data_5ms =  ca16(:) .* data_5ms ;
+
+fr = zeros(3,1) ;
+for i=[1:3]
+    fr(i) = max_sat_freq(PRN) - 0.4 + (i - 1) * 0.4 ;		% in kHz 
+end
+
+for i=[1:3]
+    local_replica = exp(j*2*pi * fr(i)/fs * (0:N-1)) ;
+    max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) ) ;
+end
+
+%fprintf('%15.5f, %15.5f, %15.5f\n',max_bin_freq(1)^2,max_bin_freq(2)^2,max_bin_freq(3)^2) ;
+
+% adjust freq in freq bin
+[max_fine_sat(PRN), shift_ca] = max(max_bin_freq) ;
+fr(shift_ca) = max_sat_freq(PRN) + 0.2 * (shift_ca-2) ;
+
+% get rid from possible phase change
+sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)/fs * (0:5*N-1)) ;
+phase = diff(-angle(sum(reshape(sig, N, 5))));
+phase_fix = phase;
+
+threshold = 5/(2.3*pi) ; % FIXME / or \
+
+for i=1:4 ;
+    if(abs(phase(i))) > threshold ;
+        phase(i) = phase_fix(i) - 2*pi ;
+        if(abs(phase(i))) > threshold ;
+            phase(i) = phase_fix(i) + 2*pi ;
+            %if(abs(phase(i))) > 2.2*pi / 5 ;    % FIXME / or \
+            if(abs(phase(i))) > threshold ;
+                phase(i) = phase_fix(i) - pi ;
+                if(abs(phase(i))) > threshold ;
+                   phase(i) = phase_fix(i) - 3*pi ;
+                   if(abs(phase(i))) > threshold ;
+                       phase(i) = phase_fix(i) + pi ;
+                   end
+                end
+            end
+        end
+    end
+end
+
+dfrq = mean(phase) / (2*pi) ;
+fr(shift_ca) = fr(shift_ca) + dfrq ;
+
+% one more unneded correlation
+max_fine_sat_new(PRN) = abs( sum(data_5ms(1:N).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1))) ) ;
+
+fprintf('#PRN: %2d CR: [%10.5f] CR+phi: [%10.5f] FREQ %10.5f phase: %f \n', PRN, max_fine_sat(PRN), max_fine_sat_new(PRN), fr(shift_ca), dfrq) ;
+
+% prepare for tracking
+max_sat_freq(PRN) = fr(shift_ca) ;
+
+end % for PRN
+end % if 1
 
 % costas & DLL
 time_range = N * (DataStruct.time_range - 1);

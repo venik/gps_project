@@ -37,10 +37,10 @@ uicontrol(hMain, 'Style','pushbutton', 'Position', [620 510 250 50], 'String', '
 % axes
 % Satellite correlation
 corr_bahr = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 380 350 200], 'Fontsize', 14);
-pll_bahr = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 345 350 20], 'Fontsize', 14);
+%pll_bahr = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 345 350 20], 'Fontsize', 14);
 
 % first line
-I_chan_f = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 200 200 120], 'Fontsize', 14, 'Callback', 'redraw_graph(1)');
+I_chan_f = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [30 200 200 120], 'Fontsize', 14);
 Q_chan_f = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [270 200 200 120], 'Fontsize', 14);
 nco_ctl_plot = axes('Parent', hMain, 'Color', [1 1 1], 'Units', 'points', 'Position', [510 200 200 120], 'Fontsize', 14);
 
