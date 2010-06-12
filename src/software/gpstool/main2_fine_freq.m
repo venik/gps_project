@@ -17,26 +17,27 @@ sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
 
 freq_vals = zeros(32,3) ;
+corr_vals = zeros(32,5) ;
 
-%PRN_range = 1:32 ;
+PRN_range = 1:32 ;
 %PRN_range = 3 ;
-PRN_range = 20 ;
+%PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-% x = readdump('./data/flush',nDumpSize) ;
-   x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
-   x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
-   x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
+ x = readdump('./data/flush',nDumpSize) ;
+%   x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
+%   x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
+%   x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 540 ;
-x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
+%delta = 150 ;
+%x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
 %x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
-x = x .* x_ca16 ;
+%x = x .* x_ca16 ;
 %x=x+randn(size(x))*1 ;
 %x = x(150:end) ;
 % ========= generate =======================
@@ -45,7 +46,7 @@ for PRN=PRN_range
     for f0 = FR
         acx = gpsacq2(x(t_offs:end),N,PRN,f0, 0) ;
         [max_f,shift_ca] = max(acx) ;
-        if max_f>max_sat(PRN)
+        if max_f>=max_sat(PRN)
             max_sat(PRN) = max_f ;
             sat_shift_ca(PRN) = shift_ca ;
             max_sat_freq(PRN) = f0 ;
@@ -87,7 +88,6 @@ for PRN=PRN_range
             
     % adjust freq in freq bin
     [max_fine_sat(PRN), shift_ca] = max(max_bin_freq) ;
-    fr(shift_ca) = max_sat_freq(PRN) + 0.2 * (shift_ca-2) ;
     %fr(shift_ca) = fr(shift_ca) + 0.2 * (shift_ca - 2) ;    
     
     %fprintf('\t%15.5f, %15.5f, %15.5f\n',max_bin_freq(1)^2,max_bin_freq(2)^2,max_bin_freq(3)^2) ;
@@ -125,14 +125,18 @@ for PRN=PRN_range
     
     dfrq = mean(phase) / (2*pi) ;
     fr(shift_ca) = fr(shift_ca) + dfrq ;
-
+    
+    if( mean(phase) > threshold ) 
+        fprintf('\t\tThats bad dfrg [%d] > threshold \n', dfrq) ;
+    end
+    
     freq_vals(PRN, 3) =  fr(shift_ca);
     
     % one more unneded correlation
     for k=1:5
-        max_tmp = abs( sum(data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1))) )^2 ;
-        fprintf('\t tmp [%15.5f]\n', max_tmp ) ;
-        max_fine_sat_new(PRN) = max_fine_sat_new(PRN) + max_tmp;
+        corr_vals(PRN,k) = abs( sum(data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1))) )^2 ;
+        fprintf('\t tmp [%15.5f]\n', corr_vals(PRN, k) ) ;
+        max_fine_sat_new(PRN) = max_fine_sat_new(PRN) + corr_vals(PRN,k);
     end
     max_fine_sat_new(PRN) = max_fine_sat_new(PRN) / 5 ;
        
@@ -147,11 +151,12 @@ end
 fprintf('Results: \n') ;
 
 % plot result
-figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,11e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-figure(1), subplot(3, 1, 2), barh(max_fine_sat), xlim([1,11e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
-figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,11e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
+figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
+figure(1), subplot(3, 1, 2), barh(max_fine_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
+figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
 %figure(2), plot(freq_vals(PRN, 1:3), '-or') ;
+%figure(2), plot(corr_vals_vals(PRN, 1:5), '-or') ;
 
 % ===============================================================
 % costas & DLL
