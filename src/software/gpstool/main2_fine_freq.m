@@ -19,9 +19,9 @@ max_sat_freq = zeros(32,1) ;
 freq_vals = zeros(32,3) ;
 corr_vals = zeros(32,5) ;
 
-PRN_range = 1:32 ;
+%PRN_range = 1:32 ;
 %PRN_range = 3 ;
-%PRN_range = 21 ;
+PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
@@ -56,7 +56,6 @@ for PRN=PRN_range
     end
     fprintf('#PRN: %2d, CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
     
-    freq_vals(PRN, 1) = max_sat_freq(PRN) ;
 end
 
 fprintf('Fine freq part ===>     \n') ;
@@ -78,11 +77,13 @@ for PRN=PRN_range
     
     fr = zeros(3,1) ;
     for i=[1:3]
-        fr(i) = max_sat_freq(PRN) - 0.4 + (i - 1) * 0.4 ;		% in kHz 
+        fr(i) = max_sat_freq(PRN)*1000 - 400 + (i - 1) * 400 ;		% in Hz 
     end
+
+    freq_vals(PRN, 1) = fr(2) ;
     
     for i=[1:3]
-        local_replica = exp(j*2*pi * fr(i)/fs * (0:N-1)) ;
+        local_replica = exp(j*2*pi * fr(i)*ts * (0:N-1)) ;
         max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) )^2 ;
     end
             
@@ -96,7 +97,7 @@ for PRN=PRN_range
     freq_vals(PRN, 2) =  fr(shift_ca);
     
     % get rid from possible phase change
-    sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)/fs * (0:5*N-1)) ;
+    sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)*ts * (0:5*N-1)) ;
     phase = diff(-angle(sum(reshape(sig, N, 5))));
     phase_fix = phase;
     
@@ -123,7 +124,7 @@ for PRN=PRN_range
     
     fprintf('\t phase: [%f] [%f] [%f] [%f] \n', phase(1), phase(2), phase(3), phase(4) );
     
-    dfrq = mean(phase) / (2*pi) ;
+    dfrq = mean(phase)*1000 / (2*pi) ;
     fr(shift_ca) = fr(shift_ca) + dfrq ;
     
     if( mean(phase) > threshold ) 
@@ -134,8 +135,9 @@ for PRN=PRN_range
     
     % one more unneded correlation
     for k=1:5
-        corr_vals(PRN,k) = abs( sum(data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)/fs * (0:N-1))) )^2 ;
-        fprintf('\t tmp [%15.5f]\n', corr_vals(PRN, k) ) ;
+        sig = data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)*ts * (0:N-1)) ;
+        corr_vals(PRN,k) = abs(sum(sig))^2 ;
+        fprintf('\t tmp [%15.5f]\n', corr_vals(PRN, k) ) ;  
         max_fine_sat_new(PRN) = max_fine_sat_new(PRN) + corr_vals(PRN,k);
     end
     max_fine_sat_new(PRN) = max_fine_sat_new(PRN) / 5 ;
@@ -155,8 +157,7 @@ figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]
 figure(1), subplot(3, 1, 2), barh(max_fine_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
 figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
-%figure(2), plot(freq_vals(PRN, 1:3), '-or') ;
-%figure(2), plot(corr_vals_vals(PRN, 1:5), '-or') ;
+figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), plot(corr_vals(PRN, 1:5), '-or'), title('Correlation') ;
 
 % ===============================================================
 % costas & DLL
