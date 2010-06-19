@@ -19,6 +19,8 @@ max_sat_freq = zeros(32,1) ;
 freq_vals = zeros(32,3) ;
 corr_vals = zeros(32,5) ;
 
+corr_vals_par = zeros(32,5) ;
+
 %PRN_range = 1:32 ;
 %PRN_range = 3 ;
 PRN_range = 21 ;
@@ -133,12 +135,22 @@ for PRN=PRN_range
     
     freq_vals(PRN, 3) =  fr(shift_ca);
     
+    % Calculate correlation for test purposes
     % one more unneded correlation
     for k=1:5
+        % circullar
         sig = data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)*ts * (0:N-1)) ;
         corr_vals(PRN,k) = abs(sum(sig))^2 ;
-        fprintf('\t tmp [%15.5f]\n', corr_vals(PRN, k) ) ;  
+        %fprintf('\t %d: tmp [%15.5f]\n', corr_vals(PRN, k) ) ;  
         max_fine_sat_new(PRN) = max_fine_sat_new(PRN) + corr_vals(PRN,k);
+        
+        % parallel
+        data_5ms_par = work_data(sat_shift_ca(PRN) + 1: sat_shift_ca(PRN) + 5*N);
+        acx = gpsacq2(data_5ms_par(1 + N*(k-1):N*k),N,PRN,fr(shift_ca)/1000, 0) ;   % in kHz
+        [max_f,tmp] = max(acx) ;
+        corr_vals_par(PRN,k) = max_f ;
+                
+        fprintf('\t %d: circ_cor [%15.5f] par_cor [%15.5f] shift %d\n', k, corr_vals(PRN, k), max_f, tmp ) ;  
     end
     max_fine_sat_new(PRN) = max_fine_sat_new(PRN) / 5 ;
        
@@ -157,7 +169,10 @@ figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]
 figure(1), subplot(3, 1, 2), barh(max_fine_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
 figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
-figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), plot(corr_vals(PRN, 1:5), '-or'), title('Correlation') ;
+%figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), plot(corr_vals(PRN, 1:5), '-or'), title('Correlation') ;
+
+% on same pics circullar and parralel
+figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), hold on, plot(corr_vals(PRN, 1:5), '-or'), plot(corr_vals_par(PRN, 1:5), '-xg'), hold off, title('Correlation') ;
 
 % ===============================================================
 % costas & DLL
