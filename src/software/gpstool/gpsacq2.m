@@ -3,13 +3,13 @@
 % /* x - input signal */
 % /* N - correlation length (default: 16368 - 1ms) */
 % /* PRN  - sattelite code */
-% /* f0 - carrier, KHz (default: 4092 KHz) */
+% /* f0 - carrier, Hz (default: 4092000 Hz) */
 % /* IsRealInput - flag, if true input signal is I only */
 % /* Status: almost tested */
 
 function acx = gpsacq2(x,N,PRN,f0, IsRealInput)
 x = x(1:N) ;
-fd = 16368 ; % /* sampling frequency */
+fd = 16368e3 ; % /* sampling frequency */
 %x = x-mean(x) ;
 
 LO_sig = exp(j*2*pi*f0/fd*(0:N-1)).' ; 
