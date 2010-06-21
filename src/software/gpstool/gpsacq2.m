@@ -9,7 +9,7 @@
 
 function acx = gpsacq2(x,N,PRN,f0, IsRealInput)
 x = x(1:N) ;
-fd = 16368e3 ; % /* sampling frequency */
+fd = 16.368e6 ; % /* sampling frequency in Hz */
 %x = x-mean(x) ;
 
 LO_sig = exp(j*2*pi*f0/fd*(0:N-1)).' ; 

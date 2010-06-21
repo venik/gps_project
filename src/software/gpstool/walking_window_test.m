@@ -31,7 +31,7 @@ PRN_range = 16 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-if 0
+if 1
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
@@ -40,11 +40,11 @@ if 0
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 150 ;
+delta = 0 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
-x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
+%x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
 x = x .* x_ca16 ;
-x=x+randn(size(x))*1 ;
+%x=x+randn(size(x))*1 ;
 
 else
     x = readdump('./data/flush',nDumpSize) ;   
@@ -81,7 +81,7 @@ for PRN=PRN_range
     for k = 1:29
         acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,max_sat_freq(PRN), 0) ;
         [max_f,shift_ca] = max(acx) ;
-        cor_par_vals(PRN, k) = max_f ;
+        cor_par_vals(PRN, k) = max_f / 6.038e6;
         shift_ca_par_vals(PRN, k) = shift_ca ;
         %fprintf('\t CR: %15.5f, SHIFT_CA:%4d\n', max_f, shift_ca) ;
     end
@@ -89,6 +89,7 @@ for PRN=PRN_range
 end
     
 %figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-figure(1), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-figure(2), subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title('Corr vals'), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
+%figure(1), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
+figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title('Corr vals'), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
+%figure(2), grid on, plot(cor_par_vals(PRN, 1:k), '-or'), hold on, plot(shift_ca_par_vals(PRN, 1:k), '-xg'), hold off;
 
