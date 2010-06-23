@@ -184,20 +184,12 @@ int rs232_dump_upload(bd_data_t *bd_data)
 	return 0;
 }
 
-int rs232_dump_mem(bd_data_t *bd_data)
+static int rs232_dump_gps_banner(bd_data_t *bd_data)
 {
-	TRACE(0, "[%s] Start dumping \n", __func__);
+    	int 		res ;
+	uint64_t	comm_64 ;
 
-	uint8_t		buff[1<<18] = {};
-	uint64_t	addr;
-	uint32_t	max_addr = (1<<18);
-	
-	uint64_t	comm_64;
-	int 		res;
-	
-	//char		str[10] = {};
 	char		header_string[] = "# Mode: 2bit, sign/magnitude\n# format [q2 i2 q1 i1]\n# i\tq\n";
-	char		str_i_q[255] = {};
 	
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
 	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
@@ -208,6 +200,41 @@ int rs232_dump_mem(bd_data_t *bd_data)
 	/* flush it */
 	comm_64 = RS232_DUMP_DATA ;
 	res = write(pfd->fd, &comm_64, sizeof(uint64_t));
+
+	return 0;
+}
+
+static int rs232_dump_finish(bd_data_t *bd_data)
+{
+	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
+
+	TRACE(0, "[%s] Dumped successfully\n", __func__);
+
+	/* upload flush */
+	rs232_dump_upload(bd_data);
+	TRACE(0, "[%s] Uploaded successfully\n", __func__);
+
+	close(dfd->fd);
+
+	return 0;
+}
+
+int rs232_dump_gps_text(bd_data_t *bd_data)
+{
+	TRACE(0, "[%s] Start dumping \n", __func__);
+
+	uint8_t		buff[1<<18] = {};
+	uint64_t	addr;
+	uint32_t	max_addr = (1<<18);
+	
+	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
+	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
+	
+	int 		res;
+	
+	char		str_i_q[255] = {};
+
+	rs232_dump_gps_banner(bd_data);
 	
 	/* because the first data is buggy */
 	for(addr = 1; addr < max_addr; addr++ ) {
@@ -227,13 +254,38 @@ int rs232_dump_mem(bd_data_t *bd_data)
 		write(dfd->fd, str_i_q, strlen(str_i_q));
 	}
 
-	TRACE(0, "[%s] Dumped successfully\n", __func__);
+	rs232_dump_finish(bd_data);
 
-	/* upload flush */
-	rs232_dump_upload(bd_data);
-	TRACE(0, "[%s] Uploaded successfully\n", __func__);
+	return 0;
+}
 
-	close(dfd->fd);
+int rs232_dump_gps_bin(bd_data_t *bd_data)
+{
+	TRACE(0, "[%s] Start dumping \n", __func__);
+
+	uint8_t		buff[1<<18] = {};
+	uint64_t	addr;
+	uint32_t	max_addr = (1<<18);
+	
+	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
+	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
+	
+	int 		res;
+	
+	rs232_dump_gps_banner(bd_data);
+	
+	/* because the first data is buggy */
+	for(addr = 1; addr < max_addr; addr++ ) {
+
+		res = read(pfd->fd, buff+addr, 1);
+
+		//hex2str(str, buff[addr]);
+		//TRACE(0, "=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
+	}
+	
+	write(dfd->fd, buff, sizeof(buff));
+
+	rs232_dump_finish(bd_data);
 
 	return 0;
 }
@@ -307,8 +359,8 @@ int rs232_work(bd_data_t *bd_data)
 	usleep(3 * SECOND);
 
 	/* get the flush */
-	/* add the mode checking */
-	rs232_dump_mem(bd_data) ;
+	bd_data->bd_dump_cb(bd_data) ;
+//	rs232_dump_gps_text(bd_data) ;
 
 	return 0;
 }

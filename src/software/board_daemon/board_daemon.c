@@ -78,6 +78,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 					{"gui_tcpport",  ""},		// 10
 					{"rs232_portname",  ""},	// 11
 					{"upload_script", ""},		// 12
+					{"dump_type", ""},		// 13
 					{"", ""}
 				};
 
@@ -133,7 +134,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 		return -1;
 	};
 	
-	res = access(cfg_vals[12].val_str, R_OK);
+	res = access(cfg_vals[12].val_str, R_OK | X_OK);
 	if( res != 0 ) {
 		TRACE(0, "Error. Upload script [%s] failed. errno: %s \n",
 			cfg_vals[12].val_str, strerror(errno));
@@ -141,6 +142,16 @@ int board_daemon_cfg(bd_data_t *bd_data)
 	};
 	strncpy(bd_data->upload_script, cfg_vals[12].val_str, MAXLINE);
 
+	/* dump_type */
+	res = strcmp(cfg_vals[13].val_str, "text");
+	if( res == 0 ) {
+	    /* text mode */
+	    /* FIXME - check for GNNS type */
+	    bd_data->bd_dump_cb = &rs232_dump_gps_text;
+	} else {
+	    bd_data->bd_dump_cb = &rs232_dump_gps_bin;
+	};
+	
 	/* free memery after cfg-file parsing */
 	cfg_destroy(cfg_parser);
 
