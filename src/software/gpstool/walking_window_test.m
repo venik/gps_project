@@ -48,9 +48,12 @@ else
 end
 % ========= generate =======================
 
+% move to offset
+x = x(t_offs:end) ;
+
 % coarse acqusition
 for PRN=PRN_range
-    acx = gpsacq3(x(t_offs:end),N,PRN_range,FR, 0) ;
+    acx = gpsacq3(x(1:end),N,PRN,FR, 0) ;
     [max_sat(PRN), k] = max(acx(1:length(FR),1));
     sat_shift_ca(PRN) = acx(k,2) ;
     max_sat_freq(PRN,1) = FR(k) ;
@@ -58,13 +61,15 @@ for PRN=PRN_range
     fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
+
+
 % +- 400 Hz in freq bin
-if 0
+if 1
     
 max_bin_freq = zeros(3,1) ;
 
 for PRN=PRN_range
-     data_5ms = work_data(sat_shift_ca(PRN) + 1: sat_shift_ca(PRN) + 5*N);
+     data_5ms = x(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N-1);
     %data_5ms = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N - 1);     % FIXME show to the MAO plot(data_5ms(2.445e4:2.452e4))
     
     ca16 = get_ca_code16(N/16,PRN) ;
@@ -78,6 +83,7 @@ for PRN=PRN_range
 
     freq_vals(PRN, 1) = fr(2) ;
     
+    % FIXME
     for i=[1:3]
         local_replica = exp(j*2*pi * fr(i)*ts * (0:N-1)) ;
         max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) )^2 ;
@@ -86,10 +92,57 @@ for PRN=PRN_range
     % adjust freq in freq bin
     [max_fine_sat(PRN), k] = max(max_bin_freq) ;
         
-    fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f,\n', max_bin_freq(2), fr(k), max_sat(PRN), max_sat_freq(PRN)) ;
+    fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
+    
+    % ===========================
+    %      parallel check  FIXME 
+    % ===========================
+    acx = gpsacq2(x(sat_shift_ca(PRN):end),N,PRN,fr(2), 0) ;
+    [max_f,shift_ca] = max(acx) ;
+    cor_par_vals(PRN, k) = max_f ;
+    shift_ca_par_vals(PRN, k) = shift_ca ;
+    fprintf('\t chk_circ [%15.5f] FREQ.:%5.1f\n\t chk_parr [%15.5f] FREQ.:%5.1f SHIFT_CA:%4d\n', max_bin_freq(2), fr(2), max_f, fr(2), shift_ca) ;
+    % ===========================
     
     max_sat_freq(PRN,2) =  fr(k);
-end
+ 
+    % ===========================
+    % tsui phase magic
+    % ===========================
+    % get rid from possible phase change
+    sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)*ts * (0:5*N-1)) ;
+    phase = diff(-angle(sum(reshape(sig, N, 5))));
+    phase_fix = phase;
+
+    threshold = (2.3*pi)/5 ; % FIXME / or \
+
+    for i=1:4 ;
+        if(abs(phase(i))) > threshold ;
+            phase(i) = phase_fix(i) - 2*pi ;
+            if(abs(phase(i))) > threshold ;
+                phase(i) = phase_fix(i) + 2*pi ;
+                %if(abs(phase(i))) > 2.2*pi / 5 ;    % FIXME / or \
+                if(abs(phase(i))) > threshold ;
+                    phase(i) = phase_fix(i) - pi ;
+                    if(abs(phase(i))) > threshold ;
+                       phase(i) = phase_fix(i) - 3*pi ;
+                       if(abs(phase(i))) > threshold ;
+                           phase(i) = phase_fix(i) + pi ;
+                       end
+                    end
+                end
+            end
+        end
+    end
+
+    dfrq = mean(phase)*1000 / (2*pi) ;
+    fr(shift_ca) = fr(k) + dfrq ;
+    
+    max_sat_freq(PRN, 3) =  fr(k);
+    
+    fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
+    
+end % for PRN=PRN_range FINE FREQ part
 
 end % if 0 of +- 400 Hz
 
@@ -101,11 +154,12 @@ shift_ca_par_vals = zeros(32,32) ;
 
 for PRN=PRN_range
     % move to initail point
-    x_win = x(t_offs + sat_shift_ca(PRN):end) ;
+    x_win = x(sat_shift_ca(PRN):end) ;
     
     % move window
     for k = 1:29
-        acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,max_sat_freq(PRN,1), 0) ;
+        f0 = max_sat_freq(PRN,3) ;
+        acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,f0, 0) ;
         [max_f,shift_ca] = max(acx) ;
         cor_par_vals(PRN, k) = max_f ;
         shift_ca_par_vals(PRN, k) = shift_ca ;
@@ -113,9 +167,10 @@ for PRN=PRN_range
     end
     fprintf(' \t: done\n');
 end
-    
+
+
 %figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
 %figure(1), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title('Corr vals'), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
+figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0)] ), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
 %figure(2), grid on, plot(cor_par_vals(PRN, 1:k), '-or'), hold on, plot(shift_ca_par_vals(PRN, 1:k), '-xg'), hold off;
 
