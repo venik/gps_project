@@ -3,11 +3,11 @@ clc, clear all ;
 nDumpSize = 16368*30 ;          % FIXME - we can more up to 32ms
 %load('./data/x.mat') ;
 %pwelch(x(1:16368),[],[],[],16.368e6) ;
-FR = 4092-5:1:4092+5 ; % frequency range kHz
-t_offs = 100 ;     % /* FIXME - time offset */
-N = 16368 ;   % /* correlation length */
-fs = 16368 ;   % /* sampling freq kHz */
-ts = 1/(fs * 1000) ;
+FR = 4.092e6-5e3:1e3:4.092e6+5e3 ;  % /* frequency range Hz */
+t_offs = 100 ;                    % /* FIXME - time offset */
+N = 16368 ;                       % /* correlation length */
+fs = 16.368e6 ;                   % /* sampling freq Hz */
+ts = 1/fs ;
 
 max_sat = zeros(32,1) ;
 max_fine_sat = zeros(32,1) ;
@@ -21,9 +21,9 @@ corr_vals = zeros(32,5) ;
 
 corr_vals_par = zeros(32,5) ;
 
-%PRN_range = 1:32 ;
+PRN_range = 1:32 ;
 %PRN_range = 3 ;
-PRN_range = 21 ;
+%PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
@@ -44,20 +44,15 @@ PRN_range = 21 ;
 %x = x(150:end) ;
 % ========= generate =======================
 
+
+% coarse acqusition
 for PRN=PRN_range
-    for f0 = FR
-        acx = gpsacq2(x(t_offs:end),N,PRN,f0, 0) ;
-        [max_f,shift_ca] = max(acx) ;
-        if max_f>=max_sat(PRN)
-            max_sat(PRN) = max_f ;
-            sat_shift_ca(PRN) = shift_ca ;
-            max_sat_freq(PRN) = f0 ;
-        end
-        %plot(acx), grid on, title(sprintf('PRN=%d, F_0=%f',PRN,f0)) ;
-        %pause ;
-    end
-    fprintf('#PRN: %2d, CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
+    acx = gpsacq3(x(t_offs:end),N,PRN,FR, 0) ;
+    [max_sat(PRN), k] = max(acx(1:length(FR),1));
+    sat_shift_ca(PRN) = acx(k,2) ;
+    max_sat_freq(PRN,1) = FR(k) ;
     
+    fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
 fprintf('Fine freq part ===>     \n') ;
@@ -79,7 +74,7 @@ for PRN=PRN_range
     
     fr = zeros(3,1) ;
     for i=[1:3]
-        fr(i) = max_sat_freq(PRN)*1000 - 400 + (i - 1) * 400 ;		% in Hz 
+        fr(i) = max_sat_freq(PRN) - 400 + (i - 1) * 400 ;		% in Hz 
     end
 
     freq_vals(PRN, 1) = fr(2) ;
@@ -135,6 +130,7 @@ for PRN=PRN_range
     
     freq_vals(PRN, 3) =  fr(shift_ca);
     
+    if 0    
     % Calculate correlation for test purposes
     % one more unneded correlation
     for k=1:5
@@ -155,7 +151,8 @@ for PRN=PRN_range
     max_fine_sat_new(PRN) = max_fine_sat_new(PRN) / 5 ;
        
     fprintf('\t ffe [%15.5f] FREQ.: %5.1f phase: %f \n', max_fine_sat_new(PRN), fr(shift_ca), dfrq) ;
-   
+    end 
+    
     % prepare for tracking
     max_sat_freq(PRN) = fr(shift_ca) ;
     
@@ -172,7 +169,7 @@ figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colorm
 %figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), plot(corr_vals(PRN, 1:5), '-or'), title('Correlation') ;
 
 % on same pics circullar and parralel
-figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), hold on, plot(corr_vals(PRN, 1:5), '-or'), plot(corr_vals_par(PRN, 1:5), '-xg'), hold off, title('Correlation') ;
+%figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), hold on, plot(corr_vals(PRN, 1:5), '-or'), plot(corr_vals_par(PRN, 1:5), '-xg'), hold off, title('Correlation') ;
 
 % ===============================================================
 % costas & DLL
