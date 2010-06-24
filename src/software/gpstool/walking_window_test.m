@@ -18,12 +18,9 @@ max_sat = zeros(32,1) ;
 %max_fine_sat_new = zeros(32,1) ;
 
 sat_shift_ca = zeros(32,1) ;
-%max_sat_freq = zeros(32,1) ;
+max_sat_freq = zeros(32,3) ;
 
-%freq_vals = zeros(32,3) ;
-
-
-%corr_vals_par = zeros(32,5) ;
+freq_vals = zeros(32,3) ;
 
 %PRN_range = 1:32 ;
 PRN_range = 16 ;
@@ -31,7 +28,7 @@ PRN_range = 16 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-if 1
+if 0
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
@@ -40,7 +37,7 @@ if 1
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 0 ;
+delta = 50 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
 %x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
 x = x .* x_ca16 ;
@@ -51,23 +48,52 @@ else
 end
 % ========= generate =======================
 
+% coarse acqusition
 for PRN=PRN_range
-    for f0 = FR
-        acx = gpsacq2(x(t_offs:end),N,PRN,f0, 0) ;
-        [max_f,shift_ca] = max(acx) ;
-        if max_f>=max_sat(PRN)
-            max_sat(PRN) = max_f ;
-            sat_shift_ca(PRN) = shift_ca ;
-            max_sat_freq(PRN) = f0 ;
-        end
-        %plot(acx), grid on, title(sprintf('PRN=%d, F_0=%f',PRN,f0)) ;
-        %pause ;
-    end
-    fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
+    acx = gpsacq3(x(t_offs:end),N,PRN_range,FR, 0) ;
+    [max_sat(PRN), k] = max(acx(1:length(FR),1));
+    sat_shift_ca(PRN) = acx(k,2) ;
+    max_sat_freq(PRN,1) = FR(k) ;
     
+    fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
-% and we know initial point of the signal (shift_ca) try to move window and
+% +- 400 Hz in freq bin
+if 0
+    
+max_bin_freq = zeros(3,1) ;
+
+for PRN=PRN_range
+     data_5ms = work_data(sat_shift_ca(PRN) + 1: sat_shift_ca(PRN) + 5*N);
+    %data_5ms = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N - 1);     % FIXME show to the MAO plot(data_5ms(2.445e4:2.452e4))
+    
+    ca16 = get_ca_code16(N/16,PRN) ;
+    ca16 = [ca16;ca16;ca16;ca16;ca16] ;
+    data_5ms =  ca16 .* data_5ms ;
+    
+    fr = zeros(3,1) ;
+    for i=[1:3]
+        fr(i) = max_sat_freq(PRN,1) - 400 + (i - 1) * 400 ;		% in Hz 
+    end
+
+    freq_vals(PRN, 1) = fr(2) ;
+    
+    for i=[1:3]
+        local_replica = exp(j*2*pi * fr(i)*ts * (0:N-1)) ;
+        max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) )^2 ;
+    end
+    
+    % adjust freq in freq bin
+    [max_fine_sat(PRN), k] = max(max_bin_freq) ;
+        
+    fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f,\n', max_bin_freq(2), fr(k), max_sat(PRN), max_sat_freq(PRN)) ;
+    
+    max_sat_freq(PRN,2) =  fr(k);
+end
+
+end % if 0 of +- 400 Hz
+
+% now we know initial point of the signal (shift_ca) try to move window and
 % check initial CA point
 
 corr_par_vals = zeros(32,32) ;
@@ -79,9 +105,9 @@ for PRN=PRN_range
     
     % move window
     for k = 1:29
-        acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,max_sat_freq(PRN), 0) ;
+        acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,max_sat_freq(PRN,1), 0) ;
         [max_f,shift_ca] = max(acx) ;
-        cor_par_vals(PRN, k) = max_f / 6.038e6;
+        cor_par_vals(PRN, k) = max_f ;
         shift_ca_par_vals(PRN, k) = shift_ca ;
         %fprintf('\t CR: %15.5f, SHIFT_CA:%4d\n', max_f, shift_ca) ;
     end
