@@ -93,7 +93,16 @@ for PRN=PRN_range
     [max_fine_sat(PRN), k] = max(max_bin_freq) ;
         
     fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
-    
+
+%x1 = x(t_offs:t_offs+N-1) ;
+%LO_sig = exp(j*2*pi*f0/16368*(0:2*N-1)) ; 
+%ca16 = get_ca_code16(N/16,20) ;
+%ca16 = [ca16;ca16] ;
+%ca16 = ca16(:).'.*real(LO_sig) ;
+%ca16 = ca16(16368-sca+2:16368-sca+1+16368) ;
+%xcr1 = ca16*x1 ;
+%fprintf('%12.5f\n',xcr1*conj(xcr1)) ;
+
     % ===========================
     %      parallel check  FIXME 
     % ===========================
@@ -110,7 +119,7 @@ for PRN=PRN_range
     % tsui phase magic
     % ===========================
     % get rid from possible phase change
-    sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)*ts * (0:5*N-1)) ;
+    sig = data_5ms.' .* exp(j*2*pi * max_sat_freq(PRN,2)*ts * (0:5*N-1)) ;
     phase = diff(-angle(sum(reshape(sig, N, 5))));
     phase_fix = phase;
 
