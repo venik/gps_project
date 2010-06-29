@@ -27,6 +27,9 @@ freq_vals = zeros(32,3) ;
 PRN_range = 20 ;
 %PRN_range = [21,22,23] ;
 
+ddd = 1;
+for delta=-1000:1:1000
+
 % ========= generate =======================
 if 1
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
@@ -37,11 +40,13 @@ if 1
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 101 ;
+%delta = 499 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
-x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
+bit_shift = round(abs(rand(1)*(length(x)-1))) ;
+x(bit_shift:end)=x(bit_shift:end) * (-1) ;
+%x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
 x = x .* x_ca16 ;
-x=x+randn(size(x))*10 ;
+%x=x+randn(size(x))*10 ;
 
 else
     x = readdump('./data/flush',nDumpSize) ;   
@@ -58,7 +63,7 @@ for PRN=PRN_range
     sat_shift_ca(PRN) = acx(k,2) ;
     max_sat_freq(PRN,1) = FR(k) ;
     
-    fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
+    %fprintf('#PRN: %2d CR: %15.5f, FREQ.:%5.1f, SHIFT_CA:%4d\n',PRN,max_sat(PRN),max_sat_freq(PRN),sat_shift_ca(PRN)) ;
 end
 
 % +- 400 Hz in freq bin
@@ -90,7 +95,7 @@ for PRN=PRN_range
     % adjust freq in freq bin
     [max_fine_sat(PRN), k] = max(max_bin_freq) ;
         
-    fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
+    %fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
 
 %x1 = x(t_offs:t_offs+N-1) ;
 %LO_sig = exp(j*2*pi*f0/16368*(0:2*N-1)) ; 
@@ -126,19 +131,19 @@ end
     threshold = (2.3*pi)/5 ; % FIXME / or \
 
     for i=1:4 ;
-        fprintf('\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+        %fprintf('\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
         
         if(abs(phase(i))) > threshold ;
             phase(i) = phase_fix(i) - sign(phase(i))* 2 * pi ;
-            fprintf('\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+            %fprintf('\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
             
             if(abs(phase(i))) > threshold ;
                 phase(i) = phase(i) - sign(phase(i))* pi ;
-                fprintf('\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+                %fprintf('\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
                 
                 if(abs(phase(i))) > threshold ;
                     phase(i) = phase_fix(i) - sign(phase(i))* 2 * pi ;
-                    fprintf('\t\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+                    %fprintf('\t\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
                 end
             end
         end
@@ -147,11 +152,21 @@ end
     dfrq = mean(phase)*1000 / (2*pi) ;
     max_sat_freq(PRN, 3) =  fr(k) + dfrq;
     
-    fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
+    %fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
     
 end % for PRN=PRN_range FINE FREQ part
 
 end % if 0 of +- 400 Hz
+
+if abs((delta + 4092000)-max_sat_freq(PRN, 3)) > 0.1
+    fprintf('Bad news, base [%f] maxsat [%f] bit_shift %d\n', (delta + 4092000), max_sat_freq(PRN, 3), bit_shift) ;
+    freq(ddd) = abs((delta + 4092000)-max_sat_freq(PRN, 3)) ;
+    ddd = ddd+1;
+    %return ;
+end
+
+end %delta
+freq
 
 % now we know initial point of the signal (shift_ca) try to move window and
 % check initial CA point
