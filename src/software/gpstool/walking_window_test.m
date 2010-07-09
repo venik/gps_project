@@ -155,9 +155,10 @@ end % for PRN=PRN_range FINE FREQ part
 
 end % if 0 of +- 400 Hz
 
+if 0 % checking
+    
 % now we know initial point of the signal (shift_ca) try to move window and
 % check initial CA point
-
 corr_par_vals = zeros(32,32) ;
 corr_par_vals_2 = zeros(32,32) ;
 shift_ca_par_vals = zeros(32,32) ;
@@ -193,10 +194,73 @@ for PRN=PRN_range
     fprintf(' \t: done\n');
 end
 
+end % checking
 
 %figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
 %figure(1), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
 %figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0)] ), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
 %figure(2), grid on, plot(cor_par_vals(PRN, 1:k), '-or'), hold on, plot(shift_ca_par_vals(PRN, 1:k), '-xg'), hold off;
 
-figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0_1)] ), subplot(2,1,2), plot(cor_par_vals_2(PRN, 1:k)), title(['Second ' int2str(f0_2)]);
+%figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0_1)] ), subplot(2,1,2), plot(cor_par_vals_2(PRN, 1:k)), title(['Second ' int2str(f0_2)]);
+
+% ====================================================
+%                      PLL/DLL
+% based on Akos code
+% http://sandiaproject.googlecode.com/svn/trunk/Docs/CDs/Utah%202008-09/SiGe/GNSS_SDR/tracking.m
+% ====================================================
+
+% filter constants
+%       LBW           - Loop noise bandwidth
+%       zeta          - Damping ratio
+%       k             - Loop gain
+%
+%       tau1, tau2   - Loop filter coefficients 
+LBW = 25 ;
+zeta = 0.707 ;
+k = 0.25 ;
+
+% Solve natural frequency
+Wn = LBW*8*zeta / (4*zeta.^2 + 1);
+
+% solve for t1 & t2
+tau1carr = k / (Wn * Wn);
+tau2carr = 2.0 * zeta / Wn;
+
+PDIcarr = 0.001;        % ????
+
+%code tracking loop parameters
+oldCodeNco   = 0.0;
+oldCodeError = 0.0;
+
+%carrier/Costas loop parameters
+oldCarrNco   = 0.0;
+oldCarrError = 0.0;
+
+carrFreqBasis = max_sat_freq(PRN,3) ;
+
+% <<< ===================================== >>>
+% prepare data
+data = x(sat_shift_ca(PRN): end) ;
+ca16 = get_ca_code16(N/16,PRN) ;
+data_ms = data(1:N) ;               % FIXME - just 1 ms now
+
+% move to baseband - check why peak also on 8000 Hz
+local_sig = exp(j*2*pi * max_sat_freq(PRN,3)*ts * (0:N-1)) ;
+base_band_sig = data_ms.' .* local_sig ;
+I_bb = real(base_band_sig) ;
+Q_bb = imag(base_band_sig) ;
+
+% FIXME - check for MAO, we have complex signal
+I_P = sum(I_bb' .* ca16) ;
+Q_P = sum(Q_bb' .* ca16) ;
+
+% Implement carrier loop discriminator (phase detector)
+carrError = atan(Q_P / I_P) / (2.0 * pi) ;
+
+% Implement carrier loop filter and generate NCO command
+carrNco = oldCarrNco + (tau2carr/tau1carr) * (carrError - oldCarrError) + carrError * (PDIcarr/tau1carr);
+oldCarrNco   = carrNco;
+oldCarrError = carrError;
+
+% Modify carrier freq based on NCO command
+carrFreq = carrFreqBasis + carrNco;
