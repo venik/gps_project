@@ -21,33 +21,41 @@ corr_vals = zeros(32,5) ;
 
 corr_vals_par = zeros(32,5) ;
 
-PRN_range = 1:32 ;
+%PRN_range = 1:32 ;
 %PRN_range = 3 ;
-%PRN_range = 21 ;
+PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
-% ========= generate =======================
- x = readdump('./data/flush',nDumpSize) ;
-%   x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
-%   x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
-%       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
-%   x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
+fprintf('\nmain2_fine_freq script: coarse acqusition => fine freq => .... \n\n') ;
 
-%delta = 150 ;
-%x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
-%x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
-%x = x .* x_ca16 ;
-%x=x+randn(size(x))*1 ;
-%x = x(150:end) ;
+% ========= generate =======================
+if 1
+   x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
+   x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
+       x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
+   x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
+
+    delta = 199 ;
+    x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
+    bit_shift = round(abs(rand(1)*(length(x)-1))) ;
+    x(bit_shift:end)=x(bit_shift:end) * (-1) ;
+    %x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
+    x = x .* x_ca16 ;
+    %x=x+randn(size(x))*10 ;
+else
+    x = readdump('./data/flush',nDumpSize) ;   
+end
 % ========= generate =======================
 
+% move to offset
+x = x(t_offs:end) ;
 
 % coarse acqusition
 for PRN=PRN_range
-    acx = gpsacq3(x(t_offs:end),N,PRN,FR, 0) ;
+    acx = gpsacq3(x(1:end),N,PRN,FR, 0) ;
     [max_sat(PRN), k] = max(acx(1:length(FR),1));
     sat_shift_ca(PRN) = acx(k,2) ;
     max_sat_freq(PRN,1) = FR(k) ;
@@ -57,107 +65,72 @@ end
 
 fprintf('Fine freq part ===>     \n') ;
 
-% fine freq estimation
-work_data = x(t_offs:end) ;
-if 1
+% +- 400 Hz in freq bin
+max_bin_freq = zeros(3,1) ;
+
 for PRN=PRN_range
-    fprintf('#PRN: %2d\n', PRN); 
-    
-    data_5ms = work_data(sat_shift_ca(PRN) + 1: sat_shift_ca(PRN) + 5*N);
+     data_5ms = x(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N-1);
     %data_5ms = work_data(sat_shift_ca(PRN): sat_shift_ca(PRN) + 5*N - 1);     % FIXME show to the MAO plot(data_5ms(2.445e4:2.452e4))
     
     ca16 = get_ca_code16(N/16,PRN) ;
     ca16 = [ca16;ca16;ca16;ca16;ca16] ;
     data_5ms =  ca16 .* data_5ms ;
     
-    %max_fine_sat(PRN) = max_sat(PRN) ;
-    
     fr = zeros(3,1) ;
     for i=[1:3]
-        fr(i) = max_sat_freq(PRN) - 400 + (i - 1) * 400 ;		% in Hz 
+        fr(i) = max_sat_freq(PRN,1) - 400 + (i - 1) * 400 ;		% in Hz 
     end
 
     freq_vals(PRN, 1) = fr(2) ;
     
+    % FIXME
     for i=[1:3]
         local_replica = exp(j*2*pi * fr(i)*ts * (0:N-1)) ;
         max_bin_freq(i) = abs( sum(data_5ms(1:N).' .* local_replica) )^2 ;
     end
-            
+    
     % adjust freq in freq bin
-    [max_fine_sat(PRN), shift_ca] = max(max_bin_freq) ;
-    %fr(shift_ca) = fr(shift_ca) + 0.2 * (shift_ca - 2) ;    
-    
-    %fprintf('\t%15.5f, %15.5f, %15.5f\n',max_bin_freq(1)^2,max_bin_freq(2)^2,max_bin_freq(3)^2) ;
-    fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f,\n', max_bin_freq(2), fr(shift_ca), max_sat(PRN), max_sat_freq(PRN)) ;
-    
-    freq_vals(PRN, 2) =  fr(shift_ca);
-    
+    [max_fine_sat(PRN), k] = max(max_bin_freq) ;
+        
+    %fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
+
+    max_sat_freq(PRN,2) =  fr(k);
+ 
+    % ===========================
+    % tsui phase magic
+    % ===========================
     % get rid from possible phase change
-    sig = data_5ms.' .* exp(j*2*pi * fr(shift_ca)*ts * (0:5*N-1)) ;
+    sig = data_5ms.' .* exp(j*2*pi * max_sat_freq(PRN,2)*ts * (0:5*N-1)) ;
     phase = diff(-angle(sum(reshape(sig, N, 5))));
     phase_fix = phase;
-    
+
     threshold = (2.3*pi)/5 ; % FIXME / or \
-    
+
     for i=1:4 ;
+        %fprintf('\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+        
         if(abs(phase(i))) > threshold ;
-            phase(i) = phase_fix(i) - 2*pi ;
+            phase(i) = phase_fix(i) - sign(phase(i))* 2 * pi ;
+            %fprintf('\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+            
             if(abs(phase(i))) > threshold ;
-                phase(i) = phase_fix(i) + 2*pi ;
-                %if(abs(phase(i))) > 2.2*pi / 5 ;    % FIXME / or \
+                phase(i) = phase(i) - sign(phase(i))* pi ;
+                %fprintf('\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
+                
                 if(abs(phase(i))) > threshold ;
-                    phase(i) = phase_fix(i) - pi ;
-                    if(abs(phase(i))) > threshold ;
-                       phase(i) = phase_fix(i) - 3*pi ;
-                       if(abs(phase(i))) > threshold ;
-                           phase(i) = phase_fix(i) + pi ;
-                       end
-                    end
+                    phase(i) = phase_fix(i) - sign(phase(i))* 2 * pi ;
+                    %fprintf('\t\t\t\t %d => %f => %f\n', i, phase(i), phase(i)/2*pi * 180 );
                 end
             end
         end
     end
-    
-    fprintf('\t phase: [%f] [%f] [%f] [%f] \n', phase(1), phase(2), phase(3), phase(4) );
-    
+
     dfrq = mean(phase)*1000 / (2*pi) ;
-    fr(shift_ca) = fr(shift_ca) + dfrq ;
+    max_sat_freq(PRN, 3) =  fr(k) + dfrq;
     
-    if( mean(phase) > threshold ) 
-        fprintf('\t\tThats bad dfrg [%d] > threshold \n', dfrq) ;
-    end
+    fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
     
-    freq_vals(PRN, 3) =  fr(shift_ca);
-    
-    if 0    
-    % Calculate correlation for test purposes
-    % one more unneded correlation
-    for k=1:5
-        % circullar
-        sig = data_5ms(1 + N*(k-1):N*k).' .* exp(j*2*pi * fr(shift_ca)*ts * (0:N-1)) ;
-        corr_vals(PRN,k) = abs(sum(sig))^2 ;
-        %fprintf('\t %d: tmp [%15.5f]\n', corr_vals(PRN, k) ) ;  
-        max_fine_sat_new(PRN) = max_fine_sat_new(PRN) + corr_vals(PRN,k);
-        
-        % parallel
-        data_5ms_par = work_data(sat_shift_ca(PRN) + 1: sat_shift_ca(PRN) + 5*N);
-        acx = gpsacq2(data_5ms_par(1 + N*(k-1):N*k),N,PRN,fr(shift_ca)/1000, 0) ;   % in kHz
-        [max_f,tmp] = max(acx) ;
-        corr_vals_par(PRN,k) = max_f ;
-                
-        fprintf('\t %d: circ_cor [%15.5f] par_cor [%15.5f] shift %d\n', k, corr_vals(PRN, k), max_f, tmp ) ;  
-    end
-    max_fine_sat_new(PRN) = max_fine_sat_new(PRN) / 5 ;
-       
-    fprintf('\t ffe [%15.5f] FREQ.: %5.1f phase: %f \n', max_fine_sat_new(PRN), fr(shift_ca), dfrq) ;
-    end 
-    
-    % prepare for tracking
-    max_sat_freq(PRN) = fr(shift_ca) ;
-    
-end
-end
+end % for PRN=PRN_range FINE FREQ part
 
 fprintf('Results: \n') ;
 
