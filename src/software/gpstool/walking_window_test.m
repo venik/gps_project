@@ -27,9 +27,6 @@ freq_vals = zeros(32,3) ;
 PRN_range = 20 ;
 %PRN_range = [21,22,23] ;
 
-ddd = 1;
-for delta=-1000:1:1000
-
 % ========= generate =======================
 if 1
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
@@ -40,7 +37,7 @@ if 1
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-%delta = 499 ;
+delta = 199 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
 bit_shift = round(abs(rand(1)*(length(x)-1))) ;
 x(bit_shift:end)=x(bit_shift:end) * (-1) ;
@@ -152,21 +149,11 @@ end
     dfrq = mean(phase)*1000 / (2*pi) ;
     max_sat_freq(PRN, 3) =  fr(k) + dfrq;
     
-    %fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
+    fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
     
 end % for PRN=PRN_range FINE FREQ part
 
 end % if 0 of +- 400 Hz
-
-if abs((delta + 4092000)-max_sat_freq(PRN, 3)) > 0.1
-    fprintf('Bad news, base [%f] maxsat [%f] bit_shift %d\n', (delta + 4092000), max_sat_freq(PRN, 3), bit_shift) ;
-    freq(ddd) = abs((delta + 4092000)-max_sat_freq(PRN, 3)) ;
-    ddd = ddd+1;
-    %return ;
-end
-
-end %delta
-freq
 
 % now we know initial point of the signal (shift_ca) try to move window and
 % check initial CA point
