@@ -237,11 +237,13 @@ oldCarrNco   = 0.0;
 oldCarrError = 0.0;
 
 carrFreqBasis = max_sat_freq(PRN,3) ;
+half_chip_size = 8 ; 
 
 % <<< ===================================== >>>
 % prepare data
 data = x(sat_shift_ca(PRN): end) ;
 ca16 = get_ca_code16(N/16,PRN) ;
+ca16_dll = [ca16; ca16; ca16] ;
 data_ms = data(1:N) ;               % FIXME - just 1 ms now
 
 % move to baseband - check why peak also on 8000 Hz
@@ -250,9 +252,14 @@ base_band_sig = data_ms.' .* local_sig ;
 I_bb = real(base_band_sig) ;
 Q_bb = imag(base_band_sig) ;
 
+% generate 6 outputs of the DLL
 % FIXME - check for MAO, we have complex signal
-I_P = sum(I_bb' .* ca16) ;
-Q_P = sum(Q_bb' .* ca16) ;
+I_E = sum(I_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
+Q_E = sum(Q_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
+I_P = sum(I_bb' .* ca16_dll(N:2*N - 1)) ;
+Q_P = sum(Q_bb' .* ca16_dll(N:2*N - 1)) ;
+I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
+Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
 
 % Implement carrier loop discriminator (phase detector)
 carrError = atan(Q_P / I_P) / (2.0 * pi) ;
@@ -264,3 +271,17 @@ oldCarrError = carrError;
 
 % Modify carrier freq based on NCO command
 carrFreq = carrFreqBasis + carrNco;
+
+% DLL result
+codeError = (sqrt(I_E * I_E + Q_E * Q_E) - sqrt(I_L * I_L + Q_L * Q_L)) / ...
+    (sqrt(I_E * I_E + Q_E * Q_E) + sqrt(I_L * I_L + Q_L * Q_L));
+
+% Implement code loop filter and generate NCO command
+codeNco = oldCodeNco + (tau2code/tau1code) * ...
+    (codeError - oldCodeError) + codeError * (PDIcode/tau1code);
+oldCodeNco   = codeNco;
+oldCodeError = codeError;
+
+% Modify code freq based on NCO command
+codeFreq = settings.codeFreqBasis - codeNco;
+
