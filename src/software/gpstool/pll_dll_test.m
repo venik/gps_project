@@ -182,8 +182,8 @@ Q_bb = imag(base_band_sig) ;
 % FIXME - check for MAO, we have complex signal
 I_E = sum(I_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
 Q_E = sum(Q_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
-I_P = sum(I_bb' .* ca16_dll(N:2*N - 1)) ;
-Q_P = sum(Q_bb' .* ca16_dll(N:2*N - 1)) ;
+I_P = sum(I_bb' .* ca16_dll(1:N)) ;
+Q_P = sum(Q_bb' .* ca16_dll(1:N)) ;
 I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
 Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
 
