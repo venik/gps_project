@@ -37,7 +37,7 @@ if 1
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 199 ;
+delta = 150 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
 bit_shift = round(abs(rand(1)*(length(x)-1))) ;
 x(bit_shift:end)=x(bit_shift:end) * (-1) ;
@@ -64,8 +64,6 @@ for PRN=PRN_range
 end
 
 % +- 400 Hz in freq bin
-if 1
-    
 max_bin_freq = zeros(3,1) ;
 
 for PRN=PRN_range
@@ -153,135 +151,71 @@ end
     
 end % for PRN=PRN_range FINE FREQ part
 
-end % if 0 of +- 400 Hz
-
-if 0 % checking
-    
 % now we know initial point of the signal (shift_ca) try to move window and
 % check initial CA point
-corr_par_vals = zeros(32,32) ;
+corr_par_vals_1 = zeros(32,32) ;
 corr_par_vals_2 = zeros(32,32) ;
-shift_ca_par_vals = zeros(32,32) ;
+corr_par_vals_3 = zeros(32,32) ;
+shift_ca_par_vals_1 = zeros(32,32) ;
+shift_ca_par_vals_2 = zeros(32,32) ;
+shift_ca_par_vals_3 = zeros(32,32) ;
 
+% correlate with fine freq
 for PRN=PRN_range
     % move to initail point
     x_win = x(sat_shift_ca(PRN):end) ;
-    f0_1 = max_sat_freq(PRN,2) ;
+    f0_1 = max_sat_freq(PRN,1) ;
     
     % move window
     for k = 1:29
         acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,f0_1, 0) ;
         [max_f,shift_ca] = max(acx) ;
-        cor_par_vals(PRN, k) = max_f ;
-        shift_ca_par_vals(PRN, k) = shift_ca ;
+        cor_par_vals_1(PRN, k) = max_f ;
+        shift_ca_par_vals_1(PRN, k) = shift_ca ;
         %fprintf('\t CR: %15.5f, SHIFT_CA:%4d\n', max_f, shift_ca) ;
     end
 end
 
+% correlate with fine freq
 for PRN=PRN_range
     % move to initail point
     x_win = x(sat_shift_ca(PRN):end) ;
-    f0_2 = max_sat_freq(PRN,3) ;
+    f0_2 = max_sat_freq(PRN,2) ;
     
     % move window
     for k = 1:29
         acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,f0_2, 0) ;
         [max_f,shift_ca] = max(acx) ;
         cor_par_vals_2(PRN, k) = max_f ;
-        %shift_ca_par_vals_2(PRN, k) = shift_ca ;
+        shift_ca_par_vals_2(PRN, k) = shift_ca ;
+        %fprintf('\t CR: %15.5f, SHIFT_CA:%4d\n', max_f, shift_ca) ;
+    end
+end
+
+% correlate with phase correction
+for PRN=PRN_range
+    % move to initail point
+    x_win = x(sat_shift_ca(PRN):end) ;
+    f0_3 = max_sat_freq(PRN,3) ;
+    
+    % move window
+    for k = 1:29
+        acx = gpsacq2(x_win(1 + (k-1)*N:N*k),N,PRN,f0_3, 0) ;
+        [max_f,shift_ca] = max(acx) ;
+        cor_par_vals_3(PRN, k) = max_f ;
+        shift_ca_par_vals_3(PRN, k) = shift_ca ;
         %fprintf('\t CR: %15.5f, SHIFT_CA:%4d\n', max_f, shift_ca) ;
     end
     fprintf(' \t: done\n');
 end
-
-end % checking
 
 %figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
 %figure(1), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
 %figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0)] ), subplot(2,1,2), plot(shift_ca_par_vals(PRN, 1:k)), title('shift CA');
 %figure(2), grid on, plot(cor_par_vals(PRN, 1:k), '-or'), hold on, plot(shift_ca_par_vals(PRN, 1:k), '-xg'), hold off;
 
-%figure(2), grid on, subplot(2,1,1), plot(cor_par_vals(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0_1)] ), subplot(2,1,2), plot(cor_par_vals_2(PRN, 1:k)), title(['Second ' int2str(f0_2)]);
-
-% ====================================================
-%                      PLL/DLL
-% based on Akos code
-% http://sandiaproject.googlecode.com/svn/trunk/Docs/CDs/Utah%202008-09/SiGe/GNSS_SDR/tracking.m
-% ====================================================
-
-% filter constants
-%       LBW           - Loop noise bandwidth
-%       zeta          - Damping ratio
-%       k             - Loop gain
-%
-%       tau1, tau2   - Loop filter coefficients 
-LBW = 25 ;
-zeta = 0.707 ;
-k = 0.25 ;
-
-% Solve natural frequency
-Wn = LBW*8*zeta / (4*zeta.^2 + 1);
-
-% solve for t1 & t2
-tau1carr = k / (Wn * Wn);
-tau2carr = 2.0 * zeta / Wn;
-
-PDIcarr = 0.001;        % ????
-
-%code tracking loop parameters
-oldCodeNco   = 0.0;
-oldCodeError = 0.0;
-
-%carrier/Costas loop parameters
-oldCarrNco   = 0.0;
-oldCarrError = 0.0;
-
-carrFreqBasis = max_sat_freq(PRN,3) ;
-half_chip_size = 8 ; 
-
-% <<< ===================================== >>>
-% prepare data
-data = x(sat_shift_ca(PRN): end) ;
-ca16 = get_ca_code16(N/16,PRN) ;
-ca16_dll = [ca16; ca16; ca16] ;
-data_ms = data(1:N) ;               % FIXME - just 1 ms now
-
-% move to baseband - check why peak also on 8000 Hz
-local_sig = exp(j*2*pi * max_sat_freq(PRN,3)*ts * (0:N-1)) ;
-base_band_sig = data_ms.' .* local_sig ;
-I_bb = real(base_band_sig) ;
-Q_bb = imag(base_band_sig) ;
-
-% generate 6 outputs of the DLL
-% FIXME - check for MAO, we have complex signal
-I_E = sum(I_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
-Q_E = sum(Q_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
-I_P = sum(I_bb' .* ca16_dll(N:2*N - 1)) ;
-Q_P = sum(Q_bb' .* ca16_dll(N:2*N - 1)) ;
-I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
-Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
-
-% Implement carrier loop discriminator (phase detector)
-carrError = atan(Q_P / I_P) / (2.0 * pi) ;
-
-% Implement carrier loop filter and generate NCO command
-carrNco = oldCarrNco + (tau2carr/tau1carr) * (carrError - oldCarrError) + carrError * (PDIcarr/tau1carr);
-oldCarrNco   = carrNco;
-oldCarrError = carrError;
-
-% Modify carrier freq based on NCO command
-carrFreq = carrFreqBasis + carrNco;
-
-% DLL result
-codeError = (sqrt(I_E * I_E + Q_E * Q_E) - sqrt(I_L * I_L + Q_L * Q_L)) / ...
-    (sqrt(I_E * I_E + Q_E * Q_E) + sqrt(I_L * I_L + Q_L * Q_L));
-
-% Implement code loop filter and generate NCO command
-codeNco = oldCodeNco + (tau2code/tau1code) * ...
-    (codeError - oldCodeError) + codeError * (PDIcode/tau1code);
-oldCodeNco   = codeNco;
-oldCodeError = codeError;
-
-% Modify code freq based on NCO command
-codeFreq = settings.codeFreqBasis - codeNco;
-
+% plot correlation
+figure(2), grid on, ...
+       subplot(3,1,1), plot(cor_par_vals_1(PRN, 1:k)), title(['Corr vals   FREQ:' int2str(f0_1)] ), ...
+       subplot(3,1,2), plot(cor_par_vals_2(PRN, 1:k)), title(['fine freq ' int2str(f0_2)]), ...
+       subplot(3,1,3), plot(cor_par_vals_3(PRN, 1:k)), title(['phase correction ' int2str(f0_3)]);
