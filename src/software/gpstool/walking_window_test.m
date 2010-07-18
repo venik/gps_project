@@ -24,11 +24,11 @@ freq_vals = zeros(32,3) ;
 
 %PRN_range = 1:32 ;
 %PRN_range = 16 ;
-PRN_range = 20 ;
+PRN_range = 23 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-if 1
+if 0
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;

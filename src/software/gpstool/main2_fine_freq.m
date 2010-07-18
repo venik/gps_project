@@ -10,8 +10,8 @@ fs = 16.368e6 ;                   % /* sampling freq Hz */
 ts = 1/fs ;
 
 max_sat = zeros(32,1) ;
-max_fine_sat = zeros(32,1) ;
-max_fine_sat_new = zeros(32,1) ;
+max_fine_sat_fine = zeros(32,1) ;
+max_fine_sat_phase = zeros(32,1) ;
 
 sat_shift_ca = zeros(32,1) ;
 max_sat_freq = zeros(32,1) ;
@@ -21,15 +21,15 @@ corr_vals = zeros(32,5) ;
 
 corr_vals_par = zeros(32,5) ;
 
-%PRN_range = 1:32 ;
+PRN_range = 1:32 ;
 %PRN_range = 3 ;
-PRN_range = 21 ;
+%PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 fprintf('\nmain2_fine_freq script: coarse acqusition => fine freq => .... \n\n') ;
 
 % ========= generate =======================
-if 1
+if 0
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
@@ -90,7 +90,7 @@ for PRN=PRN_range
     end
     
     % adjust freq in freq bin
-    [max_fine_sat(PRN), k] = max(max_bin_freq) ;
+    [max_fine_sat_fine(PRN), k] = max(max_bin_freq) ;
         
     %fprintf('\t new [%15.5f] FREQ.:%5.1f\n\t old [%15.5f] FREQ.:%5.1f\n', max_bin_freq(k), fr(k), max_sat(PRN), max_sat_freq(PRN, 1)) ;
 
@@ -128,15 +128,19 @@ for PRN=PRN_range
     dfrq = mean(phase)*1000 / (2*pi) ;
     max_sat_freq(PRN, 3) =  fr(k) + dfrq;
     
-    fprintf('\t FREQ.:%5.1f\n', max_sat_freq(PRN, 3)) ;
+    fprintf('\t#PRN: %2d ff_FREQ.:%5.1f phase_FREQ.%5.1f\n', PRN, max_sat_freq(PRN, 2), max_sat_freq(PRN, 3)) ;
+    
+    % just correlate for graph
+    local_replica = exp(j*2*pi * max_sat_freq(PRN, 3)*ts * (0:N-1)) ;
+    max_fine_sat_phase(PRN) = abs( sum(data_5ms(1:N).' .* local_replica) )^2 ;
     
 end % for PRN=PRN_range FINE FREQ part
 
 fprintf('Results: \n') ;
 
 % plot result
-figure(1), subplot(3, 1, 1), barh(max_fine_sat_new), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
-figure(1), subplot(3, 1, 2), barh(max_fine_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
+figure(1), subplot(3, 1, 1), barh(max_fine_sat_phase), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs after fine freq estimation') ;
+figure(1), subplot(3, 1, 2), barh(max_fine_sat_fine), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs with 400 Hz adjust') ;
 figure(1), subplot(3, 1, 3), barh(max_sat), xlim([1,13e7]), ylim([1,32]), colormap summer, grid on, title('Correlator outputs') ;
 
 %figure(2), subplot(2,1,1), plot(freq_vals(PRN, 1:3), '-or'), title('FREQ'), subplot(2,1,2), plot(corr_vals(PRN, 1:5), '-or'), title('Correlation') ;
