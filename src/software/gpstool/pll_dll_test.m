@@ -171,8 +171,8 @@ data = x(sat_shift_ca(PRN): end) ;
 ca16 = get_ca_code16(N/16,PRN) ;
 ca16_dll = [ca16; ca16; ca16] ;
 
-code_corr_I = zeros(1,35)
-code_corr_Q = zeros(1,35)
+code_corr_I = zeros(1,35) ;
+code_corr_Q = zeros(1,35) ;
 
 for kk=1:25
     data_ms = data((kk-1)*N + 1 : N*kk) ;               % FIXME - just 1 ms now
@@ -191,7 +191,6 @@ for kk=1:25
     Q_P = sum(Q_bb' .* ca16_dll(1:N))^2 ;
     I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size))^2 ;
     Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size))^2 ;
-    fprintf('Early %f %f \n', I_E, Q_E) ;
 
     code_corr_I(kk) = I_P ;
     code_corr_Q(kk) = Q_P ;
