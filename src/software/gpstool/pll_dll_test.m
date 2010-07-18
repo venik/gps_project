@@ -22,12 +22,12 @@ max_sat_freq = zeros(32,3) ;
 freq_vals = zeros(32,3) ;
 
 %PRN_range = 1:32 ;
-%PRN_range = 16 ;
-PRN_range = 20 ;
+PRN_range = 16 ;
+%PRN_range = 23 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-if 1
+if 0
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
@@ -170,46 +170,64 @@ half_chip_size = 8 ;
 data = x(sat_shift_ca(PRN): end) ;
 ca16 = get_ca_code16(N/16,PRN) ;
 ca16_dll = [ca16; ca16; ca16] ;
-data_ms = data(1:N) ;               % FIXME - just 1 ms now
 
-% move to baseband - check why peak also on 8000 Hz
-local_sig = exp(j*2*pi * max_sat_freq(PRN,3)*ts * (0:N-1)) ;
-base_band_sig = data_ms.' .* local_sig ;
-I_bb = real(base_band_sig) ;
-Q_bb = imag(base_band_sig) ;
+code_corr_I = zeros(1,35)
+code_corr_Q = zeros(1,35)
 
-% generate 6 outputs of the DLL
-% FIXME - check for MAO, we have complex signal
-I_E = sum(I_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
-Q_E = sum(Q_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size)) ;
-I_P = sum(I_bb' .* ca16_dll(1:N)) ;
-Q_P = sum(Q_bb' .* ca16_dll(1:N)) ;
-I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
-Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size)) ;
+for kk=1:25
+    data_ms = data((kk-1)*N + 1 : N*kk) ;               % FIXME - just 1 ms now
 
-% Implement carrier loop discriminator (phase detector)
-carrError = atan(Q_P / I_P) / (2.0 * pi) ;
+    % move to baseband - check why peak also on 8000 Hz
+    local_sig = exp(j*2*pi * max_sat_freq(PRN,3)*ts * (0:N-1)) ;
+    base_band_sig = data_ms.' .* local_sig ;
+    I_bb = real(base_band_sig) ;
+    Q_bb = imag(base_band_sig) ;
 
-% Implement carrier loop filter and generate NCO command
-carrNco = oldCarrNco + (tau2carr/tau1carr) * (carrError - oldCarrError) + carrError * (PDIcarr/tau1carr);
-oldCarrNco   = carrNco;
-oldCarrError = carrError;
+    % generate 6 outputs of the DLL
+    % FIXME - check for MAO, we have complex signal
+    I_E = sum(I_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size))^2 ;
+    Q_E = sum(Q_bb' .* ca16_dll(N - half_chip_size:2*N - 1 - half_chip_size))^2 ;
+    I_P = sum(I_bb' .* ca16_dll(1:N))^2 ;
+    Q_P = sum(Q_bb' .* ca16_dll(1:N))^2 ;
+    I_L = sum(I_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size))^2 ;
+    Q_L = sum(Q_bb' .* ca16_dll(N + half_chip_size:2*N - 1 + half_chip_size))^2 ;
+    fprintf('Early %f %f \n', I_E, Q_E) ;
 
-% Modify carrier freq based on NCO command
-carrFreq = carrFreqBasis + carrNco;
+    code_corr_I(kk) = I_P ;
+    code_corr_Q(kk) = Q_P ;
+    fprintf('\t[%d] E:%f\t P:%f\t L:%f \n', kk, I_E, I_P, I_L) ;
 
-% DLL result
-codeError = (sqrt(I_E * I_E + Q_E * Q_E) - sqrt(I_L * I_L + Q_L * Q_L)) / ...
-    (sqrt(I_E * I_E + Q_E * Q_E) + sqrt(I_L * I_L + Q_L * Q_L));
+    %plot(abs(base_band_sig.'.* ca16_dll(1:N))) ;
 
-% Implement code loop filter and generate NCO command
-%codeNco = oldCodeNco + (tau2code/tau1code) * ...
-%    (codeError - oldCodeError) + codeError * (PDIcode/tau1code);
-%oldCodeNco   = codeNco;
-%oldCodeError = codeError;
+    % % Implement carrier loop discriminator (phase detector)
+    % carrError = atan(Q_P / I_P) / (2.0 * pi) ;
+    % 
+    % % Implement carrier loop filter and generate NCO command
+    % carrNco = oldCarrNco + (tau2carr/tau1carr) * (carrError - oldCarrError) + carrError * (PDIcarr/tau1carr);
+    % oldCarrNco   = carrNco;
+    % oldCarrError = carrError;
+    % 
+    % % Modify carrier freq based on NCO command
+    % carrFreq = carrFreqBasis + carrNco;
+    % 
+    % % DLL result
+    % codeError = (sqrt(I_E * I_E + Q_E * Q_E) - sqrt(I_L * I_L + Q_L * Q_L)) / ...
+    %     (sqrt(I_E * I_E + Q_E * Q_E) + sqrt(I_L * I_L + Q_L * Q_L));
+    % 
+    % % Implement code loop filter and generate NCO command
+    % %codeNco = oldCodeNco + (tau2code/tau1code) * ...
+    % %    (codeError - oldCodeError) + codeError * (PDIcode/tau1code);
+    % %oldCodeNco   = codeNco;
+    % %oldCodeError = codeError;
+    % 
+    % % Modify code freq based on NCO command
+    % %codeFreq = settings.codeFreqBasis - codeNco;
+    % 
+    % 
+    % fprintf('done \n') ;
+end
 
-% Modify code freq based on NCO command
-%codeFreq = settings.codeFreqBasis - codeNco;
-
-
-fprintf('done \n') ;
+figure(1), grid on, hold on, ...
+        plot(code_corr_I(1:kk), '-or'), ...
+        plot(code_corr_Q(1:kk), '-xg')
+        hold off;
