@@ -22,8 +22,8 @@ max_sat_freq = zeros(32,3) ;
 freq_vals = zeros(32,3) ;
 
 %PRN_range = 1:32 ;
-PRN_range = 16 ;
-%PRN_range = 23 ;
+%PRN_range = 16 ;
+PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
@@ -129,6 +129,8 @@ for PRN=PRN_range
     
 end % for PRN=PRN_range FINE FREQ part
 
+fprintf('\t FREQ.:%5.1f FREQ.:%5.1f FREQ.:%5.1f\n', max_sat_freq(PRN, 1), max_sat_freq(PRN,2), max_sat_freq(PRN,3)) ;
+
 % ====================================================
 %                      PLL/DLL
 % based on Akos code
@@ -180,6 +182,7 @@ for kk=1:25
     % move to baseband - check why peak also on 8000 Hz
     local_sig = exp(j*2*pi * max_sat_freq(PRN,3)*ts * (0:N-1)) ;
     base_band_sig = data_ms.' .* local_sig ;
+    
     I_bb = real(base_band_sig) ;
     Q_bb = imag(base_band_sig) ;
 
@@ -227,6 +230,7 @@ for kk=1:25
 end
 
 figure(1), grid on, hold on, ...
+        title('Red - Inphase, Green - Quadrature')
         plot(code_corr_I(1:kk), '-or'), ...
         plot(code_corr_Q(1:kk), '-xg')
         hold off;
