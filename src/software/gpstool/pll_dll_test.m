@@ -27,7 +27,7 @@ PRN_range = 21 ;
 %PRN_range = [21,22,23] ;
 
 % ========= generate =======================
-if 0
+if 1
    x_ca16 = get_ca_code16(N/16,PRN_range(1)) ;
    x_ca16 = [x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;
@@ -36,10 +36,10 @@ if 0
        x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16;x_ca16] ;
    x = exp(2*j*pi*4092000/16368000*(0:length(x_ca16)-1)).' ;
 
-delta = 199 ;
+delta = 20 ;
 x = cos(2*pi*(4092000 + delta)/16368000*(0:length(x_ca16)-1)).' ;
-bit_shift = round(abs(rand(1)*(length(x)-1))) ;
-x(bit_shift:end)=x(bit_shift:end) * (-1) ;
+%bit_shift = round(abs(rand(1)*(length(x)-1))) ;
+%x(bit_shift:end)=x(bit_shift:end) * (-1) ;
 %x(length(x)/2+1000:end)=x(length(x)/2+1000:end) * (-1) ;
 x = x .* x_ca16 ;
 %x=x+randn(size(x))*10 ;
@@ -229,8 +229,9 @@ for kk=1:25
     % fprintf('done \n') ;
 end
 
-figure(1), grid on, hold on, ...
+figure(1), grid on, hold off, ...
         title('Red - Inphase, Green - Quadrature')
         plot(code_corr_I(1:kk), '-or'), ...
+        hold on, ...
         plot(code_corr_Q(1:kk), '-xg')
-        hold off;
+        hold off ;
