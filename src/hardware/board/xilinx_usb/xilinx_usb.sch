@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2010 7 28 18 48 12)
+  (timeStamp 2010 7 29 18 44 5)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -8688,8 +8688,8 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "1.0mil")
       (grid "50.0mil")
+      (grid "1.0mil")
       (grid "100.0mil")
     )
     (designInfo 
