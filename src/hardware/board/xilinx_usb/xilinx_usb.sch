@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2010 8 4 18 58 10)
+  (timeStamp 2010 8 5 13 55 4)
   (program "P-CAD 2002 Schematic" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -883,7 +883,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
   )
   (symbolDef "WIRE_PAD_SYM_1"
     (originalName "WIRE_PAD_SYM")
-    (pin (pinNum 1) (pt 0.0 0.0) (rotation 180.0) (isFlipped True) 
+    (pin (pinNum 1) (pt 0.0 0.0) (rotation 180.0) 
       (pinDisplay (dispPinDes False) ) 
       (pinDes (text (pt -65.0 0.0) "0" (textStyleRef "(PinStyle)") (isFlipped True) (extent 1.96214 mm 3.04561 mm) )
       ) 
@@ -7481,7 +7481,26 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (compValue "10k")
     (patternName "C0805")
   )
+  (compInst "U44"
+    (compRef "WIRE_PAD_1")
+    (originalName "WIRE_PAD")
+    (compValue "PAD_IO77")
+    (patternName "WIRE_PAD")
+  )
+  (compInst "U45"
+    (compRef "WIRE_PAD_1")
+    (originalName "WIRE_PAD")
+    (compValue "PAD_33v")
+    (patternName "WIRE_PAD")
+  )
+  (compInst "U46"
+    (compRef "WIRE_PAD_1")
+    (originalName "WIRE_PAD")
+    (compValue "PAD_GND")
+    (patternName "WIRE_PAD")
+  )
   (net "GND"
+    (node "U46" "0")
     (node "U40" "1")
     (node "U40" "15")
     (node "U40" "47")
@@ -7674,6 +7693,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (node "C9" "1")
   )
   (net "3.3V"
+    (node "U45" "0")
     (node "U40" "20")
     (node "U40" "56")
     (node "U40" "50")
@@ -8245,6 +8265,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (node "U1" "76")
   )
   (net "I/O_77"
+    (node "U44" "0")
     (node "U1" "77")
   )
   (net "I/O_78"
@@ -8681,8 +8702,8 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
   (schDesignHeader 
     (workspaceSize 420.0 mm 297.0 mm)
     (gridDfns 
-      (grid "1.0mil")
       (grid "50.0mil")
+      (grid "1.0mil")
       (grid "100.0mil")
     )
     (designInfo 
@@ -9902,6 +9923,8 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (port (pt 7250.0 7550.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (wire (line (pt 10000.0 3850.0) (pt 10100.0 3850.0) (width 10.0) (netNameRef "ALTERA_IO_A4") )
     )
+    (port (pt 10450.0 1050.0) (portType LeftAngle_Sgl_Horz) (netNameRef "GND") (rotation 180.0) )
+    (port (pt 10450.0 1550.0) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") (rotation 180.0) )
     (wire (line (pt 11150.0 3550.0) (pt 11150.0 3450.0) (width 10.0) (netNameRef "NET00068") )
     )
     (junction (pt 11150.0 4700.0) (netNameRef "ETH_TX_1") )
@@ -10286,9 +10309,15 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (port (pt 7800.0 5650.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_117") )
     (port (pt 7850.0 5800.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_76") )
     (port (pt 7850.0 5900.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_77") )
+    (wire (line (pt 8800.0 1600.0) (pt 9000.0 1600.0) (width 10.0) (netNameRef "I/O_77") )
+    )
     (wire (line (pt 8800.0 2650.0) (pt 9000.0 2650.0) (width 10.0) (netNameRef "I/O_67") )
     )
     (wire (line (pt 8800.0 3150.0) (pt 9000.0 3150.0) (width 10.0) (netNameRef "I/O_66") )
+    )
+    (wire (line (pt 10450.0 1050.0) (pt 10650.0 1050.0) (width 10.0) (netNameRef "GND") )
+    )
+    (wire (line (pt 10450.0 1550.0) (pt 10650.0 1550.0) (width 10.0) (netNameRef "3.3V") )
     )
     (wire (line (pt 10800.0 2650.0) (pt 10800.0 2500.0) (width 10.0) (netNameRef "ETH_GND") )
     )
@@ -10428,6 +10457,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (wire (line (pt 8800.0 2100.0) (pt 9000.0 2100.0) (width 10.0) (netNameRef "I/O_76") )
     )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U43") (partNum 1) (pt 9300.0 2100.0) )
+    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U44") (partNum 1) (pt 9300.0 1600.0) )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U9") (partNum 1) (pt 9300.0 3150.0) )
     (symbol (symbolRef "R_1") (refDesRef "R45") (partNum 1) (pt 10800.0 2650.0) (rotation 90.0) 
       (attr "Type" "" (pt 0.0 300.0) (rotation 90.0) (justify Center) (textStyleRef "small") )
@@ -10578,6 +10608,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (wire (line (pt 3150.0 10300.0) (pt 3800.0 10300.0) (width 10.0) (netNameRef "GND") )
     )
     (port (pt 5000.0 10300.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_13") (rotation 180.0) )
+    (port (pt 8800.0 1600.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_77") (rotation 180.0) )
     (port (pt 8800.0 2650.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_67") (rotation 180.0) )
     (port (pt 8800.0 3150.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_66") (rotation 180.0) )
     (port (pt 10000.0 3850.0) (portType LeftAngle_Sgl_Horz) (netNameRef "ALTERA_IO_A4") (rotation 180.0) )
@@ -10669,6 +10700,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (symbol (symbolRef "CP_1") (refDesRef "C41") (partNum 1) (pt 1350.0 9900.0) )
     (port (pt 8800.0 2100.0) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_76") (rotation 180.0) )
     (symbol (symbolRef "COIL_1") (refDesRef "L4") (partNum 1) (pt 6150.0 7550.0) )
+    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U46") (partNum 1) (pt 10950.0 1050.0) )
     (port (pt 12000.0 2500.0) (portType NoAngle_Sgl_Vert) (netNameRef "ETH_GND") (rotation 180.0) )
     (port (pt 10800.0 2500.0) (portType NoAngle_Sgl_Vert) (netNameRef "ETH_GND") (rotation 180.0) )
     (symbol (symbolRef "R_1") (refDesRef "R44") (partNum 1) (pt 12050.0 3850.0) )
@@ -10683,6 +10715,7 @@ ACCEL_ASCII "C:\Work\utils\gps_project\src\hardware\board\xilinx_usb\xilinx_usb.
     (symbol (symbolRef "AT93C46_1") (refDesRef "U10") (partNum 1) (pt 900.0 2950.0) )
     (symbol (symbolRef "RS-232-CONSYM_1") (refDesRef "U12") (partNum 1) (pt 1950.0 8650.0) )
     (symbol (symbolRef "NPN_1") (refDesRef "Q1") (partNum 2) (pt 11150.0 3850.0) )
+    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U45") (partNum 1) (pt 10950.0 1550.0) )
     (symbol (symbolRef "COMP_SYM_1") (refDesRef "U35") (partNum 1) (pt 11500.0 6500.0) )
     (symbol (symbolRef "MC33269_1") (refDesRef "U36") (partNum 1) (pt 13550.0 9950.0) 
       (attr "Value" "" (isVisible True) (textStyleRef "(Default)") )
