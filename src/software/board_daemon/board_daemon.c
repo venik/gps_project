@@ -110,7 +110,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 		bd_data->port = 1234;
 	}
 
-	/* rs232 device name */
+	/* rs232_portname */
 	res = strlen(cfg_vals[11].val_str);
 	if( res == 0 ) {
 		TRACE(0, "Error. You MUST declare rs232-port name in [%s] token in the cfg-file\n",
@@ -126,7 +126,7 @@ int board_daemon_cfg(bd_data_t *bd_data)
 	};
 	strncpy(bd_data->name, cfg_vals[11].val_str, MAXLINE);
 	
-	/* rs232 device name */
+	/* upload_script */
 	res = strlen(cfg_vals[12].val_str);
 	if( res == 0 ) {
 		TRACE(0, "Error. You MUST declare full path with the name of the the upload script in the [%s] \
@@ -167,7 +167,6 @@ int main(int argc, char **argv) {
 
 	/* FIXME - some constants, need implement it */
 	I = stdout;
-	sprintf(bd_data->name, "/dev/ttyS0");
 
 	/* parse input */
 	while ( (res = getopt(argc,argv,"hc:")) != -1){

@@ -23,12 +23,17 @@ enum bd_fd_list {
 /********************************************
  *	Work definition 
  ********************************************/
-typedef struct bd_data_s {
+typedef struct bd_data_s bd_data_t;
+typedef int bd_cb_f(bd_data_t *);
+
+struct bd_data_s {
 	/* network part */
 	struct pollfd	client[4];
 	uint32_t	port;
 	uint8_t 	recv_buf[BUF_SIZE];
 	uint8_t 	send_buf[BUF_SIZE];
+
+	uint8_t		dump_file[MAXLINE];
 
 	/* support */
 	char		cfg_name[MAXLINE];	/* config name */	
@@ -44,7 +49,10 @@ typedef struct bd_data_s {
 
 	/* gps registers array */
 	gps_reg_str_t gps_regs[10];
-} bd_data_t;
+
+	/* callbcaks */
+	bd_cb_f		*bd_dump_cb;
+};
 
 /* signal handlers */
 static void bd_sig_INT(int sig)
@@ -84,6 +92,5 @@ int bd_make_signals()
 
 	return 0;
 }
-
 
 #endif /* */

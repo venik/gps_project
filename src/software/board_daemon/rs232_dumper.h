@@ -119,38 +119,41 @@ int rs232_send_comm(bd_data_t *bd_data, uint64_t reg)
 
 int rs232_open_dump_file(bd_data_t *bd_data)
 {
-	int		iov_length = 13;
+	int		iov_length = 14;
 	int		i;
 	struct 		iovec iov[iov_length];
 	struct pollfd	*pfd = &bd_data->client[DUMP_FD];
 
-	pfd->fd = open("/tmp/flush", O_RDWR|O_CREAT|O_TRUNC, 0666);
+	pfd->fd = open((char *)bd_data->dump_file, O_RDWR|O_CREAT|O_TRUNC, 0666);
 
 	if( pfd->fd < 0 ) {
 		TRACE(0, "Error. during open the flush file. errno %s\n", strerror(errno));
-		return -1;;
+		exit(-1);
 	}
 
 	/* get and write current time */
 	time_t	cur_time;
+	char	banner_size[4] = "##\0\0";			// ## banner_size
 	char	p_time[40] = "# ";
 	char	blank_str[] = "#\n";
 
 	time(&cur_time);
 	ctime_r(&cur_time, p_time + 2);
 
-	iov[0].iov_base = p_time;
-	iov[0].iov_len = strlen(p_time);
-	iov[1].iov_base = blank_str;
-	iov[1].iov_len = strlen(blank_str);
+	iov[0].iov_base = banner_size;				// 4 octets for banner size
+	iov[0].iov_len = sizeof(banner_size);
+	iov[1].iov_base = p_time;
+	iov[1].iov_len = strlen(p_time);
+	iov[2].iov_base = blank_str;
+	iov[2].iov_len = strlen(blank_str);
 
 	for( i = 0; i < 10; i++ ) {
-		iov[i + 2].iov_base = bd_data->gps_regs[i].str;
-		iov[i + 2].iov_len = strlen(bd_data->gps_regs[i].str);
+		iov[i + 3].iov_base = bd_data->gps_regs[i].str;
+		iov[i + 3].iov_len = strlen(bd_data->gps_regs[i].str);
 	}
 
-	iov[12].iov_base = blank_str;
-	iov[12].iov_len = strlen(blank_str);
+	iov[13].iov_base = blank_str;
+	iov[13].iov_len = strlen(blank_str);
 
 	i = writev(pfd->fd, iov, iov_length);
 
@@ -194,12 +197,22 @@ static int rs232_dump_gps_banner(bd_data_t *bd_data)
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
 	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
 
+	/* make banner */
 	rs232_open_dump_file(bd_data);
 	write(dfd->fd, header_string, strlen(header_string));
 
 	/* flush it */
 	comm_64 = RS232_DUMP_DATA ;
 	res = write(pfd->fd, &comm_64, sizeof(uint64_t));
+
+	/* write banner size */
+	lseek(dfd->fd, (off_t)0, SEEK_SET);
+	off_t size_dump = lseek(dfd->fd, (off_t)0, SEEK_END);
+	
+	lseek(dfd->fd, (off_t)2, SEEK_SET);		// skip ## at start of the first line
+	write(dfd->fd, (uint32_t *)&size_dump, 4);
+
+	lseek(dfd->fd, (off_t)0, SEEK_END);		// set ptr to end of the file 
 
 	return 0;
 }
@@ -234,6 +247,7 @@ int rs232_dump_gps_text(bd_data_t *bd_data)
 	
 	char		str_i_q[255] = {};
 
+	snprintf((char *)bd_data->dump_file, MAXLINE, "/tmp/flush.txt");
 	rs232_dump_gps_banner(bd_data);
 	
 	/* because the first data is buggy */
@@ -271,7 +285,8 @@ int rs232_dump_gps_bin(bd_data_t *bd_data)
 	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
 	
 	int 		res;
-	
+
+	snprintf((char *)bd_data->dump_file, MAXLINE, "/tmp/flush.bin");
 	rs232_dump_gps_banner(bd_data);
 	
 	/* because the first data is buggy */
@@ -292,7 +307,7 @@ int rs232_dump_gps_bin(bd_data_t *bd_data)
 
 int rs232_program_max(bd_data_t *bd_data)
 {
-	int 		res;
+	int 		res = 1;
 	uint8_t		i;
 	uint64_t	comm_64;
 

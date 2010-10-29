@@ -24,12 +24,12 @@ enum gui_server_state {
 /* get the command LEN(3):COMM:VAL */
 int gui_read_command(bd_data_t *bd_data, uint8_t num)
 {
-	int 	res;
+	int 	res = 0;
 
 	/* get size of a incomming command */
 	//res = bd_poll_read(bd_data, num, 4);
-	if( res < 0 ) 
-		return -1;
+	//if( res < 0 ) 
+	//	return -1;
 
 	/* get the comm */
 	bd_data->recv_buf[3] = '\0';
