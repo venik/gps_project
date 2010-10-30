@@ -133,7 +133,7 @@ int rs232_open_dump_file(bd_data_t *bd_data)
 
 	/* get and write current time */
 	time_t	cur_time;
-	char	banner_size[4] = "##\0\0";			// ## banner_size
+	char	banner_size[BANNER_SIZE] = {};			// # banner_size
 	char	p_time[40] = "# ";
 	char	blank_str[] = "#\n";
 
@@ -208,9 +208,16 @@ static int rs232_dump_gps_banner(bd_data_t *bd_data)
 	/* write banner size */
 	lseek(dfd->fd, (off_t)0, SEEK_SET);
 	off_t size_dump = lseek(dfd->fd, (off_t)0, SEEK_END);
-	
-	lseek(dfd->fd, (off_t)2, SEEK_SET);		// skip ## at start of the first line
-	write(dfd->fd, (uint32_t *)&size_dump, 4);
+	TRACE(0, "==> size [%d]\n", (int)size_dump);
+
+
+	lseek(dfd->fd, (off_t)0, SEEK_SET);		// skip ## at start of the first line
+
+	char	size_string[BANNER_SIZE] = "";
+	snprintf(size_string, sizeof(size_string),"# [%x]", (uint16_t)size_dump);
+	size_string[BANNER_SIZE-1] = '\n';
+
+	write(dfd->fd, (uint32_t *)&size_string, BANNER_SIZE);
 
 	lseek(dfd->fd, (off_t)0, SEEK_END);		// set ptr to end of the file 
 

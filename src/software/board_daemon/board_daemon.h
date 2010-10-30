@@ -9,6 +9,7 @@
 #define MAXLINE		255
 #define BUF_SIZE	1024*1024	// 1 Mb
 #define TIMEOUT		3000		// 3 sec
+#define	BANNER_SIZE	8		// in octets
 
 #define SECOND		1000000
 #define	MINUTE		60 * SECOND
