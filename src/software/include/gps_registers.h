@@ -2,7 +2,7 @@
 #define __GPS_REGISTERS_
 
 /* 2 bits form */
-#define GET_I1(x) ( x & 0x3 )
+#define GET_I1(x) (  x & 0x3 )
 #define GET_Q1(x) ( (x & (0x3<<2)) >> 2)
 #define GET_I2(x) ( (x & (0x3<<4)) >> 4)
 #define GET_Q2(x) ( (x & (0x3<<6)) >> 6)
@@ -22,6 +22,19 @@ typedef struct gps_reg_str_s {
 	char		str[30];
 } gps_reg_str_t;
 
+#define WRITE_BYTE_TXT(FD, BYTE, STR, RES)	\
+{						\
+	sprintf(STR, "%d\t%d\n%d\t%d\n", 	\
+		gps_value[GET_I1(BYTE)],	\
+		gps_value[GET_Q1(BYTE)],	\
+		gps_value[GET_I2(BYTE)],	\
+		gps_value[GET_Q2(BYTE)]		\
+	);					\
+						\
+	RES = write(FD, STR, strlen(STR));	\
+}
+
+#if 0
 #define GPS_FILL(GPS_REG, ADDR) 				\
 {								\
 	char	tmp_str[10] = {};				\
@@ -30,6 +43,7 @@ typedef struct gps_reg_str_s {
 	sprintf(GPS_REG->str, "# %sb 0x%08llx\n", tmp_str, GPS_REG->reg);\
 	GPS_REG->addr = ADDR;					\
 };
+#endif
 
 /* GPS - registers */ 
 typedef enum {

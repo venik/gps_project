@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
 	need_exit = 1;
 
 	/* create new threads */	
-#if 1
+#if 0 
 	res = pthread_create(&bd_data->gui_thread, NULL, gui_process, bd_data);
 	if ( res ){
 		TRACE(0, "[%s] Error; return code from pthread_create() is %d. errno: %s\n",
@@ -256,18 +256,13 @@ int main(int argc, char **argv) {
 	TRACE(0, "[%s] zero init\n", __func__);
 	bd_data->need_exit = 0;
 
-	/* we wait when threads are stop */
-	//res = pthread_cancel(bd_data->gui_thread);
-	//if ( res )
-	//	TRACE(0, "[%s] Error. Cannot cancel the gui server thread, returned [%d]. errno: %s\n",
-	//		__func__, res, strerror(errno) );
-
+#if 0 
 	res = pthread_join(bd_data->gui_thread, NULL);
 	if ( res )
 		TRACE(0, "[%s] Error. Cannot join to the gui server thread, returned [%d]. errno: %s\n",
 			__func__, res, strerror(errno) );
-
 	TRACE(0, "[%s] gui server thread successfully stopped\n", __func__);
+#endif
 
 	res = pthread_join(bd_data->rs232_thread, NULL);
 	if ( res )

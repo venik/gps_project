@@ -208,8 +208,7 @@ static int rs232_dump_gps_banner(bd_data_t *bd_data)
 	/* write banner size */
 	lseek(dfd->fd, (off_t)0, SEEK_SET);
 	off_t size_dump = lseek(dfd->fd, (off_t)0, SEEK_END);
-	TRACE(0, "==> size [%d]\n", (int)size_dump);
-
+	TRACE(9, "==> size [%d]\n", (int)size_dump);
 
 	lseek(dfd->fd, (off_t)0, SEEK_SET);		// skip ## at start of the first line
 
@@ -246,13 +245,11 @@ int rs232_dump_gps_text(bd_data_t *bd_data)
 	uint8_t		buff[1<<18] = {};
 	uint64_t	addr;
 	uint32_t	max_addr = (1<<18);
+	int 		res;
+	char		str_i_q[255] = {};
 	
 	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
 	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
-	
-	int 		res;
-	
-	char		str_i_q[255] = {};
 
 	snprintf((char *)bd_data->dump_file, MAXLINE, "/tmp/flush.txt");
 	rs232_dump_gps_banner(bd_data);
@@ -265,20 +262,59 @@ int rs232_dump_gps_text(bd_data_t *bd_data)
 		//hex2str(str, buff[addr]);
 		//TRACE(0, "=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
 
-		sprintf(str_i_q, "%d\t%d\n%d\t%d\n", 
-			gps_value[GET_I1(buff[addr])],
-			gps_value[GET_Q1(buff[addr])],
-			gps_value[GET_I2(buff[addr])],
-			gps_value[GET_Q2(buff[addr])]
-		);
-
-		write(dfd->fd, str_i_q, strlen(str_i_q));
+		WRITE_BYTE_TXT(dfd->fd, buff[addr], str_i_q, res);
 	}
 
 	rs232_dump_finish(bd_data);
 
 	return 0;
 }
+
+static int rs232_dump_gps_both(bd_data_t *bd_data)
+{
+	TRACE(0, "[%s] Start dumping \n", __func__);
+
+	uint8_t		buff[1<<18] = {};
+	uint32_t	addr;
+	uint32_t	max_addr = (1<<18);
+	int 		res;
+	
+	struct pollfd	*pfd = &bd_data->client[BOARD_FD];
+	struct pollfd	*dfd = &bd_data->client[DUMP_FD];
+
+	int	dfd_bin, dfd_txt;
+
+	/* make binary file */
+	snprintf((char *)bd_data->dump_file, MAXLINE, "/tmp/flush.bin");
+	rs232_dump_gps_banner(bd_data);
+
+	dfd_bin = dfd->fd;
+
+	/* make txt file */
+	char		str_i_q[255] = {};
+	
+	snprintf((char *)bd_data->dump_file, MAXLINE, "/tmp/flush.txt");
+	rs232_dump_gps_banner(bd_data);
+
+	dfd_txt =  dfd->fd;
+
+	int fd_dummy = open("source", (O_RDWR));
+	for(addr = 1; addr < max_addr; addr++ ) {
+		//res = read(pfd->fd, buff+addr, 1);
+		res = read(fd_dummy, buff+addr, 1);
+
+		//TRACE(0, "%02d: val [%02x]\n", (int)addr, buff[addr]);
+
+		write(dfd_bin, buff+addr, 1);
+		WRITE_BYTE_TXT(dfd_txt, buff[addr], str_i_q, res);
+	}
+
+	exit(-1);
+
+	rs232_dump_finish(bd_data);
+	return 0;
+}
+
 
 int rs232_dump_gps_bin(bd_data_t *bd_data)
 {
@@ -297,13 +333,8 @@ int rs232_dump_gps_bin(bd_data_t *bd_data)
 	rs232_dump_gps_banner(bd_data);
 	
 	/* because the first data is buggy */
-	for(addr = 1; addr < max_addr; addr++ ) {
-
+	for(addr = 1; addr < max_addr; addr++ )
 		res = read(pfd->fd, buff+addr, 1);
-
-		//hex2str(str, buff[addr]);
-		//TRACE(0, "=replay= [0x%02x]\t b[%s] addr [%06lld]\n", buff[addr], str, addr);
-	}
 	
 	write(dfd->fd, buff, sizeof(buff));
 
@@ -381,8 +412,8 @@ int rs232_work(bd_data_t *bd_data)
 	usleep(3 * SECOND);
 
 	/* get the flush */
-	bd_data->bd_dump_cb(bd_data) ;
-//	rs232_dump_gps_text(bd_data) ;
+	//bd_data->bd_dump_cb(bd_data);
+	rs232_dump_gps_both(bd_data);
 
 	return 0;
 }
