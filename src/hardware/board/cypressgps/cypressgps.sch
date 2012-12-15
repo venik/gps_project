@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2012 11 30 19 49 0)
+  (timeStamp 2012 12 14 13 59 16)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits mm)
-  (guidString "{F1BE112A-4D1E-4D3C-B637-8DAE43D436A3}")
+  (guidString "{4876C3A9-0897-46AA-81FF-411633300BAB}")
 )
 
 (library "Library_1"
@@ -2760,7 +2760,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U15" "17")
   )
   (net "I/O_141"
-    (node "U20" "10")
     (node "U15" "9")
   )
   (net "I/O_140"
@@ -3004,6 +3003,10 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (net "MAX2769_CLKOUT"
     (node "U1" "20")
     (node "U20" "16")
+  )
+  (net "MAX2769_CS"
+    (node "U1" "41")
+    (node "U20" "10")
   )
 )
 
@@ -3385,7 +3388,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (wire (line (pt 86.36 242.57) (pt 83.82 242.57) (width 0.254) (netNameRef "VCC_A") )
     )
     (port (pt 83.82 242.57) (portType LeftAngle_Sgl_Horz) (netNameRef "VCC_A") (rotation 180.0) )
-    (port (pt 83.82 250.19) (portType LeftAngle_Sgl_Horz) (netNameRef "I/O_141") (rotation 180.0) )
+    (port (pt 83.82 250.19) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_CS") (rotation 180.0) )
     (wire (line (pt 83.82 257.81) (pt 88.9 257.81) (width 0.254) (netNameRef "VCC_D") )
     )
     (port (pt 83.82 257.81) (portType LeftAngle_Sgl_Horz) (netNameRef "VCC_D") (rotation 180.0) )
@@ -3613,7 +3616,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (wire (line (pt 106.68 247.65) (pt 57.15 247.65) (width 0.254) (netNameRef "VCC_A") )
     )
     (symbol (symbolRef "R_1") (refDesRef "R7") (partNum 1) (pt 59.69 245.11) )
-    (wire (line (pt 83.82 250.19) (pt 106.68 250.19) (width 0.254) (netNameRef "I/O_141") )
+    (wire (line (pt 83.82 250.19) (pt 106.68 250.19) (width 0.254) (netNameRef "MAX2769_CS") )
     )
     (wire (line (pt 83.82 255.27) (pt 106.68 255.27) (width 0.254) (netNameRef "MAX2769_SDA") )
     )
@@ -3852,6 +3855,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (port (pt 195.58 292.1) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (port (pt 195.58 294.64) (portType LeftAngle_Sgl_Horz) (netNameRef "GND") )
+    (port (pt 193.04 309.88) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_CS") )
     (port (pt 193.04 332.74) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (port (pt 193.04 330.2) (portType LeftAngle_Sgl_Horz) (netNameRef "RESET_PROC") )
     (wire (line (pt 241.3 375.92) (pt 246.38 375.92) (width 0.254) (netNameRef "GND") )
@@ -3980,6 +3984,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (wire (line (pt 185.42 292.1) (pt 195.58 292.1) (width 0.254) (netNameRef "3.3V") )
     )
     (wire (line (pt 185.42 294.64) (pt 195.58 294.64) (width 0.254) (netNameRef "GND") )
+    )
+    (wire (line (pt 185.42 309.88) (pt 193.04 309.88) (width 0.254) (netNameRef "MAX2769_CS") )
     )
     (wire (line (pt 185.42 332.74) (pt 193.04 332.74) (width 0.254) (netNameRef "3.3V") )
     )
