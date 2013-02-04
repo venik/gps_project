@@ -1,9 +1,9 @@
-ACCEL_ASCII "C:\projects\gps_project\src\hardware\board\cypressgps\cypressgps.pcb"
+ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.pcb"
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 2 2 0 30 23)
-  (program "P-CAD 2002 PCB TRIAL VERSION - 27 days left" "17.00.50")
+  (timeStamp 2013 2 4 4 17 56)
+  (program "P-CAD 2002 PCB TRIAL VERSION - 1244388 days left" "17.00.50")
   (copyright "Copyright © 1991-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
@@ -3932,9 +3932,9 @@ ACCEL_ASCII "C:\projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
   (pcbDesignHeader 
     (workspaceSize 150.0 100.0)
     (gridDfns 
-      (grid "0.635mm")
-      (grid "0.25mm")
       (grid "0.0381mm")
+      (grid "0.25mm")
+      (grid "0.635mm")
       (grid "2.54mm")
     )
     (designInfo 
@@ -4417,8 +4417,8 @@ ACCEL_ASCII "C:\projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
       (patternGraphicsRef 
         (patternGraphicsNameRef "Primary")
         (attr "Type" "C0603" (pt -0.889 1.016) (rotation 180.0) (justify Center) (textStyleRef "H50W5") )
-        (attr "Value" "0.1" (pt -0.762 0.0) (rotation 180.0) (isVisible True) (justify Center) (textStyleRef "H30W3") )
         (attr "RefDes" "C7" (pt -0.889 -1.397) (isVisible True) (justify Center) (textStyleRef "H50W5") )
+        (attr "Value" "0.1" (pt -0.762 0.0) (rotation 180.0) (isVisible True) (justify Center) (textStyleRef "H30W3") )
       )
     )
     (pattern (patternRef "C_SMD0603_1") (refDesRef "C1") (pt 44.45 64.135) (patternGraphicsNameRef "Primary")
@@ -4433,8 +4433,8 @@ ACCEL_ASCII "C:\projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
       (patternGraphicsRef 
         (patternGraphicsNameRef "Primary")
         (attr "Type" "C0603" (pt -0.889 1.016) (rotation 180.0) (justify Center) (textStyleRef "H50W5") )
-        (attr "Value" "0.1" (pt -0.762 0.0) (rotation 180.0) (isVisible True) (justify Center) (textStyleRef "H30W3") )
         (attr "RefDes" "C6" (pt -0.889 -1.397) (isVisible True) (justify Center) (textStyleRef "H50W5") )
+        (attr "Value" "0.1" (pt -0.762 0.0) (rotation 180.0) (isVisible True) (justify Center) (textStyleRef "H30W3") )
       )
     )
     (via (viaStyleRef "rezonit_05") (pt 83.81 6.11) (netNameRef "GND") )
