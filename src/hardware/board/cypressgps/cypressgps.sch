@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 2 19 9 27 47)
+  (timeStamp 2013 2 20 5 37 35)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
@@ -2926,11 +2926,11 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "D1" "0")
   )
   (net "MAX2769_SDA"
-    (node "U1" "41")
+    (node "U1" "40")
     (node "U20" "8")
   )
   (net "MAX2769_SCL"
-    (node "U1" "40")
+    (node "U1" "41")
     (node "U20" "9")
   )
   (net "MAX2769_I0"
@@ -3772,8 +3772,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (port (pt 195.58 292.1) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (port (pt 195.58 294.64) (portType LeftAngle_Sgl_Horz) (netNameRef "GND") )
-    (port (pt 195.58 307.34) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_SCL") )
-    (port (pt 195.58 309.88) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_SDA") )
+    (port (pt 195.58 307.34) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_SDA") )
+    (port (pt 195.58 309.88) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_SCL") )
     (port (pt 195.58 314.96) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_CS") )
     (port (pt 193.04 332.74) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (port (pt 193.04 330.2) (portType LeftAngle_Sgl_Horz) (netNameRef "RESET_PROC") )
@@ -3895,9 +3895,9 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (wire (line (pt 185.42 294.64) (pt 195.58 294.64) (width 0.254) (netNameRef "GND") )
     )
-    (wire (line (pt 185.42 307.34) (pt 195.58 307.34) (width 0.254) (netNameRef "MAX2769_SCL") )
+    (wire (line (pt 185.42 309.88) (pt 195.58 309.88) (width 0.254) (netNameRef "MAX2769_SCL") )
     )
-    (wire (line (pt 185.42 309.88) (pt 195.58 309.88) (width 0.254) (netNameRef "MAX2769_SDA") )
+    (wire (line (pt 185.42 307.34) (pt 195.58 307.34) (width 0.254) (netNameRef "MAX2769_SDA") )
     )
     (wire (line (pt 185.42 314.96) (pt 195.58 314.96) (width 0.254) (netNameRef "MAX2769_CS") )
     )
