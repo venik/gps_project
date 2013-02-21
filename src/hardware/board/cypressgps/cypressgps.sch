@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 2 20 5 37 35)
+  (timeStamp 2013 2 21 9 55 53)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits mm)
-  (guidString "{E9D6F5A9-33AE-4F4A-A538-DCB86F8C3890}")
+  (guidString "{E961D2DF-D77D-46C9-AB57-15750722C306}")
 )
 
 (library "Library_1"
@@ -2934,11 +2934,11 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U20" "9")
   )
   (net "MAX2769_I0"
-    (node "U1" "25")
+    (node "U1" "26")
     (node "U20" "20")
   )
   (net "MAX2769_I1"
-    (node "U1" "26")
+    (node "U1" "25")
     (node "U20" "21")
   )
   (net "MAX2769_Q0"
@@ -3019,7 +3019,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       ) 
     ) 
   )
-  (sheet "Sheet1" (sheetNum 1)
+  (sheet "MAX2769" (sheetNum 1)
     (fieldSetRef "(Default)")
     (wire (line (pt 33.02 273.05) (pt 36.83 273.05) (width 0.254) (netNameRef "GND") )
     )
@@ -3744,9 +3744,9 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (wire (line (pt 127.0 279.4) (pt 137.16 279.4) (width 0.254) (netNameRef "MAX2769_Q1") )
     )
-    (wire (line (pt 127.0 287.02) (pt 137.16 287.02) (width 0.254) (netNameRef "MAX2769_I0") )
+    (wire (line (pt 127.0 287.02) (pt 137.16 287.02) (width 0.254) (netNameRef "MAX2769_I1") )
     )
-    (wire (line (pt 127.0 284.48) (pt 137.16 284.48) (width 0.254) (netNameRef "MAX2769_I1") )
+    (wire (line (pt 127.0 284.48) (pt 137.16 284.48) (width 0.254) (netNameRef "MAX2769_I0") )
     )
     (wire (line (pt 127.0 294.64) (pt 137.16 294.64) (width 0.254) (netNameRef "NET00004") )
     )
@@ -3867,8 +3867,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (wire (line (pt 30.48 254.0) (pt 43.18 254.0) (width 0.254) (netNameRef "RESET_PROC") )
     )
     (port (pt 127.0 279.4) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_Q1") (rotation 180.0) )
-    (port (pt 127.0 287.02) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_I0") (rotation 180.0) )
-    (port (pt 127.0 284.48) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_I1") (rotation 180.0) )
+    (port (pt 127.0 287.02) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_I1") (rotation 180.0) )
+    (port (pt 127.0 284.48) (portType LeftAngle_Sgl_Horz) (netNameRef "MAX2769_I0") (rotation 180.0) )
     (symbol (symbolRef "R_1") (refDesRef "R8") (partNum 1) (pt 127.0 294.64) (rotation 180.0) 
       (attr "Type" "" (pt -7.62 0.0) (rotation 180.0) (justify Center) (textStyleRef "small") )
       (attr "RefDes" "" (pt -7.62 0.0) (rotation 180.0) (isVisible True) (justify LowerCenter) (textStyleRef "tiny") )
@@ -3953,7 +3953,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
   (programState 
     (layerState 
-      (currentLayer (layerNumRef 2))
+      (currentLayer (layerNumRef 1))
     )
     (gridState 
       (currentAbsGrid "2.54mm")
