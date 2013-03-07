@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 2 27 7 31 0)
+  (timeStamp 2013 3 7 7 55 39)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
