@@ -2,7 +2,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 3 29 7 53 41)
+  (timeStamp 2013 4 17 10 21 12)
   (program "P-CAD 2002 PCB TRIAL VERSION - 1244388 days left" "17.00.50")
   (copyright "Copyright © 1991-2002 Altium Limited")
   (fileAuthor "")
@@ -3536,14 +3536,14 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
     (originalName "WIRE_PAD")
     (compValue "5v")
   )
+  (compInst "J4"
+    (compRef "SMA_J_1")
+    (originalName "SMA_J")
+  )
   (compInst "R2"
     (compRef "R0603_1")
     (originalName "R0603")
     (compValue "300")
-  )
-  (compInst "J4"
-    (compRef "SMA_J_1")
-    (originalName "SMA_J")
   )
   (compInst "R3"
     (compRef "RSMD0805_1")
@@ -3565,15 +3565,15 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
     (originalName "R0603")
     (compValue "20k")
   )
-  (compInst "R4"
-    (compRef "R0603_1")
-    (originalName "R0603")
-    (compValue "3.3")
-  )
   (compInst "U39"
     (compRef "WIRE_PAD_1")
     (originalName "WIRE_PAD")
     (compValue "VCC_D")
+  )
+  (compInst "R4"
+    (compRef "R0603_1")
+    (originalName "R0603")
+    (compValue "3.3")
   )
   (compInst "R5"
     (compRef "RSMD0805_1")
@@ -3988,10 +3988,10 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.pc
   (pcbDesignHeader 
     (workspaceSize 150.0 100.0)
     (gridDfns (relOrigin (pt 0.06 0.1) )
-      (grid "0.0381mm")
-      (grid "0.25mm")
-      (grid "0.3175mm")
       (grid "0.635mm")
+      (grid "0.3175mm")
+      (grid "0.25mm")
+      (grid "0.0381mm")
       (grid "2.54mm")
     )
     (designInfo 

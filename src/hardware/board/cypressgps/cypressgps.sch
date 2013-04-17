@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 3 29 7 45 26)
+  (timeStamp 2013 4 17 9 35 26)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits mm)
-  (guidString "{C715A162-3646-4EF9-B341-F457EDA2E67F}")
+  (guidString "{9ECF6413-389E-487D-BE98-E9FD26D36243}")
 )
 
 (library "Library_1"
@@ -2602,7 +2602,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "R20"
     (compRef "R0603_2")
     (originalName "R0603")
-    (compValue "10k")
+    (compValue "3.3k")
     (patternName "R_SMD0603")
   )
   (net "GND"
@@ -3976,9 +3976,9 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (port (pt 255.27 266.7) (portType LeftAngle_Sgl_Horz) (netNameRef "GND") )
     (wire (line (pt 255.27 266.7) (pt 251.46 266.7) (width 0.254) (netNameRef "GND") )
     )
-    (junction (pt 266.7 327.66) (netNameRef "GND") )
     (wire (line (pt 266.7 327.66) (pt 266.7 325.12) (width 0.254) (netNameRef "GND") )
     )
+    (junction (pt 266.7 327.66) (netNameRef "GND") )
     (symbol (symbolRef "C_1") (refDesRef "C2") (partNum 1) (pt 259.08 375.92) (rotation 90.0) 
       (attr "Value" "" (pt 0.0 5.334) (rotation 90.0) (isVisible True) (textStyleRef "tiny") )
       (attr "RefDes" "" (pt 0.0 4.826) (rotation 90.0) (isVisible True) (justify LowerRight) (textStyleRef "tiny") )
@@ -4209,14 +4209,13 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   )
 
   (reportSettings 
-    (reportStyle reportStyleAccel)
+    (reportStyle reportStyleComma)
     (reportDestination DestinationScreen)
     (pt 0.0 0.0) 
     (reportDefinitions 
       (reportDefinition 
         (reportName "Attributes")
         (reportExtension "atr")
-        (reportShowFlag True)
         (reportType ReportTypeAttributes)
         (reportLinesPerPage 70)
         (reportColumnWidth 20)
@@ -4322,7 +4321,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       (reportDefinition 
         (reportName "Global Nets")
         (reportExtension "gnr")
-        (reportShowFlag True)
         (reportType ReportTypeGlobalNets)
         (reportLinesPerPage 62)
         (reportColumnWidth 15)
@@ -4354,7 +4352,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       (reportDefinition 
         (reportName "Last Used RefDes")
         (reportExtension "lud")
-        (reportShowFlag True)
         (reportType ReportTypeLastRefdes)
         (reportLinesPerPage 62)
         (reportColumnWidth 15)
@@ -4386,7 +4383,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       (reportDefinition 
         (reportName "Library Contents")
         (reportExtension "lct")
-        (reportShowFlag True)
         (reportType ReportTypeLibrary)
         (reportLinesPerPage 62)
         (reportColumnWidth 15)
@@ -4398,7 +4394,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       (reportDefinition 
         (reportName "Parts Locations")
         (reportExtension "plc")
-        (reportShowFlag True)
         (reportType ReportTypePartsLocations)
         (reportLinesPerPage 62)
         (reportColumnWidth 15)
@@ -4454,7 +4449,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
       (reportDefinition 
         (reportName "Parts Usage")
         (reportExtension "ptu")
-        (reportShowFlag True)
         (reportType ReportTypePartsUsage)
         (reportLinesPerPage 62)
         (reportColumnWidth 15)
