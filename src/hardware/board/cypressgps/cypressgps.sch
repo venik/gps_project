@@ -2,13 +2,13 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
 
 (asciiHeader 
   (asciiVersion 3 0)
-  (timeStamp 2013 4 17 9 35 26)
+  (timeStamp 2013 4 22 10 30 27)
   (program "P-CAD 2002 Schematic TRIAL VERSION - 1244220 days left" "17.00.50")
   (copyright "Copyright © 1992-2002 Altium Limited")
   (fileAuthor "")
   (headerString "")
   (fileUnits mm)
-  (guidString "{9ECF6413-389E-487D-BE98-E9FD26D36243}")
+  (guidString "{2FE89AF4-E1FE-4C19-B543-10B5F971D8DE}")
 )
 
 (library "Library_1"
@@ -1935,7 +1935,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C50"
     (compRef "C0603_1")
     (originalName "C0603")
-    (compValue "0.47n")
+    (compValue "470 pF")
     (patternName "C_SMD0603")
   )
   (compInst "C49"
@@ -2031,7 +2031,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C44"
     (compRef "C0603_1")
     (originalName "C0603")
-    (compValue "0.47nF")
+    (compValue "470pF")
     (patternName "C_SMD0603")
   )
   (compInst "C64"
@@ -2049,7 +2049,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C62"
     (compRef "CSMD0805_1")
     (originalName "CSMD0805")
-    (compValue "0.47nF")
+    (compValue "470pF")
     (patternName "C_SMD0805")
   )
   (compInst "C63"
@@ -2067,7 +2067,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C57"
     (compRef "CSMD0805_2")
     (originalName "CSMD0805")
-    (compValue "0.01")
+    (compValue "0.01uF")
     (patternName "C_SMD0805")
   )
   (compInst "C60"
@@ -2079,7 +2079,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C66"
     (compRef "C0603_1")
     (originalName "C0603")
-    (compValue "100nF")
+    (compValue "0.1u")
     (patternName "C_SMD0603")
   )
   (compInst "C68"
@@ -2127,7 +2127,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
   (compInst "C65"
     (compRef "CSMD0805_1")
     (originalName "CSMD0805")
-    (compValue "10nF")
+    (compValue "0.01uF")
     (patternName "C_SMD0805")
   )
   (compInst "C48"
@@ -2356,17 +2356,11 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (compValue "PD2")
     (patternName "WIRE_PAD")
   )
-  (compInst "U8"
-    (compRef "WIRE_PAD_2")
-    (originalName "WIRE_PAD")
-    (compValue "PD1")
-    (patternName "WIRE_PAD")
-  )
-  (compInst "U9"
-    (compRef "WIRE_PAD_2")
-    (originalName "WIRE_PAD")
-    (compValue "PD0")
-    (patternName "WIRE_PAD")
+  (compInst "R21"
+    (compRef "R0603_2")
+    (originalName "R0603")
+    (compValue "3.3k")
+    (patternName "R_SMD0603")
   )
   (compInst "U10"
     (compRef "WIRE_PAD_2")
@@ -2600,13 +2594,16 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (patternName "D_SMD1206")
   )
   (compInst "R20"
-    (compRef "R0603_2")
-    (originalName "R0603")
+    (compRef "RSMD0805_2")
+    (originalName "RSMD0805")
     (compValue "3.3k")
-    (patternName "R_SMD0603")
+    (patternName "R_SMD0805")
   )
   (net "GND"
     (node "R20" "1")
+    (node "C57" "2")
+    (node "C50" "1")
+    (node "C66" "2")
     (node "C11" "2")
     (node "C12" "2")
     (node "U3" "1")
@@ -2665,13 +2662,11 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U13" "2")
     (node "D3" "2")
     (node "C60" "2")
-    (node "C66" "2")
     (node "C45" "1")
     (node "C47" "1")
     (node "C64" "2")
     (node "C46" "1")
     (node "C48" "1")
-    (node "C57" "2")
     (node "C43" "2")
     (node "C69" "2")
     (node "C61" "2")
@@ -2679,7 +2674,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "C53" "1")
     (node "C52" "1")
     (node "C49" "1")
-    (node "C50" "1")
   )
   (net "5V"
     (node "U18" "3")
@@ -2698,20 +2692,20 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "R9" "1")
   )
   (net "NET00050"
-    (node "U20" "2")
     (node "C44" "2")
+    (node "U20" "2")
   )
   (net "NET00051"
-    (node "U20" "5")
     (node "C44" "1")
+    (node "U20" "5")
   )
   (net "NET00052"
     (node "U20" "7")
     (node "R4" "2")
   )
   (net "NET00058"
-    (node "R7" "1")
     (node "C50" "2")
+    (node "R7" "1")
   )
   (net "NET00056"
     (node "U20" "12")
@@ -2719,24 +2713,24 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "C49" "2")
   )
   (net "NET00054"
-    (node "U20" "27")
     (node "C62" "1")
+    (node "U20" "27")
   )
   (net "NET00055"
     (node "U20" "24")
     (node "R11" "1")
   )
   (net "NET00036"
-    (node "U20" "15")
     (node "C65" "2")
+    (node "U20" "15")
   )
   (net "NET00075"
-    (node "U13" "3")
     (node "C65" "1")
+    (node "U13" "3")
   )
   (net "NET00062"
-    (node "J3" "1")
     (node "C62" "2")
+    (node "J3" "1")
   )
   (net "NET00063"
     (node "U20" "25")
@@ -2761,6 +2755,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U20" "26")
   )
   (net "VCC_D"
+    (node "C57" "1")
     (node "R6" "2")
     (node "U28" "0")
     (node "U29" "0")
@@ -2780,7 +2775,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U13" "4")
     (node "C60" "1")
     (node "C64" "1")
-    (node "C57" "1")
     (node "C69" "1")
     (node "C61" "1")
   )
@@ -2808,8 +2802,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "C52" "2")
   )
   (net "NET00049"
-    (node "U20" "22")
     (node "C66" "1")
+    (node "U20" "22")
   )
   (net "NET00061"
     (node "U18" "1")
@@ -2830,6 +2824,7 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U1" "16")
   )
   (net "3.3V"
+    (node "R21" "2")
     (node "R1" "2")
     (node "R17" "2")
     (node "R14" "2")
@@ -2934,12 +2929,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (node "U1" "54")
   )
   (net "NET00011"
-    (node "U8" "0")
-    (node "U1" "53")
-  )
-  (net "NET00012"
-    (node "U9" "0")
-    (node "U1" "52")
+    (node "R21" "1")
+    (node "U1" "51")
   )
   (net "NET00013"
     (node "U10" "0")
@@ -3648,9 +3639,9 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (wire (line (pt 195.58 265.43) (pt 184.15 265.43) (width 0.254) (netNameRef "NET00064") )
     )
     (port (pt 186.69 273.05) (portType LeftAngle_Sgl_Horz) (netNameRef "GND") )
-    (symbol (symbolRef "C_1") (refDesRef "C62") (partNum 1) (pt 147.32 270.51) )
     (wire (line (pt 142.24 267.97) (pt 166.37 267.97) (width 0.254) (netNameRef "NET00026") )
     )
+    (symbol (symbolRef "C_1") (refDesRef "C62") (partNum 1) (pt 147.32 270.51) )
     (port (pt 186.69 276.86) (portType LeftAngle_Sgl_Horz) (netNameRef "VCC_D") )
     (wire (line (pt 162.56 283.21) (pt 199.39 283.21) (width 0.254) (netNameRef "NET00062") )
     )
@@ -3744,11 +3735,11 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (wire (line (pt 193.04 342.9) (pt 193.04 355.6) (width 0.254) (netNameRef "NET00010") )
     )
-    (wire (line (pt 195.58 340.36) (pt 195.58 347.98) (width 0.254) (netNameRef "NET00011") )
-    )
     (wire (line (pt 207.01 320.04) (pt 210.82 320.04) (width 0.254) (netNameRef "GND") )
     )
     (wire (line (pt 207.01 312.42) (pt 210.82 312.42) (width 0.254) (netNameRef "3.3V") )
+    )
+    (wire (line (pt 207.01 335.28) (pt 210.82 335.28) (width 0.254) (netNameRef "3.3V") )
     )
     (wire (line (pt 246.38 330.2) (pt 246.38 327.66) (width 0.254) (netNameRef "GND") )
     )
@@ -3867,12 +3858,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (symbol (symbolRef "R_1") (refDesRef "R14") (partNum 1) (pt 191.77 322.58) )
     (port (pt 193.04 332.74) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (port (pt 193.04 330.2) (portType LeftAngle_Sgl_Horz) (netNameRef "RESET_PROC") )
-    (wire (line (pt 198.12 337.82) (pt 198.12 340.36) (width 0.254) (netNameRef "NET00012") )
-    )
-    (wire (line (pt 198.12 340.36) (pt 213.36 340.36) (width 0.254) (netNameRef "NET00012") )
-    )
-    (wire (line (pt 195.58 347.98) (pt 213.36 347.98) (width 0.254) (netNameRef "NET00011") )
-    )
     (wire (line (pt 193.04 355.6) (pt 213.36 355.6) (width 0.254) (netNameRef "NET00010") )
     )
     (wire (line (pt 190.5 363.22) (pt 213.36 363.22) (width 0.254) (netNameRef "NET00009") )
@@ -3966,6 +3951,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (port (pt 210.82 312.42) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (symbol (symbolRef "R_1") (refDesRef "R15") (partNum 1) (pt 191.77 320.04) )
     (symbol (symbolRef "R_1") (refDesRef "R17") (partNum 1) (pt 191.77 312.42) )
+    (symbol (symbolRef "R_1") (refDesRef "R21") (partNum 1) (pt 191.77 335.28) )
+    (port (pt 210.82 335.28) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") )
     (wire (line (pt 190.5 345.44) (pt 190.5 363.22) (width 0.254) (netNameRef "NET00009") )
     )
     (wire (line (pt 231.14 266.7) (pt 220.98 266.7) (width 0.254) (netNameRef "NET00025") )
@@ -4068,10 +4055,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (wire (line (pt 193.04 330.2) (pt 185.42 330.2) (width 0.254) (netNameRef "RESET_PROC") )
     )
-    (wire (line (pt 185.42 340.36) (pt 195.58 340.36) (width 0.254) (netNameRef "NET00011") )
-    )
-    (wire (line (pt 185.42 337.82) (pt 198.12 337.82) (width 0.254) (netNameRef "NET00012") )
-    )
     (wire (line (pt 185.42 345.44) (pt 190.5 345.44) (width 0.254) (netNameRef "NET00009") )
     )
     (port (pt 248.92 386.08) (portType LeftAngle_Sgl_Horz) (netNameRef "3.3V") (rotation 180.0) )
@@ -4134,6 +4117,8 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     )
     (wire (line (pt 185.42 312.42) (pt 191.77 312.42) (width 0.254) (netNameRef "NET00023") )
     )
+    (wire (line (pt 185.42 335.28) (pt 191.77 335.28) (width 0.254) (netNameRef "NET00011") )
+    )
     (wire (line (pt 185.42 342.9) (pt 193.04 342.9) (width 0.254) (netNameRef "NET00010") )
     )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U6") (partNum 1) (pt 220.98 363.22) 
@@ -4143,10 +4128,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U7") (partNum 1) (pt 220.98 355.6) 
       (attr "Value" "" (pt 7.62 2.54) (isVisible True) (justify Center) (textStyleRef "(Default)") )
       (attr "RefDes" "" (pt 7.62 0.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
-    )
-    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U8") (partNum 1) (pt 220.98 347.98) 
-      (attr "RefDes" "" (pt 7.62 0.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
-      (attr "Value" "" (pt 7.62 2.54) (isVisible True) (justify Center) (textStyleRef "(Default)") )
     )
     (wire (line (pt 300.99 266.7) (pt 308.61 266.7) (width 0.254) (netNameRef "GND") )
     )
@@ -4165,10 +4146,6 @@ ACCEL_ASCII "C:\Projects\gps_project\src\hardware\board\cypressgps\cypressgps.sc
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U2") (partNum 1) (pt 220.98 370.84) 
       (attr "RefDes" "" (pt 7.62 -2.54) (isVisible True) (justify Center) (textStyleRef "(Default)") )
       (attr "Value" "" (pt 7.62 0.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
-    )
-    (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U9") (partNum 1) (pt 220.98 340.36) 
-      (attr "Value" "" (pt 7.62 2.54) (isVisible True) (justify Center) (textStyleRef "(Default)") )
-      (attr "RefDes" "" (pt 7.62 0.0) (isVisible True) (justify Center) (textStyleRef "(Default)") )
     )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U25") (partNum 1) (pt 316.23 276.86) )
     (symbol (symbolRef "WIRE_PAD_SYM_1") (refDesRef "U17") (partNum 1) (pt 316.23 307.34) )
